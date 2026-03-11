@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>治则与治法 · 中医基础理论</title>
+<link rel="stylesheet" href="../assets/css/base.css">
+<style>
+.mod-hero{padding:100px 0 60px;}
+.mh-num{font-size:11px;letter-spacing:4px;color:var(--gold);font-family:'Noto Sans SC',sans-serif;font-weight:300;margin-bottom:14px;display:block;}
+.mh-title{font-size:clamp(32px,5vw,60px);font-weight:900;letter-spacing:8px;margin-bottom:16px;line-height:1.2;}
+.mh-title em{font-style:normal;color:var(--gold2);}
+.mh-lead{font-size:14px;line-height:2.2;color:var(--text2);font-family:'Noto Sans SC',sans-serif;font-weight:300;max-width:560px;}
+.topics-sections{margin-top:60px;}
+.topic-block{margin-bottom:48px;padding-bottom:48px;border-bottom:1px solid rgba(201,150,10,0.08);}
+.topic-block:last-child{border-bottom:none;}
+.tb-header{display:flex;align-items:baseline;gap:16px;margin-bottom:20px;}
+.tb-num{font-size:11px;letter-spacing:3px;color:var(--gold);font-family:'Noto Sans SC',sans-serif;}
+.tb-title{font-size:22px;font-weight:700;letter-spacing:4px;color:var(--text);}
+.tb-sub{font-size:12px;color:var(--text3);font-family:'Noto Sans SC',sans-serif;}
+.tb-body{font-size:14px;line-height:2.3;color:var(--text2);font-family:'Noto Sans SC',sans-serif;font-weight:300;margin-bottom:20px;}
+.tb-pills{display:flex;flex-wrap:wrap;gap:8px;}
+.tb-pill{font-size:12px;font-family:'Noto Sans SC',sans-serif;padding:5px 14px;border-radius:20px;background:var(--surface2);color:var(--text2);border:1px solid rgba(201,150,10,0.1);}
+.page-nav{display:flex;justify-content:space-between;align-items:center;padding:48px 0 0;border-top:1px solid rgba(201,150,10,0.1);margin-top:20px;}
+.pn-btn{display:flex;align-items:center;gap:10px;padding:14px 24px;border:1px solid rgba(201,150,10,0.2);border-radius:4px;color:#b8a888;text-decoration:none;font-size:13px;font-family:'Noto Sans SC',sans-serif;letter-spacing:1.5px;transition:all 0.3s;}
+.pn-btn:hover{border-color:var(--gold);color:var(--gold2);background:rgba(201,150,10,0.12);}
+.pn-center{font-size:12px;color:#7a6a50;letter-spacing:2px;font-family:'Noto Sans SC',sans-serif;text-decoration:none;}
+</style>
+</head>
+<body>
+<nav class="topnav" style="position:fixed;top:0;left:0;right:0;height:56px;background:rgba(13,10,6,0.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(201,150,10,0.2);display:flex;align-items:center;padding:0 32px;z-index:1000;">
+  <a href="../index.html" style="font-size:18px;font-weight:700;letter-spacing:4px;color:#e8b84b;text-decoration:none;margin-right:40px;white-space:nowrap;flex-shrink:0;">中医</a>
+  <div style="display:flex;align-items:center;gap:4px;flex:1;overflow-x:auto;scrollbar-width:none;">
+    <a href="../index.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">首页</a>
+    <a href="../overview.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">知识框架</a>
+    <div style="width:1px;height:16px;background:rgba(201,150,10,0.2);margin:0 8px;flex-shrink:0;"></div>
+    <a href="01-yinyang.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">阴阳五行</a>
+    <a href="02-zangxiang.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">藏象学说</a>
+    <a href="03-jingqi.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">精气血津液</a>
+    <a href="04-jingluo.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">经络学说</a>
+    <a href="05-bingyin.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">病因病机</a>
+    <a href="06-sizheng.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">四诊辨证</a>
+    <a href="07-zhize.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">治则治法</a>
+  </div>
+</nav>
+<div class="page-wrap">
+<div style="position:relative;z-index:1;display:flex;align-items:center;gap:8px;padding:68px 32px 0;font-size:12px;font-family:'Noto Sans SC',sans-serif;color:#7a6a50;letter-spacing:1px;">
+  <a href="../index.html" style="color:#7a6a50;text-decoration:none;">首页</a><span>›</span>
+  <a href="../overview.html" style="color:#7a6a50;text-decoration:none;">知识框架</a><span>›</span>
+  <span style="color:#c9960a;">第7章 · 治则与治法</span>
+</div>
+<div class="container">
+  <div class="mod-hero reveal">
+    <span class="mh-num">第7章 · CHAPTER SEVEN</span>
+    <h1 class="mh-title"><em>治则与治法</em></h1>
+    <div class="mh-lead">治疗原则 · 八法 · 预防养生</div>
+  </div>
+  <div class="section topics-sections">
+    <div class="topic-block">
+      <div class="tb-header">
+        <span class="tb-num">TOPIC 01</span>
+        <div>
+          <div class="tb-title">治疗总则</div>
+          <div class="tb-sub">治病求本·扶正祛邪</div>
+        </div>
+      </div>
+      <div class="tb-body">中医治疗的总原则是「治病求本」——针对疾病的根本原因进行治疗。正治法（逆治法）是最常用的治则：寒者热之、热者寒之、虚者补之、实者泻之。反治法（从治法）用于假象：寒因寒用、热因热用、通因通用、塞因塞用。</div>
+      <div class="tb-pills"><span class="tb-pill">治病求本</span><span class="tb-pill">正治（逆治）</span><span class="tb-pill">反治（从治）</span><span class="tb-pill">急则治标</span><span class="tb-pill">缓则治本</span><span class="tb-pill">标本同治</span></div>
+    </div>
+    <div class="topic-block">
+      <div class="tb-header">
+        <span class="tb-num">TOPIC 02</span>
+        <div>
+          <div class="tb-title">扶正祛邪</div>
+          <div class="tb-sub">邪正关系与治法</div>
+        </div>
+      </div>
+      <div class="tb-body">扶正祛邪是指扶助正气、祛除病邪两类治疗方法。扶正适用于正虚为主的病证；祛邪适用于邪实为主的病证；先祛邪后扶正适用于正虚不耐攻伐之时；扶正祛邪并用适用于正虚邪实并重时。</div>
+      <div class="tb-pills"><span class="tb-pill">扶正</span><span class="tb-pill">祛邪</span><span class="tb-pill">先攻后补</span><span class="tb-pill">先补后攻</span><span class="tb-pill">攻补兼施</span></div>
+    </div>
+    <div class="topic-block">
+      <div class="tb-header">
+        <span class="tb-num">TOPIC 03</span>
+        <div>
+          <div class="tb-title">三因制宜</div>
+          <div class="tb-sub">个体化治疗思想</div>
+        </div>
+      </div>
+      <div class="tb-body">三因制宜体现了中医个体化、整体化的治疗思想：因人制宜（根据患者年龄、性别、体质）、因时制宜（根据四季气候特点）、因地制宜（根据地域环境差异）。</div>
+      <div class="tb-pills"><span class="tb-pill">因人制宜</span><span class="tb-pill">因时制宜</span><span class="tb-pill">因地制宜</span><span class="tb-pill">体质学说</span><span class="tb-pill">个体差异</span></div>
+    </div>
+    <div class="topic-block">
+      <div class="tb-header">
+        <span class="tb-num">TOPIC 04</span>
+        <div>
+          <div class="tb-title">八法</div>
+          <div class="tb-sub">汗吐下和温清消补</div>
+        </div>
+      </div>
+      <div class="tb-body">八法是中医治法的总纲，由清代程钟龄在《医学心悟》中系统总结：汗法（解表发汗）、吐法（涌吐痰食）、下法（攻下通便）、和法（和解表里）、温法（温里祛寒）、清法（清热泻火）、消法（消散积滞）、补法（补益虚损）。</div>
+      <div class="tb-pills"><span class="tb-pill">汗法（解表）</span><span class="tb-pill">吐法（涌吐）</span><span class="tb-pill">下法（攻下）</span><span class="tb-pill">和法（和解）</span><span class="tb-pill">温法（温里）</span><span class="tb-pill">清法（清热）</span><span class="tb-pill">消法（消散）</span><span class="tb-pill">补法（扶正）</span></div>
+    </div>
+    <div class="topic-block">
+      <div class="tb-header">
+        <span class="tb-num">TOPIC 05</span>
+        <div>
+          <div class="tb-title">预防养生</div>
+          <div class="tb-sub">未病先防·既病防变</div>
+        </div>
+      </div>
+      <div class="tb-body">中医强调「治未病」，包括未病先防（增强正气、避免邪气）和既病防变（早期诊治、阻止传变）。养生原则：顺应自然（春夏养阳、秋冬养阴）、形神共养、饮食调养（五味调和）、起居有常、劳逸适度。</div>
+      <div class="tb-pills"><span class="tb-pill">未病先防</span><span class="tb-pill">既病防变</span><span class="tb-pill">顺应自然</span><span class="tb-pill">形神共养</span><span class="tb-pill">饮食调养</span><span class="tb-pill">起居有常</span></div>
+    </div>
+
+  </div>
+  <div class="page-nav">
+    <a href="06-sizheng.html" class="pn-btn">← 上一章：四诊辨证</a>
+    <a href="../overview.html" class="pn-center">· 章节目录 ·</a>
+    <a href="../overview.html" class="pn-btn">回到首页 →</a>
+  </div>
+</div>
+<footer style="border-top:1px solid rgba(201,150,10,0.2);padding:32px 48px;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#7a6a50;font-family:'Noto Sans SC',sans-serif;font-weight:300;letter-spacing:1px;position:relative;z-index:1;">
+  <div style="font-size:16px;font-weight:700;letter-spacing:4px;color:#c9960a;font-family:'Noto Serif SC',serif;">中医基础理论</div>
+  <div>第7章 · 治则与治法</div>
+  <div style="display:flex;gap:24px;">
+    <a href="../index.html" style="color:#7a6a50;text-decoration:none;">首页</a>
+    <a href="../overview.html" style="color:#7a6a50;text-decoration:none;">目录</a>
+  </div>
+</footer>
+</div>
+<a href="#" id="bt" style="position:fixed;bottom:32px;right:32px;width:44px;height:44px;background:#2a2218;border:1px solid rgba(201,150,10,0.2);border-radius:50%;display:none;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:#c9960a;z-index:200;text-decoration:none;"></a>
+<script>
+const b=document.getElementById('bt');
+window.addEventListener('scroll',()=>{b.style.display=window.scrollY>400?'flex':'none';},{passive:true});
+b.addEventListener('click',(e)=>{e.preventDefault();window.scrollTo({top:0,behavior:'smooth'});});
+const obs=new IntersectionObserver((en)=>{en.forEach(e=>{if(e.isIntersecting){e.target.style.opacity='1';e.target.style.transform='none';obs.unobserve(e.target);}})},{threshold:0.08});
+document.querySelectorAll('.reveal,.topic-block').forEach((el,i)=>{el.style.opacity='0';el.style.transform='translateY(18px)';el.style.transition=`opacity 0.6s ease ${i*0.06}s,transform 0.6s ease ${i*0.06}s`;obs.observe(el);});
+</script>
+</body>
+</html>

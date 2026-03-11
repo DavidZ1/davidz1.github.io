@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>藏象学说 · 中医基础理论</title>
+<link rel="stylesheet" href="../assets/css/base.css">
+<style>
+.mod-hero{padding:100px 0 60px;}
+.mh-num{font-size:11px;letter-spacing:4px;color:var(--gold);font-family:'Noto Sans SC',sans-serif;font-weight:300;margin-bottom:14px;display:block;}
+.mh-title{font-size:clamp(32px,5vw,60px);font-weight:900;letter-spacing:8px;margin-bottom:16px;line-height:1.2;}
+.mh-title em{font-style:normal;color:var(--gold2);}
+.mh-lead{font-size:14px;line-height:2.2;color:var(--text2);font-family:'Noto Sans SC',sans-serif;font-weight:300;max-width:560px;}
+.topics-sections{margin-top:60px;}
+.topic-block{margin-bottom:48px;padding-bottom:48px;border-bottom:1px solid rgba(201,150,10,0.08);}
+.topic-block:last-child{border-bottom:none;}
+.tb-header{display:flex;align-items:baseline;gap:16px;margin-bottom:20px;}
+.tb-num{font-size:11px;letter-spacing:3px;color:var(--gold);font-family:'Noto Sans SC',sans-serif;}
+.tb-title{font-size:22px;font-weight:700;letter-spacing:4px;color:var(--text);}
+.tb-sub{font-size:12px;color:var(--text3);font-family:'Noto Sans SC',sans-serif;}
+.tb-body{font-size:14px;line-height:2.3;color:var(--text2);font-family:'Noto Sans SC',sans-serif;font-weight:300;margin-bottom:20px;}
+.tb-pills{display:flex;flex-wrap:wrap;gap:8px;}
+.tb-pill{font-size:12px;font-family:'Noto Sans SC',sans-serif;padding:5px 14px;border-radius:20px;background:var(--surface2);color:var(--text2);border:1px solid rgba(201,150,10,0.1);}
+.page-nav{display:flex;justify-content:space-between;align-items:center;padding:48px 0 0;border-top:1px solid rgba(201,150,10,0.1);margin-top:20px;}
+.pn-btn{display:flex;align-items:center;gap:10px;padding:14px 24px;border:1px solid rgba(201,150,10,0.2);border-radius:4px;color:#b8a888;text-decoration:none;font-size:13px;font-family:'Noto Sans SC',sans-serif;letter-spacing:1.5px;transition:all 0.3s;}
+.pn-btn:hover{border-color:var(--gold);color:var(--gold2);background:rgba(201,150,10,0.12);}
+.pn-center{font-size:12px;color:#7a6a50;letter-spacing:2px;font-family:'Noto Sans SC',sans-serif;text-decoration:none;}
+</style>
+</head>
+<body>
+<nav class="topnav" style="position:fixed;top:0;left:0;right:0;height:56px;background:rgba(13,10,6,0.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(201,150,10,0.2);display:flex;align-items:center;padding:0 32px;z-index:1000;">
+  <a href="../index.html" style="font-size:18px;font-weight:700;letter-spacing:4px;color:#e8b84b;text-decoration:none;margin-right:40px;white-space:nowrap;flex-shrink:0;">中医</a>
+  <div style="display:flex;align-items:center;gap:4px;flex:1;overflow-x:auto;scrollbar-width:none;">
+    <a href="../index.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">首页</a>
+    <a href="../overview.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">知识框架</a>
+    <div style="width:1px;height:16px;background:rgba(201,150,10,0.2);margin:0 8px;flex-shrink:0;"></div>
+    <a href="01-yinyang.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">阴阳五行</a>
+    <a href="02-zangxiang.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">藏象学说</a>
+    <a href="03-jingqi.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">精气血津液</a>
+    <a href="04-jingluo.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">经络学说</a>
+    <a href="05-bingyin.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">病因病机</a>
+    <a href="06-sizheng.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">四诊辨证</a>
+    <a href="07-zhize.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">治则治法</a>
+  </div>
+</nav>
+<div class="page-wrap">
+<div style="position:relative;z-index:1;display:flex;align-items:center;gap:8px;padding:68px 32px 0;font-size:12px;font-family:'Noto Sans SC',sans-serif;color:#7a6a50;letter-spacing:1px;">
+  <a href="../index.html" style="color:#7a6a50;text-decoration:none;">首页</a><span>›</span>
+  <a href="../overview.html" style="color:#7a6a50;text-decoration:none;">知识框架</a><span>›</span>
+  <span style="color:#c9960a;">第2章 · 藏象学说</span>
+</div>
+<div class="container">
+  <div class="mod-hero reveal">
+    <span class="mh-num">第2章 · CHAPTER TWO</span>
+    <h1 class="mh-title"><em>藏象学说</em></h1>
+    <div class="mh-lead">五脏六腑奇恒之腑 · 中医生理核心</div>
+  </div>
+  <div class="section topics-sections">
+    <div class="topic-block">
+      <div class="tb-header">
+        <span class="tb-num">TOPIC 01</span>
+        <div>
+          <div class="tb-title">心</div>
+          <div class="tb-sub">主血脉·藏神</div>
+        </div>
+      </div>
+      <div class="tb-body">心为君主之官，主宰全身血液循环与精神意识。心主血脉指心气推动血液在脉中运行；心藏神指心是人体生命活动的主宰，主持精神意识思维活动。</div>
+      <div class="tb-pills"><span class="tb-pill">主血脉</span><span class="tb-pill">藏神</span><span class="tb-pill">心开窍于舌</span><span class="tb-pill">其华在面</span><span class="tb-pill">汗为心之液</span></div>
+    </div>
+    <div class="topic-block">
+      <div class="tb-header">
+        <span class="tb-num">TOPIC 02</span>
+        <div>
+          <div class="tb-title">肺</div>
+          <div class="tb-sub">主气·司呼吸·通调水道</div>
+        </div>
+      </div>
+      <div class="tb-body">肺为相傅之官，主气、司呼吸。肺主气包括主呼吸之气（气体交换）和主一身之气（参与气的生成与运行）。肺通调水道指肺气宣发肃降，调节水液代谢。</div>
+      <div class="tb-pills"><span class="tb-pill">主气</span><span class="tb-pill">司呼吸</span><span class="tb-pill">通调水道</span><span class="tb-pill">朝百脉</span><span class="tb-pill">主宣发肃降</span><span class="tb-pill">开窍于鼻</span><span class="tb-pill">其华在毛</span></div>
+    </div>
+    <div class="topic-block">
+      <div class="tb-header">
+        <span class="tb-num">TOPIC 03</span>
+        <div>
+          <div class="tb-title">脾</div>
+          <div class="tb-sub">主运化·统血·后天之本</div>
+        </div>
+      </div>
+      <div class="tb-body">脾为仓廪之官，是后天之本、气血生化之源。脾主运化包括运化水谷（消化吸收）和运化水液（水液代谢）。脾统血指脾气统摄血液在脉中运行，防止出血。</div>
+      <div class="tb-pills"><span class="tb-pill">主运化</span><span class="tb-pill">主升清</span><span class="tb-pill">统血</span><span class="tb-pill">后天之本</span><span class="tb-pill">开窍于口</span><span class="tb-pill">其华在唇</span><span class="tb-pill">主四肢肌肉</span></div>
+    </div>
+    <div class="topic-block">
+      <div class="tb-header">
+        <span class="tb-num">TOPIC 04</span>
+        <div>
+          <div class="tb-title">肝</div>
+          <div class="tb-sub">主疏泄·藏血·刚脏</div>
+        </div>
+      </div>
+      <div class="tb-body">肝为将军之官，主疏泄与藏血。主疏泄指肝气疏通、调畅全身气机，包括调节情志、促进消化、调节气血津液运行、促进生殖。主藏血指肝具有储藏血液、调节血量的功能。</div>
+      <div class="tb-pills"><span class="tb-pill">主疏泄</span><span class="tb-pill">藏血</span><span class="tb-pill">主筋</span><span class="tb-pill">开窍于目</span><span class="tb-pill">其华在爪</span><span class="tb-pill">调节情志</span></div>
+    </div>
+    <div class="topic-block">
+      <div class="tb-header">
+        <span class="tb-num">TOPIC 05</span>
+        <div>
+          <div class="tb-title">肾</div>
+          <div class="tb-sub">藏精·主水·先天之本</div>
+        </div>
+      </div>
+      <div class="tb-body">肾为作强之官，是先天之本、生命之根。肾藏精包括先天之精（禀受于父母）和后天之精（水谷精微）。肾主水指肾气对水液代谢的主导作用。肾主纳气指肾有摄纳肺气的功能。</div>
+      <div class="tb-pills"><span class="tb-pill">藏精</span><span class="tb-pill">主水</span><span class="tb-pill">主纳气</span><span class="tb-pill">先天之本</span><span class="tb-pill">主骨生髓</span><span class="tb-pill">开窍于耳及二阴</span><span class="tb-pill">其华在发</span></div>
+    </div>
+    <div class="topic-block">
+      <div class="tb-header">
+        <span class="tb-num">TOPIC 06</span>
+        <div>
+          <div class="tb-title">六腑</div>
+          <div class="tb-sub">传化物而不藏·以通为用</div>
+        </div>
+      </div>
+      <div class="tb-body">六腑的共同生理特点是传化物而不藏，以通降为顺。胆主决断、储存胆汁；胃主受纳腐熟；小肠主受盛化物、泌别清浊；大肠主传化糟粕；膀胱储尿排尿；三焦通行元气、运行水液。</div>
+      <div class="tb-pills"><span class="tb-pill">胆主决断</span><span class="tb-pill">胃主受纳</span><span class="tb-pill">小肠泌别清浊</span><span class="tb-pill">大肠传化糟粕</span><span class="tb-pill">膀胱储尿</span><span class="tb-pill">三焦通行元气</span></div>
+    </div>
+
+  </div>
+  <div class="page-nav">
+    <a href="01-yinyang.html" class="pn-btn">← 上一章：阴阳五行</a>
+    <a href="../overview.html" class="pn-center">· 章节目录 ·</a>
+    <a href="03-jingqi.html" class="pn-btn">下一章：精气血津液神 →</a>
+  </div>
+</div>
+<footer style="border-top:1px solid rgba(201,150,10,0.2);padding:32px 48px;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#7a6a50;font-family:'Noto Sans SC',sans-serif;font-weight:300;letter-spacing:1px;position:relative;z-index:1;">
+  <div style="font-size:16px;font-weight:700;letter-spacing:4px;color:#c9960a;font-family:'Noto Serif SC',serif;">中医基础理论</div>
+  <div>第2章 · 藏象学说</div>
+  <div style="display:flex;gap:24px;">
+    <a href="../index.html" style="color:#7a6a50;text-decoration:none;">首页</a>
+    <a href="../overview.html" style="color:#7a6a50;text-decoration:none;">目录</a>
+  </div>
+</footer>
+</div>
+<a href="#" id="bt" style="position:fixed;bottom:32px;right:32px;width:44px;height:44px;background:#2a2218;border:1px solid rgba(201,150,10,0.2);border-radius:50%;display:none;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:#c9960a;z-index:200;text-decoration:none;"></a>
+<script>
+const b=document.getElementById('bt');
+window.addEventListener('scroll',()=>{b.style.display=window.scrollY>400?'flex':'none';},{passive:true});
+b.addEventListener('click',(e)=>{e.preventDefault();window.scrollTo({top:0,behavior:'smooth'});});
+const obs=new IntersectionObserver((en)=>{en.forEach(e=>{if(e.isIntersecting){e.target.style.opacity='1';e.target.style.transform='none';obs.unobserve(e.target);}})},{threshold:0.08});
+document.querySelectorAll('.reveal,.topic-block').forEach((el,i)=>{el.style.opacity='0';el.style.transform='translateY(18px)';el.style.transition=`opacity 0.6s ease ${i*0.06}s,transform 0.6s ease ${i*0.06}s`;obs.observe(el);});
+</script>
+</body>
+</html>

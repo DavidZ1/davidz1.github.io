@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>经络学说 · 中医基础理论</title>
+<link rel="stylesheet" href="../assets/css/base.css">
+<style>
+.mod-hero{padding:100px 0 60px;}
+.mh-num{font-size:11px;letter-spacing:4px;color:var(--gold);font-family:'Noto Sans SC',sans-serif;font-weight:300;margin-bottom:14px;display:block;}
+.mh-title{font-size:clamp(32px,5vw,60px);font-weight:900;letter-spacing:8px;margin-bottom:16px;line-height:1.2;}
+.mh-title em{font-style:normal;color:var(--gold2);}
+.mh-lead{font-size:14px;line-height:2.2;color:var(--text2);font-family:'Noto Sans SC',sans-serif;font-weight:300;max-width:560px;}
+.topics-sections{margin-top:60px;}
+.topic-block{margin-bottom:48px;padding-bottom:48px;border-bottom:1px solid rgba(201,150,10,0.08);}
+.topic-block:last-child{border-bottom:none;}
+.tb-header{display:flex;align-items:baseline;gap:16px;margin-bottom:20px;}
+.tb-num{font-size:11px;letter-spacing:3px;color:var(--gold);font-family:'Noto Sans SC',sans-serif;}
+.tb-title{font-size:22px;font-weight:700;letter-spacing:4px;color:var(--text);}
+.tb-sub{font-size:12px;color:var(--text3);font-family:'Noto Sans SC',sans-serif;}
+.tb-body{font-size:14px;line-height:2.3;color:var(--text2);font-family:'Noto Sans SC',sans-serif;font-weight:300;margin-bottom:20px;}
+.tb-pills{display:flex;flex-wrap:wrap;gap:8px;}
+.tb-pill{font-size:12px;font-family:'Noto Sans SC',sans-serif;padding:5px 14px;border-radius:20px;background:var(--surface2);color:var(--text2);border:1px solid rgba(201,150,10,0.1);}
+.page-nav{display:flex;justify-content:space-between;align-items:center;padding:48px 0 0;border-top:1px solid rgba(201,150,10,0.1);margin-top:20px;}
+.pn-btn{display:flex;align-items:center;gap:10px;padding:14px 24px;border:1px solid rgba(201,150,10,0.2);border-radius:4px;color:#b8a888;text-decoration:none;font-size:13px;font-family:'Noto Sans SC',sans-serif;letter-spacing:1.5px;transition:all 0.3s;}
+.pn-btn:hover{border-color:var(--gold);color:var(--gold2);background:rgba(201,150,10,0.12);}
+.pn-center{font-size:12px;color:#7a6a50;letter-spacing:2px;font-family:'Noto Sans SC',sans-serif;text-decoration:none;}
+</style>
+</head>
+<body>
+<nav class="topnav" style="position:fixed;top:0;left:0;right:0;height:56px;background:rgba(13,10,6,0.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(201,150,10,0.2);display:flex;align-items:center;padding:0 32px;z-index:1000;">
+  <a href="../index.html" style="font-size:18px;font-weight:700;letter-spacing:4px;color:#e8b84b;text-decoration:none;margin-right:40px;white-space:nowrap;flex-shrink:0;">中医</a>
+  <div style="display:flex;align-items:center;gap:4px;flex:1;overflow-x:auto;scrollbar-width:none;">
+    <a href="../index.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">首页</a>
+    <a href="../overview.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">知识框架</a>
+    <div style="width:1px;height:16px;background:rgba(201,150,10,0.2);margin:0 8px;flex-shrink:0;"></div>
+    <a href="01-yinyang.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">阴阳五行</a>
+    <a href="02-zangxiang.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">藏象学说</a>
+    <a href="03-jingqi.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">精气血津液</a>
+    <a href="04-jingluo.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">经络学说</a>
+    <a href="05-bingyin.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">病因病机</a>
+    <a href="06-sizheng.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">四诊辨证</a>
+    <a href="07-zhize.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">治则治法</a>
+  </div>
+</nav>
+<div class="page-wrap">
+<div style="position:relative;z-index:1;display:flex;align-items:center;gap:8px;padding:68px 32px 0;font-size:12px;font-family:'Noto Sans SC',sans-serif;color:#7a6a50;letter-spacing:1px;">
+  <a href="../index.html" style="color:#7a6a50;text-decoration:none;">首页</a><span>›</span>
+  <a href="../overview.html" style="color:#7a6a50;text-decoration:none;">知识框架</a><span>›</span>
+  <span style="color:#c9960a;">第4章 · 经络学说</span>
+</div>
+<div class="container">
+  <div class="mod-hero reveal">
+    <span class="mh-num">第4章 · CHAPTER FOUR</span>
+    <h1 class="mh-title"><em>经络学说</em></h1>
+    <div class="mh-lead">人体通道网络 · 针灸推拿理论基础</div>
+  </div>
+  <div class="section topics-sections">
+    <div class="topic-block">
+      <div class="tb-header">
+        <span class="tb-num">TOPIC 01</span>
+        <div>
+          <div class="tb-title">十二正经</div>
+          <div class="tb-sub">手足三阴三阳经</div>
+        </div>
+      </div>
+      <div class="tb-body">十二正经是经络系统的主体，包括手三阴经（肺、心包、心）、手三阳经（大肠、三焦、小肠）、足三阳经（胃、胆、膀胱）、足三阴经（脾、肝、肾）。走向规律：手之三阴从胸走手，手之三阳从手走头，足之三阳从头走足，足之三阴从足走腹。</div>
+      <div class="tb-pills"><span class="tb-pill">手太阴肺经</span><span class="tb-pill">手少阴心经</span><span class="tb-pill">手厥阴心包经</span><span class="tb-pill">足太阴脾经</span><span class="tb-pill">足少阴肾经</span><span class="tb-pill">足厥阴肝经</span><span class="tb-pill">六阳经走向</span><span class="tb-pill">经脉流注顺序</span></div>
+    </div>
+    <div class="topic-block">
+      <div class="tb-header">
+        <span class="tb-num">TOPIC 02</span>
+        <div>
+          <div class="tb-title">奇经八脉</div>
+          <div class="tb-sub">督任冲带维跷</div>
+        </div>
+      </div>
+      <div class="tb-body">奇经八脉是十二经脉之外的重要经脉，有统率、联络和调节的作用。督脉行于背部正中，为阳脉之海；任脉行于腹部正中，为阴脉之海；冲脉为血海；带脉约束诸经；四维脉（阴维、阳维、阴跷、阳跷）协调和联络各经。</div>
+      <div class="tb-pills"><span class="tb-pill">督脉（阳脉之海）</span><span class="tb-pill">任脉（阴脉之海）</span><span class="tb-pill">冲脉（血海）</span><span class="tb-pill">带脉</span><span class="tb-pill">阴阳维脉</span><span class="tb-pill">阴阳跷脉</span></div>
+    </div>
+    <div class="topic-block">
+      <div class="tb-header">
+        <span class="tb-num">TOPIC 03</span>
+        <div>
+          <div class="tb-title">络脉</div>
+          <div class="tb-sub">十五络脉与浮络孙络</div>
+        </div>
+      </div>
+      <div class="tb-body">络脉是从经脉分支出来的网状分支，有十五络脉、孙络、浮络之分。十五络脉是从十二经脉、督脉、任脉和脾大络分出的络脉，加强了表里两经之间的联系。</div>
+      <div class="tb-pills"><span class="tb-pill">十五络脉</span><span class="tb-pill">孙络</span><span class="tb-pill">浮络</span><span class="tb-pill">皮部</span><span class="tb-pill">经别</span></div>
+    </div>
+    <div class="topic-block">
+      <div class="tb-header">
+        <span class="tb-num">TOPIC 04</span>
+        <div>
+          <div class="tb-title">经络功能</div>
+          <div class="tb-sub">四大核心功能</div>
+        </div>
+      </div>
+      <div class="tb-body">经络的功能：①沟通内外上下，将人体各脏腑组织器官联系成有机整体；②运行气血，濡养脏腑组织；③感应传导，将信息传递给相关脏腑；④调节机能平衡，维持人体阴阳平衡。</div>
+      <div class="tb-pills"><span class="tb-pill">沟通联系</span><span class="tb-pill">运行气血</span><span class="tb-pill">感应传导</span><span class="tb-pill">调节平衡</span><span class="tb-pill">针灸基础</span></div>
+    </div>
+
+  </div>
+  <div class="page-nav">
+    <a href="03-jingqi.html" class="pn-btn">← 上一章：精气血津液</a>
+    <a href="../overview.html" class="pn-center">· 章节目录 ·</a>
+    <a href="05-bingyin.html" class="pn-btn">下一章：病因病机 →</a>
+  </div>
+</div>
+<footer style="border-top:1px solid rgba(201,150,10,0.2);padding:32px 48px;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#7a6a50;font-family:'Noto Sans SC',sans-serif;font-weight:300;letter-spacing:1px;position:relative;z-index:1;">
+  <div style="font-size:16px;font-weight:700;letter-spacing:4px;color:#c9960a;font-family:'Noto Serif SC',serif;">中医基础理论</div>
+  <div>第4章 · 经络学说</div>
+  <div style="display:flex;gap:24px;">
+    <a href="../index.html" style="color:#7a6a50;text-decoration:none;">首页</a>
+    <a href="../overview.html" style="color:#7a6a50;text-decoration:none;">目录</a>
+  </div>
+</footer>
+</div>
+<a href="#" id="bt" style="position:fixed;bottom:32px;right:32px;width:44px;height:44px;background:#2a2218;border:1px solid rgba(201,150,10,0.2);border-radius:50%;display:none;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:#c9960a;z-index:200;text-decoration:none;"></a>
+<script>
+const b=document.getElementById('bt');
+window.addEventListener('scroll',()=>{b.style.display=window.scrollY>400?'flex':'none';},{passive:true});
+b.addEventListener('click',(e)=>{e.preventDefault();window.scrollTo({top:0,behavior:'smooth'});});
+const obs=new IntersectionObserver((en)=>{en.forEach(e=>{if(e.isIntersecting){e.target.style.opacity='1';e.target.style.transform='none';obs.unobserve(e.target);}})},{threshold:0.08});
+document.querySelectorAll('.reveal,.topic-block').forEach((el,i)=>{el.style.opacity='0';el.style.transform='translateY(18px)';el.style.transition=`opacity 0.6s ease ${i*0.06}s,transform 0.6s ease ${i*0.06}s`;obs.observe(el);});
+</script>
+</body>
+</html>
