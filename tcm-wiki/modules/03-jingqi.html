@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>精气血津液神 · 中医基础理论</title>
+<link rel="stylesheet" href="../assets/css/base.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500&display=swap');
+:root{--bg:#0d0a06;--surface:#201a10;--surface2:#2a2218;--surface3:#332b1c;--gold:#c9960a;--gold2:#e8b84b;--gold-dim:rgba(201,150,10,0.13);--text:#f0e6d0;--text2:#b8a888;--text3:#7a6a50;--jing:#8a5acc;--qi:#5aaa7a;--blood:#c94a2a;--jin:#4a8aaa;--shen:#c9960a;}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{font-family:'Noto Serif SC',serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 30% 20%,rgba(138,90,204,0.04),transparent 60%),radial-gradient(ellipse 60% 70% at 70% 80%,rgba(201,74,42,0.04),transparent 60%);pointer-events:none;z-index:0;}
+.topnav{position:fixed;top:0;left:0;right:0;height:56px;background:rgba(13,10,6,0.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(201,150,10,0.2);display:flex;align-items:center;padding:0 32px;z-index:1000;}
+.tnlogo{font-size:18px;font-weight:700;letter-spacing:4px;color:#e8b84b;text-decoration:none;margin-right:40px;white-space:nowrap;flex-shrink:0;}
+.tnlinks{display:flex;align-items:center;gap:4px;flex:1;overflow-x:auto;scrollbar-width:none;}
+.tnlink{font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;transition:all 0.3s;}
+.tnlink:hover,.tnlink.active{color:#e8b84b;background:rgba(201,150,10,0.12);}
+.tndiv{width:1px;height:16px;background:rgba(201,150,10,0.2);margin:0 8px;flex-shrink:0;}
+.breadcrumb{position:relative;z-index:1;display:flex;align-items:center;gap:8px;padding:68px 48px 0;font-size:12px;font-family:'Noto Sans SC',sans-serif;color:#7a6a50;letter-spacing:1px;}
+.breadcrumb a{color:#7a6a50;text-decoration:none;}.breadcrumb span{color:#c9960a;}
+.side-nav{position:fixed;left:16px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:100;}
+.nav-dot{width:6px;height:6px;border-radius:50%;background:#4a3a28;cursor:pointer;transition:all 0.3s;position:relative;}
+.nav-dot:hover,.nav-dot.active{background:#c9960a;transform:scale(1.5);}
+.nav-dot::after{content:attr(data-label);position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:10px;color:#c9960a;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;opacity:0;pointer-events:none;background:rgba(13,10,6,0.9);padding:3px 8px;border-radius:3px;}
+.nav-dot:hover::after{opacity:1;}
+.container{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:0 32px 100px;}
+.hero{padding:80px 0 60px;text-align:center;}
+.hero-icons{display:flex;justify-content:center;gap:16px;margin-bottom:48px;}
+.hi-item{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;border:1.5px solid;}
+.hi-jing{background:rgba(138,90,204,0.15);border-color:var(--jing);color:var(--jing);}
+.hi-qi{background:rgba(90,170,122,0.15);border-color:var(--qi);color:var(--qi);}
+.hi-blood{background:rgba(201,74,42,0.15);border-color:var(--blood);color:var(--blood);}
+.hi-jin{background:rgba(74,138,170,0.15);border-color:var(--jin);color:var(--jin);}
+.hi-shen{background:rgba(201,150,10,0.15);border-color:var(--shen);color:var(--shen);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.hero-eyebrow{font-size:11px;letter-spacing:6px;color:var(--gold);font-family:'Noto Sans SC',sans-serif;font-weight:300;margin-bottom:16px;opacity:0;animation:fadeUp 1s ease 0.2s forwards;}
+.hero-title{font-size:clamp(30px,6vw,66px);font-weight:900;letter-spacing:8px;background:linear-gradient(135deg,#f5d070,#e8b84b,#c9960a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:14px;opacity:0;animation:fadeUp 1s ease 0.4s forwards;}
+.hero-sub{font-size:15px;letter-spacing:4px;color:var(--text2);font-weight:300;margin-bottom:24px;opacity:0;animation:fadeUp 1s ease 0.6s forwards;}
+.hero-desc{max-width:580px;margin:0 auto;font-size:14px;line-height:2.3;color:var(--text3);font-family:'Noto Sans SC',sans-serif;font-weight:300;opacity:0;animation:fadeUp 1s ease 0.8s forwards;}
+.section{padding:72px 0;border-top:1px solid rgba(201,150,10,0.08);}
+.section-eyebrow{display:block;font-size:10px;letter-spacing:4px;color:var(--gold);font-family:'Noto Sans SC',sans-serif;text-transform:uppercase;margin-bottom:10px;}
+.section-title{font-size:clamp(22px,4vw,38px);font-weight:700;letter-spacing:5px;margin-bottom:12px;line-height:1.3;}
+.section-title em{font-style:normal;color:var(--gold2);}
+.section-lead{font-size:14px;line-height:2.1;color:var(--text2);font-family:'Noto Sans SC',sans-serif;font-weight:300;max-width:600px;margin-bottom:36px;}
+.insight{background:var(--gold-dim);border:1px solid rgba(201,150,10,0.18);border-left:3px solid var(--gold);padding:18px 22px;border-radius:0 4px 4px 0;font-size:13px;line-height:2.1;color:var(--text2);font-family:'Noto Sans SC',sans-serif;font-weight:300;margin:0 0 32px;}
+.insight strong{color:var(--gold2);font-weight:500;}
+
+/* Material blocks */
+.material-block{background:var(--surface);border:1px solid rgba(201,150,10,0.1);border-radius:4px;padding:32px;margin-bottom:24px;transition:all 0.3s;position:relative;overflow:hidden;}
+.material-block::before{content:attr(data-char);position:absolute;right:24px;top:50%;transform:translateY(-50%);font-size:80px;font-weight:900;opacity:0.05;line-height:1;}
+.material-block:hover{border-color:rgba(201,150,10,0.25);background:var(--surface2);}
+.mb-header{display:flex;align-items:center;gap:16px;margin-bottom:20px;}
+.mb-char{font-size:48px;font-weight:900;line-height:1;}
+.mb-info{}
+.mb-en{font-size:10px;letter-spacing:3px;font-family:'Noto Sans SC',sans-serif;font-weight:300;opacity:0.6;margin-bottom:4px;}
+.mb-title{font-size:22px;font-weight:700;letter-spacing:4px;}
+.mb-body{font-size:13px;line-height:2.3;color:var(--text2);font-family:'Noto Sans SC',sans-serif;font-weight:300;}
+.mb-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:16px;}
+.mb-tag{font-size:11px;font-family:'Noto Sans SC',sans-serif;padding:4px 12px;border-radius:20px;border:1px solid;}
+
+/* qi types */
+.qi-types{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin:24px 0;}
+.qt-item{background:var(--surface2);border:1px solid rgba(90,170,122,0.15);border-radius:4px;padding:20px;}
+.qt-name{font-size:16px;font-weight:700;letter-spacing:3px;color:var(--qi);margin-bottom:4px;}
+.qt-loc{font-size:11px;color:var(--text3);font-family:'Noto Sans SC',sans-serif;letter-spacing:1px;margin-bottom:10px;}
+.qt-body{font-size:12px;line-height:2;color:var(--text2);font-family:'Noto Sans SC',sans-serif;font-weight:300;}
+
+/* qi functions */
+.qi-funcs{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:rgba(201,150,10,0.1);border:1px solid rgba(201,150,10,0.1);border-radius:4px;overflow:hidden;margin:24px 0;}
+.qf-item{background:var(--surface);padding:20px 12px;text-align:center;transition:background 0.2s;}
+.qf-item:hover{background:var(--surface2);}
+.qf-icon{font-size:24px;margin-bottom:8px;}
+.qf-name{font-size:13px;font-weight:600;letter-spacing:2px;color:var(--qi);margin-bottom:4px;}
+.qf-desc{font-size:11px;color:var(--text3);font-family:'Noto Sans SC',sans-serif;font-weight:300;line-height:1.7;}
+
+/* qi ji */
+.qiji-diagram{display:flex;justify-content:center;align-items:center;gap:0;margin:24px 0;background:var(--surface);border:1px solid rgba(201,150,10,0.1);border-radius:4px;padding:28px;flex-wrap:wrap;}
+.qj-arrow{font-size:28px;color:var(--text3);padding:0 12px;}
+.qj-item{text-align:center;padding:16px 20px;}
+.qj-icon{font-size:28px;margin-bottom:6px;}
+.qj-label{font-size:13px;font-weight:600;letter-spacing:2px;color:var(--gold2);}
+.qj-sub{font-size:11px;color:var(--text3);font-family:'Noto Sans SC',sans-serif;}
+
+/* relation */
+.rel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:24px 0;}
+.rel-item{background:var(--surface);border:1px solid rgba(201,150,10,0.1);border-radius:4px;padding:20px;text-align:center;transition:all 0.3s;}
+.rel-item:hover{border-color:rgba(201,150,10,0.3);transform:translateY(-2px);}
+.rel-title{font-size:14px;font-weight:700;letter-spacing:2px;color:var(--gold2);margin-bottom:8px;}
+.rel-body{font-size:12px;line-height:1.9;color:var(--text2);font-family:'Noto Sans SC',sans-serif;font-weight:300;}
+
+.final-quote{text-align:center;padding:60px 0 20px;}
+.fq-text{font-size:clamp(14px,2.2vw,20px);letter-spacing:4px;color:var(--gold2);font-weight:300;line-height:2.4;margin-bottom:12px;}
+.fq-source{font-size:12px;letter-spacing:3px;color:var(--text3);font-family:'Noto Sans SC',sans-serif;}
+.page-nav{display:flex;justify-content:space-between;align-items:center;padding:48px 0 0;border-top:1px solid rgba(201,150,10,0.1);margin-top:20px;}
+.pn-btn{display:flex;align-items:center;gap:10px;padding:14px 24px;border:1px solid rgba(201,150,10,0.2);border-radius:4px;color:#b8a888;text-decoration:none;font-size:13px;font-family:'Noto Sans SC',sans-serif;letter-spacing:1.5px;transition:all 0.3s;}
+.pn-btn:hover{border-color:var(--gold);color:var(--gold2);background:rgba(201,150,10,0.12);}
+.pn-center{font-size:12px;color:#7a6a50;letter-spacing:2px;font-family:'Noto Sans SC',sans-serif;text-decoration:none;}
+@media(max-width:700px){.qi-types{grid-template-columns:1fr;}.qi-funcs{grid-template-columns:repeat(3,1fr);}.rel-grid{grid-template-columns:1fr;}.side-nav{display:none;}.topnav{padding:0 16px;}.tnlogo{font-size:15px;margin-right:16px;}.hero-icons{flex-wrap:wrap;gap:10px;}}
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a href="../index.html" class="tnlogo">中医</a>
+  <div class="tnlinks">
+    <a href="../index.html" class="tnlink">首页</a><a href="../overview.html" class="tnlink">知识框架</a>
+    <div class="tndiv"></div>
+    <a href="01-yinyang.html" class="tnlink">阴阳五行</a><a href="02-zangxiang.html" class="tnlink">藏象学说</a><a href="03-jingqi.html" class="tnlink active">精气血津液</a><a href="04-jingluo.html" class="tnlink">经络学说</a><a href="05-bingyin.html" class="tnlink">病因病机</a><a href="06-sizheng.html" class="tnlink">四诊辨证</a><a href="07-zhize.html" class="tnlink">治则治法</a>
+  </div>
+</nav>
+<div class="breadcrumb"><a href="../index.html">首页</a>›<a href="../overview.html">知识框架</a>›<span>第三章 · 精气血津液神</span></div>
+<nav class="side-nav">
+  <div class="nav-dot active" data-label="概述" onclick="document.getElementById('hero').scrollIntoView({behavior:'smooth'})"></div>
+  <div class="nav-dot" data-label="精" onclick="document.getElementById('jing').scrollIntoView({behavior:'smooth'})"></div>
+  <div class="nav-dot" data-label="气" onclick="document.getElementById('qi').scrollIntoView({behavior:'smooth'})"></div>
+  <div class="nav-dot" data-label="血" onclick="document.getElementById('blood').scrollIntoView({behavior:'smooth'})"></div>
+  <div class="nav-dot" data-label="津液" onclick="document.getElementById('jinye').scrollIntoView({behavior:'smooth'})"></div>
+  <div class="nav-dot" data-label="神·相互关系" onclick="document.getElementById('shen').scrollIntoView({behavior:'smooth'})"></div>
+</nav>
+<div class="container">
+
+<div class="hero" id="hero">
+  <div class="hero-icons">
+    <div class="hi-item hi-jing">精</div>
+    <div class="hi-item hi-qi">气</div>
+    <div class="hi-item hi-blood">血</div>
+    <div class="hi-item hi-jin">津液</div>
+    <div class="hi-item hi-shen">神</div>
+  </div>
+  <div class="hero-eyebrow">Chapter 03 · Jing Qi Xue Jin Ye Shen</div>
+  <h1 class="hero-title">精气血津液神</h1>
+  <div class="hero-sub">生命物质基础 · 功能活动的根本</div>
+  <p class="hero-desc">精、气、血、津液是构成人体和维持生命活动的基本物质；神是生命活动的总体外在表现与精神意识活动的统称。五者相互滋生、相互为用，共同维持人体的正常生命活动。</p>
+</div>
+
+<!-- 精 -->
+<section class="section" id="jing">
+  <span class="section-eyebrow">Part 01 · 精</span>
+  <h2 class="section-title"><em>精</em>——生命之源</h2>
+  <p class="section-lead">精是构成人体和维持生命活动最精华的物质，分为先天之精和后天之精。精是气、血、津液的生化之本，也是神的物质基础。</p>
+  <div class="insight"><strong>核心记忆：</strong>「精」是人体中最精微的物质。先天之精由父母交媾而成（即基因、遗传），决定人的生长发育基础；后天之精由饮食经脾胃运化而来，不断充养先天之精。两精互根互用，共同贮藏于肾。</div>
+  <div class="material-block" data-char="精" style="border-color:rgba(138,90,204,0.2);">
+    <div class="mb-header">
+      <div class="mb-char" style="color:var(--jing);">精</div>
+      <div class="mb-info">
+        <div class="mb-en">ESSENCE · 生命之本</div>
+        <div class="mb-title" style="color:var(--jing);">先天之精 · 后天之精</div>
+      </div>
+    </div>
+    <div class="mb-body">
+      <strong style="color:var(--jing);">先天之精：</strong>禀受于父母，是生命产生的原始物质，藏于肾中。先天之精决定个体的生命潜能、形体特征与健康素质，与现代医学的遗传物质相近。<br><br>
+      <strong style="color:var(--jing);">后天之精：</strong>来源于饮食水谷，经脾胃运化而成的精微物质，不断输注五脏六腑以充养脏腑，富余部分藏于肾中，充养先天之精。<br><br>
+      <strong style="color:var(--jing);">肾精的功能：</strong>①促进生长发育与生殖（天癸的产生）；②化生血液（精血同源）；③化生髓（充养骨骼与脑）；④化生肾气，推动各脏腑功能活动。<br><br>
+      <strong style="color:var(--jing);">精的病理：</strong>肾精亏虚→发育迟缓、早衰、不孕不育、骨质疏松、健忘耳鸣。
+    </div>
+    <div class="mb-tags">
+      <span class="mb-tag" style="background:rgba(138,90,204,0.08);border-color:rgba(138,90,204,0.2);color:var(--jing);">藏于肾</span>
+      <span class="mb-tag" style="background:rgba(138,90,204,0.08);border-color:rgba(138,90,204,0.2);color:var(--jing);">先天之本</span>
+      <span class="mb-tag" style="background:rgba(138,90,204,0.08);border-color:rgba(138,90,204,0.2);color:var(--jing);">精血同源</span>
+      <span class="mb-tag" style="background:rgba(138,90,204,0.08);border-color:rgba(138,90,204,0.2);color:var(--jing);">化生髓脑</span>
+      <span class="mb-tag" style="background:rgba(138,90,204,0.08);border-color:rgba(138,90,204,0.2);color:var(--jing);">促进生殖</span>
+    </div>
+  </div>
+</section>
+
+<!-- 气 -->
+<section class="section" id="qi">
+  <span class="section-eyebrow">Part 02 · 气</span>
+  <h2 class="section-title"><em>气</em>——运行不息的动力</h2>
+  <p class="section-lead">气是人体内活力很强、运动不息的极精微物质，是构成人体和维持生命活动的最基本物质之一，也是推动人体各种功能活动的动力。</p>
+  <div class="insight"><strong>气的来源三要素：</strong>先天之精气（肾）+ 水谷之精气（脾胃）+ 自然界清气（肺）→ 共同构成人体之气。因此，气的充足依赖肾精充盛、脾胃健运、肺气宣畅三方面的共同作用。</div>
+
+  <h3 style="font-size:16px;letter-spacing:3px;color:var(--gold2);margin-bottom:16px;">气的分类</h3>
+  <div class="qi-types">
+    <div class="qt-item">
+      <div class="qt-name">元气（原气）</div>
+      <div class="qt-loc">来源：肾精化生 | 分布：全身，通过三焦</div>
+      <div class="qt-body">是人体最根本、最重要的气，是人体生命活动的原动力。推动人体生长发育，温煦和激发各脏腑经络组织的生理功能。元气充盛则体壮，元气衰则体弱多病。</div>
+    </div>
+    <div class="qt-item">
+      <div class="qt-name">宗气</div>
+      <div class="qt-loc">来源：水谷精气+自然清气 | 聚于：胸中（膻中）</div>
+      <div class="qt-body">贯注于心肺，走息道以行呼吸，贯心脉以行血气。宗气充盛则呼吸有力、声音洪亮、脉搏和缓有力；宗气不足则气短乏力、声低懒言。</div>
+    </div>
+    <div class="qt-item">
+      <div class="qt-name">营气</div>
+      <div class="qt-loc">来源：水谷精微中的精华 | 运行：脉中，与血同行</div>
+      <div class="qt-body">「营气」即「荣气」，有营养之义。循行于脉中，是血液的组成成分，具有营养全身的功能。营气化生血液，「营气者，泌其津液，注之于脉，化以为血」。</div>
+    </div>
+    <div class="qt-item">
+      <div class="qt-name">卫气</div>
+      <div class="qt-loc">来源：水谷精微中的慓悍部分 | 运行：脉外，布散全身</div>
+      <div class="qt-body">性质慓悍滑利，运行迅速。功能：①护卫肌表，防止外邪入侵；②温养脏腑、肌肉、皮毛；③控制腠理的开合，调节汗液分泌，维持体温。昼行于阳，夜行于阴，与睡眠密切相关。</div>
+    </div>
+  </div>
+
+  <h3 style="font-size:16px;letter-spacing:3px;color:var(--gold2);margin:28px 0 16px;">气的五大功能</h3>
+  <div class="qi-funcs">
+    <div class="qf-item"><div class="qf-icon">⚡</div><div class="qf-name">推动</div><div class="qf-desc">推动人体生长发育，激发脏腑经络功能，促进血液循行</div></div>
+    <div class="qf-item"><div class="qf-icon">🌡️</div><div class="qf-name">温煦</div><div class="qf-desc">产生热量，维持体温，温养脏腑组织和血液津液</div></div>
+    <div class="qf-item"><div class="qf-icon">🛡️</div><div class="qf-name">防御</div><div class="qf-desc">护卫机体肌表，防御外邪入侵，驱邪外出</div></div>
+    <div class="qf-item"><div class="qf-icon">🔒</div><div class="qf-name">固摄</div><div class="qf-desc">统摄血液、津液在脉内运行，固摄精液、防止脏器下垂</div></div>
+    <div class="qf-item"><div class="qf-icon">🔄</div><div class="qf-name">气化</div><div class="qf-desc">精气血津液之间的相互转化，以及物质与功能的转化</div></div>
+  </div>
+
+  <h3 style="font-size:16px;letter-spacing:3px;color:var(--gold2);margin:28px 0 16px;">气机——气的运动形式</h3>
+  <div class="qiji-diagram">
+    <div class="qj-item"><div class="qj-icon">⬆️</div><div class="qj-label">升</div><div class="qj-sub">脾气升清</div></div>
+    <div class="qj-arrow">⇄</div>
+    <div class="qj-item"><div class="qj-icon">⬇️</div><div class="qj-label">降</div><div class="qj-sub">胃气和肺气肃降</div></div>
+    <div class="qj-arrow">⇄</div>
+    <div class="qj-item"><div class="qj-icon">↗️</div><div class="qj-label">出</div><div class="qj-sub">卫气发散体表</div></div>
+    <div class="qj-arrow">⇄</div>
+    <div class="qj-item"><div class="qj-icon">↘️</div><div class="qj-label">入</div><div class="qj-sub">营气内守脉中</div></div>
+  </div>
+  <div class="insight" style="margin-top:20px;"><strong>气机失调：</strong>气滞（运行不畅→胀痛）、气逆（上升过度→呕吐、气喘）、气陷（升举无力→脱垂）、气闭（阻塞不通→昏厥）、气脱（耗散过多→虚脱）。</div>
+</section>
+
+<!-- 血 -->
+<section class="section" id="blood">
+  <span class="section-eyebrow">Part 03 · 血</span>
+  <h2 class="section-title"><em>血</em>——濡养全身的红色液体</h2>
+  <p class="section-lead">血是循行于脉中的红色液态物质，由营气和津液所化生，具有滋养和濡润全身的功能，也是人体精神活动的物质基础。</p>
+  <div class="material-block" data-char="血" style="border-color:rgba(201,74,42,0.2);">
+    <div class="mb-header">
+      <div class="mb-char" style="color:var(--blood);">血</div>
+      <div class="mb-info">
+        <div class="mb-en">BLOOD · 营养之源</div>
+        <div class="mb-title" style="color:var(--blood);">生成 · 运行 · 功能</div>
+      </div>
+    </div>
+    <div class="mb-body">
+      <strong style="color:var(--blood);">血的生成：</strong>脾胃运化水谷精微→营气+津液→进入脉中→化赤为血。此外，肾精也可化血（精血同源）。因此，血虚与脾胃虚弱或肾精不足密切相关。<br><br>
+      <strong style="color:var(--blood);">血的运行：</strong>心气推动为主，肺气宣布、肝气疏泄调节血量、脾气统摄共同维持正常循行。任一环节失常均可导致血行异常（血瘀或出血）。<br><br>
+      <strong style="color:var(--blood);">血的功能：</strong>①濡养全身（血旺则面色红润、筋骨强健）；②为神志活动提供物质基础（「血气充盛，乃能生神」）。<br><br>
+      <strong style="color:var(--blood);">血虚表现：</strong>面色苍白或萎黄、头晕目眩、心悸失眠、手足麻木、月经量少甚至闭经。<br><br>
+      <strong style="color:var(--blood);">血瘀表现：</strong>局部固定疼痛（刺痛、拒按）、肿块、面色晦暗、舌质紫暗或有瘀斑、脉涩。
+    </div>
+    <div class="mb-tags">
+      <span class="mb-tag" style="background:rgba(201,74,42,0.08);border-color:rgba(201,74,42,0.2);color:#e88a7a;">脾为血之源</span>
+      <span class="mb-tag" style="background:rgba(201,74,42,0.08);border-color:rgba(201,74,42,0.2);color:#e88a7a;">心主血脉</span>
+      <span class="mb-tag" style="background:rgba(201,74,42,0.08);border-color:rgba(201,74,42,0.2);color:#e88a7a;">肝藏血</span>
+      <span class="mb-tag" style="background:rgba(201,74,42,0.08);border-color:rgba(201,74,42,0.2);color:#e88a7a;">精血同源</span>
+      <span class="mb-tag" style="background:rgba(201,74,42,0.08);border-color:rgba(201,74,42,0.2);color:#e88a7a;">营养神志</span>
+    </div>
+  </div>
+</section>
+
+<!-- 津液 -->
+<section class="section" id="jinye">
+  <span class="section-eyebrow">Part 04 · 津液</span>
+  <h2 class="section-title"><em>津液</em>——滋润濡养的水液</h2>
+  <p class="section-lead">津液是机体一切正常水液的总称，包括各脏腑形体官窍的内在液体及其正常的分泌物。津液的生成、输布、排泄涉及多个脏腑的协同配合。</p>
+  <div class="insight"><strong>津与液的区别：</strong>津——清稀，流动性大，布散体表、肌肉、孔窍，起滋润作用；液——稠厚，流动性小，灌注关节、脏腑、脑髓，起濡养作用。两者可相互转化，合称津液。</div>
+  <div class="material-block" data-char="液" style="border-color:rgba(74,138,170,0.2);">
+    <div class="mb-header">
+      <div class="mb-char" style="color:var(--jin);">津液</div>
+      <div class="mb-info">
+        <div class="mb-en">BODY FLUIDS · 滋润之本</div>
+        <div class="mb-title" style="color:var(--jin);">生成 · 输布 · 代谢</div>
+      </div>
+    </div>
+    <div class="mb-body">
+      <strong style="color:var(--jin);">生成：</strong>饮食物→胃（受纳腐熟）→小肠（泌别清浊）→脾（运化转输）→输布全身。津液的生成依赖脾胃功能健全。<br><br>
+      <strong style="color:var(--jin);">输布：</strong>脾气散精→肺（宣发肃降）→三焦（水道通调）→肾（蒸腾气化）→以汗、尿等形式排出。「脾为水之中州，肺为水之上源，肾为水之下源」。<br><br>
+      <strong style="color:var(--jin);">排泄：</strong>汗液（由肺与卫气调节）、尿液（肾与膀胱气化）、呼吸（肺）、大便（大肠）。<br><br>
+      <strong style="color:var(--jin);">功能：</strong>①滋润濡养全身组织；②化生血液（津液入脉化血）；③调节机体阴阳平衡；④排泄废物。<br><br>
+      <strong style="color:var(--jin);">津液失常：</strong>津液亏虚（口干、皮肤干燥、尿少）；水液停聚（痰饮、水肿、湿阻）。
+    </div>
+    <div class="mb-tags">
+      <span class="mb-tag" style="background:rgba(74,138,170,0.08);border-color:rgba(74,138,170,0.2);color:var(--jin);">脾运化</span>
+      <span class="mb-tag" style="background:rgba(74,138,170,0.08);border-color:rgba(74,138,170,0.2);color:var(--jin);">肺通调水道</span>
+      <span class="mb-tag" style="background:rgba(74,138,170,0.08);border-color:rgba(74,138,170,0.2);color:var(--jin);">肾气化</span>
+      <span class="mb-tag" style="background:rgba(74,138,170,0.08);border-color:rgba(74,138,170,0.2);color:var(--jin);">三焦通道</span>
+      <span class="mb-tag" style="background:rgba(74,138,170,0.08);border-color:rgba(74,138,170,0.2);color:var(--jin);">津血同源</span>
+    </div>
+  </div>
+</section>
+
+<!-- 神 + 关系 -->
+<section class="section" id="shen">
+  <span class="section-eyebrow">Part 05 · 神与相互关系</span>
+  <h2 class="section-title"><em>神</em>与精气血津液的关系</h2>
+  <p class="section-lead">神是生命活动的总体外在表现，是精神意识、思维活动的统称，也是判断预后的重要依据。精气血津液是神的物质基础，神也统摄和调控精气血津液。</p>
+  <div class="material-block" data-char="神" style="border-color:rgba(201,150,10,0.2);margin-bottom:32px;">
+    <div class="mb-header">
+      <div class="mb-char" style="color:var(--shen);">神</div>
+      <div class="mb-info">
+        <div class="mb-en">SPIRIT · 生命之主</div>
+        <div class="mb-title" style="color:var(--shen);">广义之神 · 狭义之神</div>
+      </div>
+    </div>
+    <div class="mb-body">
+      <strong style="color:var(--shen);">广义之神：</strong>人体生命活动的总体外在表现，包括面色、眼神、言语、呼吸、动作等，是判断疾病轻重预后的重要依据。「得神者昌，失神者亡」。<br><br>
+      <strong style="color:var(--shen);">狭义之神：</strong>人的精神意识、思维活动，主要由心所主（心藏神）。五脏各藏一神：心藏神（主思维意识）、肺藏魄（主感觉和运动）、肝藏魂（主谋虑）、脾藏意（主意念记忆）、肾藏志（主意志）。<br><br>
+      <strong style="color:var(--shen);">神的物质基础：</strong>精气血津液是神的物质基础。精气充盛则神旺；精血亏虚则神疲、失眠、健忘。中医望神即通过观察外在表现，判断内在精气盛衰。
+    </div>
+  </div>
+
+  <h3 style="font-size:16px;letter-spacing:3px;color:var(--gold2);margin-bottom:16px;">精气血津液神的相互关系</h3>
+  <div class="rel-grid">
+    <div class="rel-item"><div class="rel-title">气与血</div><div class="rel-body">「气为血之帅，血为气之母」。气能生血、行血、摄血；血能载气、养气。气虚→血虚；气滞→血瘀；气不摄血→出血。</div></div>
+    <div class="rel-item"><div class="rel-title">气与津液</div><div class="rel-body">气能生津、行津、摄津；津液载气。气虚→津液生成不足；气滞→津液停聚（痰饮）；气随津脱→大汗亡阳。</div></div>
+    <div class="rel-item"><div class="rel-title">精与气</div><div class="rel-body">「精化气」——肾精化生元气；气可充养精（精气互生）。肾精不足→元气虚衰；大病耗气→精亦亏损。</div></div>
+    <div class="rel-item"><div class="rel-title">血与津液</div><div class="rel-body">「津血同源」——均来源于水谷精微。大出血→津液渗入脉中补充（血虚津亦亏）；大汗→血中津液外泄（津亏血燥）。故失血者不可大汗，多汗者不可发汗。</div></div>
+    <div class="rel-item"><div class="rel-title">精与神</div><div class="rel-body">精是神的物质基础，「积精全神」——保全精气才能神旺。精亏→神疲健忘；神过劳→耗精。故养神即是养精，保精即是护神。</div></div>
+    <div class="rel-item"><div class="rel-title">气血与神</div><div class="rel-body">血气充盛则神明；血气不足则神散。心血充盛则神志清晰；心血亏虚则失眠、健忘、心悸；心火亢盛则烦躁不安。</div></div>
+  </div>
+</section>
+
+<div class="final-quote">
+  <div class="fq-text">人始生，先成精，精成而脑髓生，<br>骨为干，脉为营，筋为刚，肉为墙，<br>皮肤坚而毛发长，谷入于胃，脉道以通，血气乃行。</div>
+  <div class="fq-source">《黄帝内经·灵枢·经脉》</div>
+</div>
+
+<div class="page-nav">
+  <a href="02-zangxiang.html" class="pn-btn">← 上一章：藏象学说</a>
+  <a href="../overview.html" class="pn-center">· 章节目录 ·</a>
+  <a href="04-jingluo.html" class="pn-btn">下一章：经络学说 →</a>
+</div>
+</div>
+<footer style="border-top:1px solid rgba(201,150,10,0.2);padding:32px 48px;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#7a6a50;font-family:'Noto Sans SC',sans-serif;font-weight:300;letter-spacing:1px;position:relative;z-index:1;">
+  <div style="font-size:16px;font-weight:700;letter-spacing:4px;color:#c9960a;font-family:'Noto Serif SC',serif;">中医基础理论</div>
+  <div>第三章 · 精气血津液神</div>
+  <div style="display:flex;gap:24px;"><a href="../index.html" style="color:#7a6a50;text-decoration:none;">首页</a><a href="../overview.html" style="color:#7a6a50;text-decoration:none;">目录</a><a href="04-jingluo.html" style="color:#7a6a50;text-decoration:none;">下一章</a></div>
+</footer>
+<a href="#" id="backTop" style="position:fixed;bottom:32px;right:32px;width:44px;height:44px;background:#2a2218;border:1px solid rgba(201,150,10,0.2);border-radius:50%;display:none;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:#c9960a;z-index:200;text-decoration:none;"></a>
+<script>
+const btn=document.getElementById('backTop');
+window.addEventListener('scroll',()=>{btn.style.display=window.scrollY>400?'flex':'none';},{passive:true});
+btn.addEventListener('click',(e)=>{e.preventDefault();window.scrollTo({top:0,behavior:'smooth'});});
+const secs=['hero','jing','qi','blood','jinye','shen'];
+const dots=document.querySelectorAll('.nav-dot');
+function upd(){let c=0;secs.forEach((id,i)=>{const el=document.getElementById(id);if(el&&el.getBoundingClientRect().top<window.innerHeight*0.45)c=i;});dots.forEach((d,i)=>d.classList.toggle('active',i===c));}
+window.addEventListener('scroll',upd,{passive:true});
+const obs=new IntersectionObserver((en)=>{en.forEach(e=>{if(e.isIntersecting){e.target.style.opacity='1';e.target.style.transform='translateY(0)';obs.unobserve(e.target);}});},{threshold:0.08});
+document.querySelectorAll('.material-block,.qt-item,.qf-item,.rel-item').forEach((el,i)=>{el.style.opacity='0';el.style.transform='translateY(18px)';el.style.transition=`opacity 0.6s ease ${i%4*0.07}s,transform 0.6s ease ${i%4*0.07}s`;obs.observe(el);});
+</script>
+</body>
+</html>

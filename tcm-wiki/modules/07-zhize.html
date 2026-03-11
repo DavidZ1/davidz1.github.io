@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>治则治法 · 中医基础理论</title>
+<link rel="stylesheet" href="../assets/css/base.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500&display=swap');
+:root{--bg:#0d0a06;--surface:#201a10;--surface2:#2a2218;--surface3:#332b1c;--gold:#c9960a;--gold2:#e8b84b;--gold-dim:rgba(201,150,10,0.13);--text:#f0e6d0;--text2:#b8a888;--text3:#7a6a50;--green:#4a8a5a;--green2:#6aaa7a;--teal:#2a7a8a;--teal2:#4a9aaa;--red:#c94a2a;--red2:#e86a4a;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Serif SC',serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 20% 20%,rgba(74,138,90,0.04),transparent 60%),radial-gradient(ellipse 60% 70% at 80% 80%,rgba(201,150,10,0.04),transparent 60%);pointer-events:none;z-index:0;}
+.topnav{position:fixed;top:0;left:0;right:0;height:56px;background:rgba(13,10,6,0.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(201,150,10,0.2);display:flex;align-items:center;padding:0 32px;z-index:1000;}
+.tnlogo{font-size:18px;font-weight:700;letter-spacing:4px;color:#e8b84b;text-decoration:none;margin-right:40px;white-space:nowrap;flex-shrink:0;}
+.tnlinks{display:flex;align-items:center;gap:4px;flex:1;overflow-x:auto;scrollbar-width:none;}
+.tnlink{font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;transition:all 0.3s;}
+.tnlink:hover,.tnlink.active{color:#e8b84b;background:rgba(201,150,10,0.12);}
+.tndiv{width:1px;height:16px;background:rgba(201,150,10,0.2);margin:0 8px;flex-shrink:0;}
+.breadcrumb{position:relative;z-index:1;display:flex;align-items:center;gap:8px;padding:68px 48px 0;font-size:12px;font-family:'Noto Sans SC',sans-serif;color:#7a6a50;letter-spacing:1px;}
+.breadcrumb a{color:#7a6a50;text-decoration:none;}.breadcrumb span{color:#c9960a;}
+.side-nav{position:fixed;left:16px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:100;}
+.nav-dot{width:6px;height:6px;border-radius:50%;background:#4a3a28;cursor:pointer;transition:all 0.3s;position:relative;}
+.nav-dot:hover,.nav-dot.active{background:#c9960a;transform:scale(1.5);}
+.nav-dot::after{content:attr(data-label);position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:10px;color:#c9960a;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;opacity:0;pointer-events:none;background:rgba(13,10,6,0.9);padding:3px 8px;border-radius:3px;}
+.nav-dot:hover::after{opacity:1;}
+.container{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:0 32px 100px;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.hero{padding:80px 0 60px;text-align:center;}
+.hero-eyebrow{font-size:11px;letter-spacing:6px;color:var(--gold);font-family:'Noto Sans SC',sans-serif;font-weight:300;margin-bottom:16px;opacity:0;animation:fadeUp 1s ease 0.2s forwards;}
+.hero-title{font-size:clamp(32px,6vw,68px);font-weight:900;letter-spacing:10px;background:linear-gradient(135deg,#a0e8b0,var(--green2),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:14px;opacity:0;animation:fadeUp 1s ease 0.4s forwards;}
+.hero-sub{font-size:15px;letter-spacing:4px;color:var(--text2);font-weight:300;margin-bottom:24px;opacity:0;animation:fadeUp 1s ease 0.6s forwards;}
+.hero-desc{max-width:580px;margin:0 auto;font-size:14px;line-height:2.3;color:var(--text3);font-family:'Noto Sans SC',sans-serif;font-weight:300;opacity:0;animation:fadeUp 1s ease 0.8s forwards;}
+.section{padding:72px 0;border-top:1px solid rgba(201,150,10,0.08);}
+.section-eyebrow{display:block;font-size:10px;letter-spacing:4px;color:var(--gold);font-family:'Noto Sans SC',sans-serif;text-transform:uppercase;margin-bottom:10px;}
+.section-title{font-size:clamp(22px,4vw,38px);font-weight:700;letter-spacing:5px;margin-bottom:12px;line-height:1.3;}
+.section-title em{font-style:normal;color:var(--gold2);}
+.section-lead{font-size:14px;line-height:2.1;color:var(--text2);font-family:'Noto Sans SC',sans-serif;font-weight:300;max-width:600px;margin-bottom:36px;}
+.insight{background:var(--gold-dim);border:1px solid rgba(201,150,10,0.18);border-left:3px solid var(--gold);padding:18px 22px;border-radius:0 4px 4px 0;font-size:13px;line-height:2.1;color:var(--text2);font-family:'Noto Sans SC',sans-serif;font-weight:300;margin:0 0 32px;}
+.insight strong{color:var(--gold2);font-weight:500;}
+
+/* PRINCIPLE BLOCKS */
+.principle-block{background:var(--surface);border:1px solid rgba(201,150,10,0.1);border-radius:4px;padding:32px;margin-bottom:24px;transition:all 0.3s;position:relative;overflow:hidden;}
+.principle-block::before{content:attr(data-bg);position:absolute;right:24px;top:50%;transform:translateY(-50%);font-size:80px;font-weight:900;opacity:0.04;line-height:1;pointer-events:none;}
+.principle-block:hover{border-color:rgba(201,150,10,0.25);background:var(--surface2);}
+.pb-header{display:flex;align-items:center;gap:16px;margin-bottom:18px;}
+.pb-num{font-size:10px;letter-spacing:3px;color:var(--gold);font-family:'Noto Sans SC',sans-serif;background:rgba(201,150,10,0.1);padding:4px 10px;border-radius:20px;}
+.pb-title{font-size:20px;font-weight:700;letter-spacing:4px;color:var(--text);}
+.pb-sub{font-size:12px;color:var(--text3);font-family:'Noto Sans SC',sans-serif;margin-left:auto;}
+.pb-body{font-size:13px;line-height:2.3;color:var(--text2);font-family:'Noto Sans SC',sans-serif;font-weight:300;}
+
+/* EIGHT METHODS */
+.eight-methods{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px;}
+.em-card{background:var(--surface);border:1px solid rgba(201,150,10,0.1);border-radius:4px;overflow:hidden;transition:all 0.3s;cursor:default;}
+.em-card:hover{transform:translateY(-3px);box-shadow:0 10px 32px rgba(0,0,0,0.2);}
+.em-top{padding:20px 16px 12px;text-align:center;}
+.em-char{font-size:48px;font-weight:900;line-height:1;margin-bottom:6px;}
+.em-name{font-size:13px;font-weight:600;letter-spacing:2px;margin-bottom:3px;}
+.em-alt{font-size:10px;font-family:'Noto Sans SC',sans-serif;opacity:0.6;letter-spacing:1px;}
+.em-body{padding:0 16px 18px;font-size:12px;line-height:1.9;color:var(--text2);font-family:'Noto Sans SC',sans-serif;font-weight:300;}
+.em-card.han .em-top{background:rgba(90,138,204,0.1);}.em-card.han .em-char{color:#7aaaee;}
+.em-card.tu .em-top{background:rgba(201,74,42,0.1);}.em-card.tu .em-char{color:var(--red2);}
+.em-card.xia .em-top{background:rgba(138,90,50,0.1);}.em-card.xia .em-char{color:#c8903a;}
+.em-card.he .em-top{background:rgba(74,138,138,0.1);}.em-card.he .em-char{color:var(--teal2);}
+.em-card.wen .em-top{background:rgba(201,74,42,0.08);}.em-card.wen .em-char{color:#e86a4a;}
+.em-card.qing .em-top{background:rgba(90,138,204,0.08);}.em-card.qing .em-char{color:#8ab8e8;}
+.em-card.xiao .em-top{background:rgba(212,168,48,0.1);}.em-card.xiao .em-char{color:#d4a830;}
+.em-card.bu .em-top{background:rgba(74,138,90,0.1);}.em-card.bu .em-char{color:var(--green2);}
+
+/* SANCUN */
+.sancun-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;}
+.sc-card{background:var(--surface);border:1px solid rgba(201,150,10,0.1);border-radius:4px;padding:24px;transition:all 0.3s;}
+.sc-card:hover{border-color:rgba(201,150,10,0.3);transform:translateY(-2px);}
+.sc-name{font-size:18px;font-weight:700;letter-spacing:3px;color:var(--gold2);margin-bottom:8px;}
+.sc-body{font-size:13px;line-height:2.1;color:var(--text2);font-family:'Noto Sans SC',sans-serif;font-weight:300;}
+
+/* WEIMING */
+.weiming-block{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px;}
+.wm-item{background:var(--surface);border:1px solid rgba(74,138,90,0.15);border-radius:4px;padding:24px;}
+.wm-title{font-size:16px;font-weight:700;letter-spacing:3px;color:var(--green2);margin-bottom:10px;}
+.wm-body{font-size:13px;line-height:2.2;color:var(--text2);font-family:'Noto Sans SC',sans-serif;font-weight:300;}
+
+/* YANGSHENG */
+.yangsheng-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:0;background:rgba(201,150,10,0.08);border:1px solid rgba(201,150,10,0.1);border-radius:4px;overflow:hidden;margin-bottom:28px;}
+.ys-item{background:var(--surface);padding:20px 12px;text-align:center;border-right:1px solid rgba(255,255,255,0.04);transition:background 0.2s;}
+.ys-item:last-child{border-right:none;}
+.ys-item:hover{background:var(--surface2);}
+.ys-season{font-size:20px;margin-bottom:6px;}
+.ys-name{font-size:14px;font-weight:600;letter-spacing:2px;margin-bottom:4px;}
+.ys-organ{font-size:12px;font-family:'Noto Sans SC',sans-serif;color:var(--gold);margin-bottom:6px;}
+.ys-method{font-size:11px;color:var(--text3);font-family:'Noto Sans SC',sans-serif;font-weight:300;line-height:1.7;}
+
+/* Summary pyramid */
+.system-summary{background:var(--surface);border:1px solid rgba(201,150,10,0.1);border-radius:4px;padding:40px;margin-bottom:28px;}
+.ss-title{font-size:16px;font-weight:600;letter-spacing:4px;color:var(--gold2);margin-bottom:28px;text-align:center;}
+.ss-flow{display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap;}
+.sf-step{text-align:center;padding:0 20px;}
+.sf-box{background:rgba(201,150,10,0.1);border:1px solid rgba(201,150,10,0.2);border-radius:4px;padding:14px 20px;margin-bottom:6px;}
+.sf-num{font-size:10px;letter-spacing:2px;color:var(--gold);font-family:'Noto Sans SC',sans-serif;margin-bottom:4px;}
+.sf-name{font-size:15px;font-weight:700;letter-spacing:2px;color:var(--text);}
+.sf-sub{font-size:11px;color:var(--text3);font-family:'Noto Sans SC',sans-serif;}
+.sf-arrow{font-size:24px;color:var(--text3);padding:0 4px;margin-bottom:20px;}
+
+.final-quote{text-align:center;padding:60px 0 20px;}
+.fq-text{font-size:clamp(14px,2.2vw,20px);letter-spacing:4px;color:var(--gold2);font-weight:300;line-height:2.4;margin-bottom:12px;}
+.fq-source{font-size:12px;letter-spacing:3px;color:var(--text3);font-family:'Noto Sans SC',sans-serif;}
+.page-nav{display:flex;justify-content:space-between;align-items:center;padding:48px 0 0;border-top:1px solid rgba(201,150,10,0.1);margin-top:20px;}
+.pn-btn{display:flex;align-items:center;gap:10px;padding:14px 24px;border:1px solid rgba(201,150,10,0.2);border-radius:4px;color:#b8a888;text-decoration:none;font-size:13px;font-family:'Noto Sans SC',sans-serif;letter-spacing:1.5px;transition:all 0.3s;}
+.pn-btn:hover{border-color:var(--gold);color:var(--gold2);background:rgba(201,150,10,0.12);}
+.pn-center{font-size:12px;color:#7a6a50;letter-spacing:2px;font-family:'Noto Sans SC',sans-serif;text-decoration:none;}
+@media(max-width:700px){.eight-methods{grid-template-columns:repeat(2,1fr);}.sancun-grid{grid-template-columns:1fr;}.weiming-block{grid-template-columns:1fr;}.yangsheng-grid{grid-template-columns:repeat(3,1fr);}.ss-flow{flex-direction:column;}.sf-arrow{transform:rotate(90deg);}.side-nav{display:none;}.topnav{padding:0 16px;}.tnlogo{font-size:15px;margin-right:16px;}}
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a href="../index.html" class="tnlogo">中医</a>
+  <div class="tnlinks">
+    <a href="../index.html" class="tnlink">首页</a><a href="../overview.html" class="tnlink">知识框架</a>
+    <div class="tndiv"></div>
+    <a href="01-yinyang.html" class="tnlink">阴阳五行</a><a href="02-zangxiang.html" class="tnlink">藏象学说</a><a href="03-jingqi.html" class="tnlink">精气血津液</a><a href="04-jingluo.html" class="tnlink">经络学说</a><a href="05-bingyin.html" class="tnlink">病因病机</a><a href="06-sizheng.html" class="tnlink">四诊辨证</a><a href="07-zhize.html" class="tnlink active">治则治法</a>
+  </div>
+</nav>
+<div class="breadcrumb"><a href="../index.html">首页</a>›<a href="../overview.html">知识框架</a>›<span>第七章 · 治则与治法</span></div>
+<nav class="side-nav">
+  <div class="nav-dot active" data-label="概述" onclick="document.getElementById('hero').scrollIntoView({behavior:'smooth'})"></div>
+  <div class="nav-dot" data-label="治疗总则" onclick="document.getElementById('zhize').scrollIntoView({behavior:'smooth'})"></div>
+  <div class="nav-dot" data-label="八法" onclick="document.getElementById('bafa').scrollIntoView({behavior:'smooth'})"></div>
+  <div class="nav-dot" data-label="三因制宜" onclick="document.getElementById('sancun').scrollIntoView({behavior:'smooth'})"></div>
+  <div class="nav-dot" data-label="预防养生" onclick="document.getElementById('yangsheng').scrollIntoView({behavior:'smooth'})"></div>
+  <div class="nav-dot" data-label="体系总结" onclick="document.getElementById('summary').scrollIntoView({behavior:'smooth'})"></div>
+</nav>
+<div class="container">
+
+<div class="hero" id="hero">
+  <div style="font-size:80px;margin-bottom:32px;line-height:1;">⚕️</div>
+  <div class="hero-eyebrow">Chapter 07 · Treatment Principles & Methods</div>
+  <h1 class="hero-title">治则与治法</h1>
+  <div class="hero-sub">治疗原则 · 八法 · 三因制宜 · 预防养生</div>
+  <p class="hero-desc">治则是治疗疾病的总体原则，是制定治法的依据；治法是治则的具体体现，是选方用药的基础。中医治疗以「治病求本、扶正祛邪、调整阴阳」为总纲，强调整体调治与个体化治疗相结合。</p>
+</div>
+
+<!-- 治疗总则 -->
+<section class="section" id="zhize">
+  <span class="section-eyebrow">Part 01 · 治疗总则</span>
+  <h2 class="section-title">治疗<em>总体原则</em></h2>
+  <p class="section-lead">治疗总则是指导中医临床的最高层次原则，包括治病求本、扶正祛邪、调整阴阳，以及正治反治等核心原则，是从辨证到施治的桥梁。</p>
+  <div class="insight"><strong>治疗层次：</strong>治则（最高原则）→ 治法（具体方法，如汗、吐、下等八法）→ 方剂（具体处方，如麻黄汤、四君子汤）→ 药物（具体用药）。层层递进，从宏观到具体。</div>
+
+  <div class="principle-block" data-bg="本">
+    <div class="pb-header">
+      <span class="pb-num">PRINCIPLE 01</span>
+      <div class="pb-title">治病求本</div>
+      <div class="pb-sub">最根本的治则</div>
+    </div>
+    <div class="pb-body">
+      「本」是指疾病的本质（病因、病机）；「标」是指疾病的现象（症状、体征）。治病求本即针对疾病的根本原因和本质病机进行治疗，而不仅是消除症状。<br><br>
+      <strong style="color:var(--gold2);">急则治标：</strong>当标证甚急，危及生命或影响本证治疗时，应先治标。如大出血时先止血，待急症缓解再治其本。<br>
+      <strong style="color:var(--gold2);">缓则治本：</strong>慢性病或标证不急时，重在治本（根本病因）。如肾阳虚导致的水肿，治本就是温补肾阳。<br>
+      <strong style="color:var(--gold2);">标本同治：</strong>标本均急，需同时兼顾。如气虚血瘀证，既需补气（治本）又需活血（治标）。
+    </div>
+  </div>
+
+  <div class="principle-block" data-bg="正">
+    <div class="pb-header">
+      <span class="pb-num">PRINCIPLE 02</span>
+      <div class="pb-title">扶正与祛邪</div>
+      <div class="pb-sub">调整邪正关系</div>
+    </div>
+    <div class="pb-body">
+      疾病的发生是邪正斗争的结果，治疗就是通过扶助正气、祛除病邪来改变邪正双方的力量对比，使疾病向痊愈转化。<br><br>
+      <strong style="color:var(--gold2);">扶正：</strong>补益正气，适用于虚证为主（正虚邪不盛）。方法：补气、养血、滋阴、温阳。如气虚用四君子汤，血虚用四物汤。<br>
+      <strong style="color:var(--gold2);">祛邪：</strong>祛除病邪，适用于实证（邪盛正未虚）。方法：汗、吐、下、清、消等。<br>
+      <strong style="color:var(--gold2);">先祛邪后扶正：</strong>正虚邪实但正气尚可耐攻，先攻邪后扶正。如肿瘤治疗中先手术或化疗，再调补。<br>
+      <strong style="color:var(--gold2);">先扶正后祛邪：</strong>正虚邪实且正气太弱不耐攻伐，先补益正气再祛邪。<br>
+      <strong style="color:var(--gold2);">扶正祛邪并用：</strong>正虚邪实均较突出，两者兼顾。
+    </div>
+  </div>
+
+  <div class="principle-block" data-bg="阴">
+    <div class="pb-header">
+      <span class="pb-num">PRINCIPLE 03</span>
+      <div class="pb-title">调整阴阳</div>
+      <div class="pb-sub">恢复阴阳平衡</div>
+    </div>
+    <div class="pb-body">
+      疾病的本质是阴阳失调，治疗的根本目的是「以平为期」——恢复阴阳的相对平衡。<br><br>
+      <strong style="color:var(--gold2);">损其有余（泻实）：</strong>阳盛→清热泻火（「热者寒之」）；阴盛→温阳散寒（「寒者热之」）。<br>
+      <strong style="color:var(--gold2);">补其不足（补虚）：</strong>阳虚→温补阳气（附子、肉桂）；阴虚→滋阴降火（地黄、麦冬）。<br>
+      <strong style="color:var(--gold2);">阳中求阴·阴中求阳：</strong>「善补阳者，必于阴中求阳，则阳得阴助而生化无穷；善补阴者，必于阳中求阴，则阴得阳升而泉源不竭。」（张景岳）
+    </div>
+  </div>
+
+  <div class="principle-block" data-bg="治">
+    <div class="pb-header">
+      <span class="pb-num">PRINCIPLE 04</span>
+      <div class="pb-title">正治与反治</div>
+      <div class="pb-sub">顺逆从治之道</div>
+    </div>
+    <div class="pb-body">
+      <strong style="color:var(--gold2);">正治法（逆治法）：</strong>治法与证候性质相逆，是最常用的方法。<br>
+      ・寒者热之（寒证用温热药）<br>
+      ・热者寒之（热证用寒凉药）<br>
+      ・虚者补之（虚证用补益药）<br>
+      ・实者泻之（实证用攻邪药）<br><br>
+      <strong style="color:var(--gold2);">反治法（从治法）：</strong>当疾病出现假象时，顺从假象而治，实则针对本质。<br>
+      ・热因热用（真寒假热证，用热药治疗，顺从假热现象）<br>
+      ・寒因寒用（真热假寒证，用寒药治疗，顺从假寒现象）<br>
+      ・通因通用（实性腹泻，用通下药）<br>
+      ・塞因塞用（虚性便秘/闭经，用补益药）
+    </div>
+  </div>
+</section>
+
+<!-- 八法 -->
+<section class="section" id="bafa">
+  <span class="section-eyebrow">Part 02 · 八法</span>
+  <h2 class="section-title">治法<em>八法</em>总纲</h2>
+  <p class="section-lead">八法是中医治法的总纲，由清代医家程钟龄在《医学心悟》中系统概括，涵盖了中医治疗的主要方法。临床上常多法联用，灵活配合。</p>
+  <div class="insight"><strong>八法口诀：</strong>汗吐下和温清消补。八法各有适应证，但临床多联合运用——如汗与清合用治风热表证；补与温合用治阳虚证；消与下合用治积聚食滞。「一法之中，八法备焉；八法之中，百法备焉。」</div>
+  <div class="eight-methods">
+    <div class="em-card han">
+      <div class="em-top"><div class="em-char">汗</div><div class="em-name">汗法</div><div class="em-alt">发汗解表法</div></div>
+      <div class="em-body">通过发汗使外邪随汗而解。适用于表证（外感风寒、风热）。辛温解表（麻黄汤）治风寒；辛凉解表（银翘散）治风热。注意：体虚、失血、心悸者慎用。</div>
+    </div>
+    <div class="em-card tu">
+      <div class="em-top"><div class="em-char">吐</div><div class="em-name">吐法</div><div class="em-alt">涌吐法</div></div>
+      <div class="em-body">通过引起呕吐，排出停留在胃脘或胸膈的痰涎、宿食、毒物。适用于食物中毒初期、痰涎壅塞咽喉等急症。吐法峻猛，现代已较少使用。</div>
+    </div>
+    <div class="em-card xia">
+      <div class="em-top"><div class="em-char">下</div><div class="em-name">下法</div><div class="em-alt">泻下攻积法</div></div>
+      <div class="em-body">通过泻下大便排除肠道积滞、实热、燥屎及体内有形实邪。寒下（大承气汤）治热结便秘；温下（大黄附子汤）治寒积；润下（麻子仁丸）治津亏便秘。</div>
+    </div>
+    <div class="em-card he">
+      <div class="em-top"><div class="em-char">和</div><div class="em-name">和法</div><div class="em-alt">和解表里法</div></div>
+      <div class="em-body">通过调和疏解，疏通表里、脏腑、阴阳、气血之间的失调，使其恢复平衡。适用于半表半里证（小柴胡汤）、肝脾不和（逍遥散）、寒热错杂证（半夏泻心汤）。</div>
+    </div>
+    <div class="em-card wen">
+      <div class="em-top"><div class="em-char">温</div><div class="em-name">温法</div><div class="em-alt">温里祛寒法</div></div>
+      <div class="em-body">通过温热药物温阳散寒，治疗寒证。温中祛寒（理中汤）治脾胃虚寒；回阳救逆（四逆汤）治亡阳厥逆；温经散寒（当归四逆汤）治寒凝经脉。</div>
+    </div>
+    <div class="em-card qing">
+      <div class="em-top"><div class="em-char">清</div><div class="em-name">清法</div><div class="em-alt">清热泻火法</div></div>
+      <div class="em-body">通过寒凉药物清热泻火，治疗热证。清热泻火（石膏知母）治气分实热；清热解毒（黄连解毒汤）治热毒疮疡；清热凉血（犀角地黄汤）治血热出血；清退虚热（青蒿鳖甲汤）治阴虚发热。</div>
+    </div>
+    <div class="em-card xiao">
+      <div class="em-top"><div class="em-char">消</div><div class="em-name">消法</div><div class="em-alt">消散导滞法</div></div>
+      <div class="em-body">通过消导、化散方法消除体内积滞、癥瘕、痰核等有形实邪。消食导滞（保和丸）治食积；活血化瘀（桃红四物汤）治血瘀；化痰散结（二陈汤）治痰核。</div>
+    </div>
+    <div class="em-card bu">
+      <div class="em-top"><div class="em-char">补</div><div class="em-name">补法</div><div class="em-alt">扶正补虚法</div></div>
+      <div class="em-body">通过补益药物补充人体气血阴阳的不足。补气（四君子汤）；补血（四物汤）；气血双补（八珍汤）；滋阴（六味地黄丸）；温阳（金匮肾气丸）；阴阳双补（龟鹿二仙膏）。</div>
+    </div>
+  </div>
+</section>
+
+<!-- 三因制宜 -->
+<section class="section" id="sancun">
+  <span class="section-eyebrow">Part 03 · 三因制宜</span>
+  <h2 class="section-title"><em>三因制宜</em>——个体化治疗</h2>
+  <p class="section-lead">三因制宜体现了中医「因人因时因地」的个体化、整体化治疗思想，是在辨证论治基础上进一步精细化的原则，体现了中医对人与自然、社会关系的深刻理解。</p>
+  <div class="sancun-grid">
+    <div class="sc-card">
+      <div class="sc-name">因人制宜</div>
+      <div class="sc-body">
+        根据患者的<strong style="color:var(--gold2);">年龄、性别、体质、生活习惯</strong>等个体差异制定治疗方案。<br><br>
+        <strong>年龄：</strong>小儿脏腑娇嫩，用药量小，忌峻猛；老人气血衰退，多虚多瘀，宜补宜缓；青壮年气血充盛，可攻可补。<br><br>
+        <strong>性别：</strong>女性有经期、妊娠、哺乳等特殊生理阶段，行经期慎用破血药；妊娠期禁用或慎用攻伐药物（妊娠禁忌）。<br><br>
+        <strong>体质：</strong>阳盛体质用药宜清宜凉；阳虚体质宜温宜补；痰湿体质宜化湿；阴虚体质宜滋润。「同病异治」的核心依据之一。
+      </div>
+    </div>
+    <div class="sc-card">
+      <div class="sc-name">因时制宜</div>
+      <div class="sc-body">
+        根据四季气候变化、昼夜阴阳消长等<strong style="color:var(--gold2);">时间因素</strong>制定治疗方案。<br><br>
+        <strong>四季用药原则：</strong><br>
+        春季：气候转暖，肝气生发，慎用辛温发散；<br>
+        夏季：炎热多汗，慎用辛热，注重清暑益气；<br>
+        秋季：燥邪当令，慎用辛燥，宜润肺生津；<br>
+        冬季：寒邪主令，可适当温阳散寒。<br><br>
+        <strong>子午流注：</strong>不同时辰不同经脉气血旺盛，择时针灸可提高疗效（如申时膀胱经旺，此时针膀胱经穴效佳）。
+      </div>
+    </div>
+    <div class="sc-card">
+      <div class="sc-name">因地制宜</div>
+      <div class="sc-body">
+        根据患者所处的<strong style="color:var(--gold2);">地理环境、气候特点、生活习惯</strong>制定方案。<br><br>
+        <strong>地域差异：</strong><br>
+        西北地区：气候寒冷干燥，人体腠理致密，多寒多燥，宜温宜润；<br>
+        东南地区：气候温热潮湿，人体腠理疏松，多热多湿，宜清宜燥；<br>
+        高原地区：紫外线强，阴虚体质多见，宜滋阴。<br><br>
+        <strong>「同病异治」典型体现：</strong>同为感冒，西北人可用麻黄汤发汗；东南人因腠理疏，用桂枝汤即可，甚至仅需清热解表。
+      </div>
+    </div>
+  </div>
+  <div class="insight"><strong>「同病异治」与「异病同治」：</strong>同一疾病因人、时、地不同而治法各异，称「同病异治」；不同疾病若病机相同，则可用相同治法，称「异病同治」。两者均体现了辨证论治的核心精神——治的是「证」，而非单纯的「病」。</div>
+</section>
+
+<!-- 预防养生 -->
+<section class="section" id="yangsheng">
+  <span class="section-eyebrow">Part 04 · 预防与养生</span>
+  <h2 class="section-title">治未病与<em>养生之道</em></h2>
+  <p class="section-lead">「治未病」是中医预防医学的核心思想，包括未病先防（预防疾病发生）和既病防变（防止疾病传变加重）。养生是维护和增强健康的主动行为，贯穿于日常生活。</p>
+
+  <div class="weiming-block">
+    <div class="wm-item">
+      <div class="wm-title">🌱 未病先防</div>
+      <div class="wm-body">
+        <strong style="color:var(--gold2);">增强正气：</strong>正气是防病的根本。通过饮食调养（五谷为养、五果为助、五畜为益、五菜为充）、起居有常（顺应自然节律）、情志调畅、适当锻炼（五禽戏、太极拳）来增强正气。<br><br>
+        <strong style="color:var(--gold2);">避免邪气：</strong>顺应四时气候变化（春防风、夏防暑、长夏防湿、秋防燥、冬防寒）；注意饮食卫生；保持良好情绪，避免情志过激；避免过度劳累和不良生活习惯。
+      </div>
+    </div>
+    <div class="wm-item">
+      <div class="wm-title">🛡️ 既病防变</div>
+      <div class="wm-body">
+        <strong style="color:var(--gold2);">早期诊治：</strong>疾病早期，正气未衰，邪气尚浅，治疗相对容易。「见微知著」，出现轻微征兆即应及时诊治，防止病情深入。<br><br>
+        <strong style="color:var(--gold2);">阻断传变：</strong>掌握疾病的传变规律，先安未受邪之脏腑。「见肝之病，知肝传脾，当先实脾」——治肝同时调补脾土，防止肝病传脾。六经传变中，太阳病若未能及时正确治疗，可传入阳明乃至三阴，须把握时机截断传变。
+      </div>
+    </div>
+  </div>
+
+  <h3 style="font-size:15px;letter-spacing:3px;color:var(--gold2);margin:24px 0 16px;">四时养生——顺应自然的养生法</h3>
+  <div class="yangsheng-grid">
+    <div class="ys-item">
+      <div class="ys-season">🌸</div>
+      <div class="ys-name">春季</div>
+      <div class="ys-organ" style="color:var(--green2);">养肝</div>
+      <div class="ys-method">早睡早起，舒展筋骨，疏肝理气，戒怒畅情，多食辛甘温食物，春捂防风</div>
+    </div>
+    <div class="ys-item">
+      <div class="ys-season">☀️</div>
+      <div class="ys-name">夏季</div>
+      <div class="ys-organ" style="color:#e88a7a;">养心</div>
+      <div class="ys-method">晚睡早起，午休养神，清热消暑，养心安神，勿过汗，冬病夏治（三伏贴）</div>
+    </div>
+    <div class="ys-item">
+      <div class="ys-season">🌾</div>
+      <div class="ys-name">长夏</div>
+      <div class="ys-organ" style="color:#d4a830;">养脾</div>
+      <div class="ys-method">饮食清淡易消化，健脾除湿，少食生冷，防止暑湿困脾，适当午休</div>
+    </div>
+    <div class="ys-item">
+      <div class="ys-season">🍂</div>
+      <div class="ys-name">秋季</div>
+      <div class="ys-organ" style="color:#8ab4d4;">养肺</div>
+      <div class="ys-method">早睡早起，润燥养肺，收敛神气，多食酸甘滋润食物，秋冻适当锻炼</div>
+    </div>
+    <div class="ys-item">
+      <div class="ys-season">❄️</div>
+      <div class="ys-name">冬季</div>
+      <div class="ys-organ" style="color:var(--teal2);">养肾</div>
+      <div class="ys-method">早睡晚起，温肾藏精，避寒保暖，适当进补（膏方），藏而不泄，冬至补阳</div>
+    </div>
+  </div>
+
+  <div class="insight" style="margin-top:8px;">
+    <strong>「春夏养阳，秋冬养阴」（《黄帝内经》）：</strong>春夏阳气升发，顺势助养阳气（多户外活动、饮食偏温）；秋冬阳气收藏，注重护阴固精（避免大汗耗阴、适当进补）。这是四时养生的总原则。<br>
+    <strong>「冬病夏治」：</strong>阳虚型寒性疾病（哮喘、过敏性鼻炎、关节冷痛）在夏季阳气旺盛时用温阳药或穴位贴敷（三伏贴），借助自然界阳气，补充人体阳气，改善体质，减少冬季发病。
+  </div>
+</section>
+
+<!-- 总结 -->
+<section class="section" id="summary">
+  <span class="section-eyebrow">Part 05 · 体系总结</span>
+  <h2 class="section-title">中医基础理论<em>完整体系</em></h2>
+  <p class="section-lead">至此，七大章节构成完整的中医基础理论体系。从哲学到生理，从病因到诊断，从治则到养生，环环相扣，形成一个自洽的思维框架。</p>
+
+  <div class="system-summary">
+    <div class="ss-title">⟡ 中医基础理论知识体系脉络</div>
+    <div class="ss-flow">
+      <div class="sf-step">
+        <div class="sf-box"><div class="sf-num">01</div><div class="sf-name">阴阳五行</div></div>
+        <div class="sf-sub">哲学基础·宇宙观</div>
+      </div>
+      <div class="sf-arrow">→</div>
+      <div class="sf-step">
+        <div class="sf-box"><div class="sf-num">02</div><div class="sf-name">藏象学说</div></div>
+        <div class="sf-sub">生理学·脏腑功能</div>
+      </div>
+      <div class="sf-arrow">→</div>
+      <div class="sf-step">
+        <div class="sf-box"><div class="sf-num">03</div><div class="sf-name">精气血津液</div></div>
+        <div class="sf-sub">物质基础·生命活动</div>
+      </div>
+      <div class="sf-arrow">→</div>
+      <div class="sf-step">
+        <div class="sf-box"><div class="sf-num">04</div><div class="sf-name">经络学说</div></div>
+        <div class="sf-sub">通道网络·沟通联系</div>
+      </div>
+      <div class="sf-arrow">→</div>
+      <div class="sf-step">
+        <div class="sf-box"><div class="sf-num">05</div><div class="sf-name">病因病机</div></div>
+        <div class="sf-sub">致病因素·发病机理</div>
+      </div>
+      <div class="sf-arrow">→</div>
+      <div class="sf-step">
+        <div class="sf-box"><div class="sf-num">06</div><div class="sf-name">四诊辨证</div></div>
+        <div class="sf-sub">诊断方法·辨证论治</div>
+      </div>
+      <div class="sf-arrow">→</div>
+      <div class="sf-step">
+        <div class="sf-box" style="border-color:rgba(74,138,90,0.4);background:rgba(74,138,90,0.1);"><div class="sf-num" style="color:var(--green2);">07</div><div class="sf-name" style="color:var(--green2);">治则治法</div></div>
+        <div class="sf-sub">治疗原则·养生防病</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:8px;">
+    <div class="principle-block" data-bg="整" style="margin-bottom:0;">
+      <div class="pb-header">
+        <span class="pb-num">CORE IDEA 01</span>
+        <div class="pb-title">整体观念</div>
+      </div>
+      <div class="pb-body">人体是一个有机整体，五脏六腑、精气血津液、经络形体官窍通过经络相互联系，任何局部的病变都是整体的反映；人与自然、社会也是密切相关的整体，诊治疾病须全面考虑。</div>
+    </div>
+    <div class="principle-block" data-bg="辨" style="margin-bottom:0;">
+      <div class="pb-header">
+        <span class="pb-num">CORE IDEA 02</span>
+        <div class="pb-title">辨证论治</div>
+      </div>
+      <div class="pb-body">辨证论治是中医认识和治疗疾病的基本原则，也是中医区别于西医的最大特色。同一疾病因「证」不同治法各异（同病异治）；不同疾病若「证」相同则可用相同治法（异病同治）。「证」是辨证论治的核心。</div>
+    </div>
+  </div>
+</section>
+
+<div class="final-quote">
+  <div class="fq-text">上工治未病，中工治欲病，<br>下工治已病。<br>是故圣人不治已病治未病，<br>不治已乱治未乱，此之谓也。</div>
+  <div class="fq-source">《黄帝内经·素问·四气调神大论》</div>
+</div>
+
+<div class="page-nav">
+  <a href="06-sizheng.html" class="pn-btn">← 上一章：四诊辨证</a>
+  <a href="../overview.html" class="pn-center">· 章节目录 ·</a>
+  <a href="../index.html" class="pn-btn">回到首页 →</a>
+</div>
+</div>
+<footer style="border-top:1px solid rgba(201,150,10,0.2);padding:32px 48px;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#7a6a50;font-family:'Noto Sans SC',sans-serif;font-weight:300;letter-spacing:1px;position:relative;z-index:1;">
+  <div style="font-size:16px;font-weight:700;letter-spacing:4px;color:#c9960a;font-family:'Noto Serif SC',serif;">中医基础理论</div>
+  <div>第七章 · 治则与治法</div>
+  <div style="display:flex;gap:24px;"><a href="../index.html" style="color:#7a6a50;text-decoration:none;">首页</a><a href="../overview.html" style="color:#7a6a50;text-decoration:none;">目录</a></div>
+</footer>
+<a href="#" id="backTop" style="position:fixed;bottom:32px;right:32px;width:44px;height:44px;background:#2a2218;border:1px solid rgba(201,150,10,0.2);border-radius:50%;display:none;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:#c9960a;z-index:200;text-decoration:none;"></a>
+<script>
+const btn=document.getElementById('backTop');
+window.addEventListener('scroll',()=>{btn.style.display=window.scrollY>400?'flex':'none';},{passive:true});
+btn.addEventListener('click',(e)=>{e.preventDefault();window.scrollTo({top:0,behavior:'smooth'});});
+const secs=['hero','zhize','bafa','sancun','yangsheng','summary'];
+const dots=document.querySelectorAll('.nav-dot');
+function upd(){let c=0;secs.forEach((id,i)=>{const el=document.getElementById(id);if(el&&el.getBoundingClientRect().top<window.innerHeight*0.45)c=i;});dots.forEach((d,i)=>d.classList.toggle('active',i===c));}
+window.addEventListener('scroll',upd,{passive:true});
+const obs=new IntersectionObserver((en)=>{en.forEach(e=>{if(e.isIntersecting){e.target.style.opacity='1';e.target.style.transform='translateY(0)';obs.unobserve(e.target);}});},{threshold:0.06});
+document.querySelectorAll('.principle-block,.em-card,.sc-card,.wm-item,.ys-item,.sf-step').forEach((el,i)=>{el.style.opacity='0';el.style.transform='translateY(16px)';el.style.transition=`opacity 0.5s ease ${i%6*0.06}s,transform 0.5s ease ${i%6*0.06}s`;obs.observe(el);});
+</script>
+</body>
+</html>
