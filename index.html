@@ -1,1 +1,968 @@
-欢迎来到新世界
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中医基础理论 · 知识体系框架</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap');
+
+  :root {
+    --ink: #1a1008;
+    --parchment: #f5ede0;
+    --parchment-dark: #ede0cc;
+    --red: #c0392b;
+    --red-light: #e8c4bb;
+    --gold: #b8860b;
+    --gold-light: #f0d88a;
+    --green: #2d6a4f;
+    --green-light: #b7e4c7;
+    --blue: #1a4a6e;
+    --blue-light: #bee9e8;
+    --purple: #5b2d8e;
+    --purple-light: #dbc4f5;
+    --teal: #1a6b6a;
+    --teal-light: #a8dadc;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Serif SC', serif;
+    background: var(--parchment);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Parchment texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 60px;
+    position: relative;
+  }
+
+  .header::before, .header::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+  .header::before { top: -12px; }
+  .header::after { bottom: -24px; }
+
+  .header-badge {
+    display: inline-block;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 300;
+  }
+
+  h1 {
+    font-size: clamp(32px, 6vw, 56px);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--ink);
+    letter-spacing: 8px;
+    margin-bottom: 12px;
+  }
+
+  .header-sub {
+    font-size: 14px;
+    color: var(--gold);
+    letter-spacing: 3px;
+    font-weight: 300;
+  }
+
+  /* Chapter intro */
+  .intro-text {
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto 60px;
+    font-size: 15px;
+    line-height: 2;
+    color: #5a4030;
+    font-weight: 300;
+  }
+
+  /* Chapter nav */
+  .chapter-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 60px;
+  }
+
+  .nav-btn {
+    padding: 8px 20px;
+    border: 1px solid var(--gold);
+    background: transparent;
+    color: var(--gold);
+    font-family: 'Noto Serif SC', serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s;
+    letter-spacing: 1px;
+  }
+  .nav-btn:hover, .nav-btn.active {
+    background: var(--gold);
+    color: var(--parchment);
+  }
+
+  /* Module grid */
+  .modules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 32px;
+  }
+
+  /* Module card */
+  .module {
+    background: white;
+    border-radius: 2px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08), 0 0 0 1px rgba(184,134,11,0.15);
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+  }
+  .module:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.12), 0 0 0 1px rgba(184,134,11,0.3);
+  }
+
+  .module-header {
+    padding: 24px 24px 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .module-header::after {
+    content: attr(data-num);
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 64px;
+    font-weight: 700;
+    opacity: 0.08;
+    font-family: 'Noto Sans SC', sans-serif;
+    line-height: 1;
+  }
+
+  .module-tag {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 3px;
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 400;
+    padding: 3px 10px;
+    border-radius: 1px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+
+  .module-title {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    margin-bottom: 6px;
+    line-height: 1.4;
+  }
+
+  .module-subtitle {
+    font-size: 12px;
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 300;
+    opacity: 0.7;
+    letter-spacing: 1px;
+  }
+
+  .module-body {
+    padding: 0 24px 24px;
+  }
+
+  /* Topics */
+  .topics {
+    display: none;
+    animation: fadeIn 0.4s ease;
+  }
+  .topics.open { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .topic-section {
+    margin-bottom: 16px;
+  }
+
+  .topic-section-title {
+    font-size: 12px;
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 500;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .topic-section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.2;
+  }
+
+  .topic-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .topic-pill {
+    font-size: 12px;
+    font-family: 'Noto Sans SC', sans-serif;
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    transition: all 0.2s;
+    cursor: default;
+    border: 1px solid transparent;
+  }
+
+  .module-divider {
+    height: 1px;
+    margin: 16px 0;
+    opacity: 0.15;
+  }
+
+  .toggle-btn {
+    width: 100%;
+    padding: 14px 24px;
+    background: none;
+    border: none;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    font-family: 'Noto Serif SC', serif;
+    font-size: 12px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background 0.2s;
+  }
+  .toggle-btn:hover { background: rgba(0,0,0,0.02); }
+
+  .toggle-icon {
+    font-size: 18px;
+    transition: transform 0.3s;
+    font-style: normal;
+  }
+  .module.open .toggle-icon { transform: rotate(45deg); }
+
+  /* Key concept box */
+  .key-concept {
+    background: var(--parchment);
+    border-left: 3px solid;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    line-height: 1.8;
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 300;
+  }
+
+  /* Color themes */
+  .theme-red .module-header { background: linear-gradient(135deg, #fff5f3 0%, #fce8e5 100%); }
+  .theme-red .module-tag { background: var(--red-light); color: var(--red); }
+  .theme-red .module-title { color: var(--red); }
+  .theme-red .topic-section-title { color: var(--red); }
+  .theme-red .topic-pill { background: #fdf0ed; border-color: var(--red-light); color: #7a1c14; }
+  .theme-red .topic-pill:hover { background: var(--red-light); }
+  .theme-red .key-concept { border-color: var(--red); }
+  .theme-red .module-divider { background: var(--red); }
+  .theme-red .toggle-btn { color: var(--red); }
+
+  .theme-gold .module-header { background: linear-gradient(135deg, #fffbf0 0%, #faf0c8 100%); }
+  .theme-gold .module-tag { background: var(--gold-light); color: #7a5800; }
+  .theme-gold .module-title { color: var(--gold); }
+  .theme-gold .topic-section-title { color: var(--gold); }
+  .theme-gold .topic-pill { background: #fffbf0; border-color: var(--gold-light); color: #5a4000; }
+  .theme-gold .topic-pill:hover { background: var(--gold-light); }
+  .theme-gold .key-concept { border-color: var(--gold); }
+  .theme-gold .module-divider { background: var(--gold); }
+  .theme-gold .toggle-btn { color: var(--gold); }
+
+  .theme-green .module-header { background: linear-gradient(135deg, #f0f9f4 0%, #d8f0e5 100%); }
+  .theme-green .module-tag { background: var(--green-light); color: #1a4a30; }
+  .theme-green .module-title { color: var(--green); }
+  .theme-green .topic-section-title { color: var(--green); }
+  .theme-green .topic-pill { background: #f0f9f4; border-color: var(--green-light); color: #1a4a30; }
+  .theme-green .topic-pill:hover { background: var(--green-light); }
+  .theme-green .key-concept { border-color: var(--green); }
+  .theme-green .module-divider { background: var(--green); }
+  .theme-green .toggle-btn { color: var(--green); }
+
+  .theme-blue .module-header { background: linear-gradient(135deg, #f0f5fc 0%, #d0e8f8 100%); }
+  .theme-blue .module-tag { background: var(--blue-light); color: #0a2a4a; }
+  .theme-blue .module-title { color: var(--blue); }
+  .theme-blue .topic-section-title { color: var(--blue); }
+  .theme-blue .topic-pill { background: #f0f5fc; border-color: var(--blue-light); color: #0a2a4a; }
+  .theme-blue .topic-pill:hover { background: var(--blue-light); }
+  .theme-blue .key-concept { border-color: var(--blue); }
+  .theme-blue .module-divider { background: var(--blue); }
+  .theme-blue .toggle-btn { color: var(--blue); }
+
+  .theme-purple .module-header { background: linear-gradient(135deg, #f8f0fe 0%, #ead8f8 100%); }
+  .theme-purple .module-tag { background: var(--purple-light); color: #3a1060; }
+  .theme-purple .module-title { color: var(--purple); }
+  .theme-purple .topic-section-title { color: var(--purple); }
+  .theme-purple .topic-pill { background: #f8f0fe; border-color: var(--purple-light); color: #3a1060; }
+  .theme-purple .topic-pill:hover { background: var(--purple-light); }
+  .theme-purple .key-concept { border-color: var(--purple); }
+  .theme-purple .module-divider { background: var(--purple); }
+  .theme-purple .toggle-btn { color: var(--purple); }
+
+  .theme-teal .module-header { background: linear-gradient(135deg, #f0fafa 0%, #c8eaea 100%); }
+  .theme-teal .module-tag { background: var(--teal-light); color: #0a3a3a; }
+  .theme-teal .module-title { color: var(--teal); }
+  .theme-teal .topic-section-title { color: var(--teal); }
+  .theme-teal .topic-pill { background: #f0fafa; border-color: var(--teal-light); color: #0a3a3a; }
+  .theme-teal .topic-pill:hover { background: var(--teal-light); }
+  .theme-teal .key-concept { border-color: var(--teal); }
+  .theme-teal .module-divider { background: var(--teal); }
+  .theme-teal .toggle-btn { color: var(--teal); }
+
+  /* Learning path */
+  .learning-path {
+    margin-top: 64px;
+    background: var(--ink);
+    color: var(--parchment);
+    padding: 40px;
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+  }
+  .learning-path::before {
+    content: '道';
+    position: absolute;
+    right: 30px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 180px;
+    opacity: 0.04;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .learning-path h2 {
+    font-size: 20px;
+    letter-spacing: 4px;
+    margin-bottom: 28px;
+    color: var(--gold-light);
+    font-weight: 500;
+  }
+  .path-steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    position: relative;
+  }
+  .path-step {
+    flex: 1;
+    min-width: 150px;
+    padding: 16px 20px;
+    position: relative;
+  }
+  .path-step::after {
+    content: '→';
+    position: absolute;
+    right: -8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gold);
+    font-size: 18px;
+  }
+  .path-step:last-child::after { display: none; }
+  .step-num {
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 2px;
+    font-family: 'Noto Sans SC', sans-serif;
+    margin-bottom: 6px;
+  }
+  .step-name {
+    font-size: 15px;
+    letter-spacing: 2px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .step-desc {
+    font-size: 11px;
+    opacity: 0.6;
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 300;
+    line-height: 1.5;
+  }
+
+  /* Quote */
+  .quote-section {
+    text-align: center;
+    padding: 48px 24px;
+    margin-top: 48px;
+  }
+  .quote-text {
+    font-size: clamp(16px, 3vw, 22px);
+    letter-spacing: 4px;
+    color: var(--gold);
+    font-weight: 300;
+    line-height: 2;
+    margin-bottom: 12px;
+  }
+  .quote-source {
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: #9a8060;
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 300;
+  }
+
+  @media (max-width: 600px) {
+    .modules-grid { grid-template-columns: 1fr; }
+    .path-step::after { display: none; }
+    .path-steps { flex-direction: column; }
+    .learning-path { padding: 28px 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="header-badge">Traditional Chinese Medicine</div>
+    <h1>中医基础理论</h1>
+    <div class="header-sub">知识体系完整框架 · 入门学习指南</div>
+  </div>
+
+  <p class="intro-text">
+    中医学是中华民族几千年实践经验的结晶，以整体观念与辨证论治为核心。
+    本框架将《中医基础理论》划分为七大模块，点击各模块可展开详细知识点，帮助你系统建立中医思维体系。
+  </p>
+
+  <div class="chapter-nav">
+    <button class="nav-btn active" onclick="filterAll(this)">全部</button>
+    <button class="nav-btn" onclick="filterCategory('哲学基础', this)">哲学基础</button>
+    <button class="nav-btn" onclick="filterCategory('生理学说', this)">生理学说</button>
+    <button class="nav-btn" onclick="filterCategory('病因病机', this)">病因病机</button>
+    <button class="nav-btn" onclick="filterCategory('诊断辨证', this)">诊断辨证</button>
+    <button class="nav-btn" onclick="filterCategory('治则治法', this)">治则治法</button>
+  </div>
+
+  <div class="modules-grid" id="grid">
+
+    <!-- Module 1: 哲学基础 -->
+    <div class="module theme-red" data-cat="哲学基础">
+      <div class="module-header" data-num="一">
+        <div class="module-tag">哲学基础</div>
+        <div class="module-title">阴阳五行学说</div>
+        <div class="module-subtitle">中医理论的哲学根基 · 宇宙观与方法论</div>
+      </div>
+      <div class="module-body">
+        <button class="toggle-btn" onclick="toggleModule(this)">
+          <span>展开知识点</span>
+          <i class="toggle-icon">+</i>
+        </button>
+        <div class="topics">
+          <div class="key-concept">
+            💡 核心：阴阳是对立统一的两种力量；五行是木火土金水的生克制化关系。两者共同解释宇宙万物及人体的运行规律。
+          </div>
+          <div class="topic-section">
+            <div class="topic-section-title">阴阳学说</div>
+            <div class="topic-pills">
+              <span class="topic-pill">阴阳的基本概念</span>
+              <span class="topic-pill">阴阳的特性</span>
+              <span class="topic-pill">阴阳对立制约</span>
+              <span class="topic-pill">阴阳互根互用</span>
+              <span class="topic-pill">阴阳消长平衡</span>
+              <span class="topic-pill">阴阳相互转化</span>
+              <span class="topic-pill">阴阳在医学中的应用</span>
+            </div>
+          </div>
+          <hr class="module-divider">
+          <div class="topic-section">
+            <div class="topic-section-title">五行学说</div>
+            <div class="topic-pills">
+              <span class="topic-pill">五行的特性</span>
+              <span class="topic-pill">五行生克乘侮</span>
+              <span class="topic-pill">五行制化</span>
+              <span class="topic-pill">五脏配五行</span>
+              <span class="topic-pill">五行与疾病传变</span>
+              <span class="topic-pill">五色·五味·五季</span>
+            </div>
+          </div>
+          <hr class="module-divider">
+          <div class="topic-section">
+            <div class="topic-section-title">记忆口诀</div>
+            <div class="topic-pills">
+              <span class="topic-pill">木→火→土→金→水（相生）</span>
+              <span class="topic-pill">木克土·土克水·水克火·火克金·金克木</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Module 2: 藏象学说 -->
+    <div class="module theme-gold" data-cat="生理学说">
+      <div class="module-header" data-num="二">
+        <div class="module-tag">生理学说</div>
+        <div class="module-title">藏象学说</div>
+        <div class="module-subtitle">五脏六腑奇恒之腑 · 中医生理核心</div>
+      </div>
+      <div class="module-body">
+        <button class="toggle-btn" onclick="toggleModule(this)">
+          <span>展开知识点</span>
+          <i class="toggle-icon">+</i>
+        </button>
+        <div class="topics">
+          <div class="key-concept">
+            💡 核心：藏象是对人体内脏器官功能的概括。五脏（心肝脾肺肾）藏精气，六腑（胆胃小肠大肠膀胱三焦）传化物。
+          </div>
+          <div class="topic-section">
+            <div class="topic-section-title">五脏</div>
+            <div class="topic-pills">
+              <span class="topic-pill">心 — 主血脉·藏神</span>
+              <span class="topic-pill">肺 — 主气·司呼吸·通调水道</span>
+              <span class="topic-pill">脾 — 主运化·统血</span>
+              <span class="topic-pill">肝 — 主疏泄·藏血</span>
+              <span class="topic-pill">肾 — 藏精·主水·主纳气</span>
+            </div>
+          </div>
+          <hr class="module-divider">
+          <div class="topic-section">
+            <div class="topic-section-title">六腑</div>
+            <div class="topic-pills">
+              <span class="topic-pill">胆·胃·小肠·大肠·膀胱·三焦</span>
+              <span class="topic-pill">六腑以通为用</span>
+              <span class="topic-pill">传化物而不藏</span>
+            </div>
+          </div>
+          <hr class="module-divider">
+          <div class="topic-section">
+            <div class="topic-section-title">奇恒之腑 & 脏腑关系</div>
+            <div class="topic-pills">
+              <span class="topic-pill">脑·髓·骨·脉·胆·女子胞</span>
+              <span class="topic-pill">心与小肠相表里</span>
+              <span class="topic-pill">肺与大肠相表里</span>
+              <span class="topic-pill">脾与胃相表里</span>
+              <span class="topic-pill">肝与胆相表里</span>
+              <span class="topic-pill">肾与膀胱相表里</span>
+            </div>
+          </div>
+          <hr class="module-divider">
+          <div class="topic-section">
+            <div class="topic-section-title">五脏外候（望诊关键）</div>
+            <div class="topic-pills">
+              <span class="topic-pill">心开窍于舌</span>
+              <span class="topic-pill">肺开窍于鼻</span>
+              <span class="topic-pill">脾开窍于口</span>
+              <span class="topic-pill">肝开窍于目</span>
+              <span class="topic-pill">肾开窍于耳及二阴</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Module 3: 精气血津液神 -->
+    <div class="module theme-green" data-cat="生理学说">
+      <div class="module-header" data-num="三">
+        <div class="module-tag">生理学说</div>
+        <div class="module-title">精气血津液神</div>
+        <div class="module-subtitle">生命物质基础 · 功能活动的根本</div>
+      </div>
+      <div class="module-body">
+        <button class="toggle-btn" onclick="toggleModule(this)">
+          <span>展开知识点</span>
+          <i class="toggle-icon">+</i>
+        </button>
+        <div class="topics">
+          <div class="key-concept">
+            💡 核心：精、气、血、津液是构成人体和维持生命活动的基本物质；神是生命活动的总体表现。
+          </div>
+          <div class="topic-section">
+            <div class="topic-section-title">精</div>
+            <div class="topic-pills">
+              <span class="topic-pill">先天之精</span>
+              <span class="topic-pill">后天之精</span>
+              <span class="topic-pill">肾精的功能</span>
+              <span class="topic-pill">精的生成与输布</span>
+            </div>
+          </div>
+          <hr class="module-divider">
+          <div class="topic-section">
+            <div class="topic-section-title">气</div>
+            <div class="topic-pills">
+              <span class="topic-pill">元气（先天之气）</span>
+              <span class="topic-pill">宗气</span>
+              <span class="topic-pill">营气</span>
+              <span class="topic-pill">卫气</span>
+              <span class="topic-pill">气的推动·温煦·防御·固摄·气化</span>
+              <span class="topic-pill">气机升降出入</span>
+            </div>
+          </div>
+          <hr class="module-divider">
+          <div class="topic-section">
+            <div class="topic-section-title">血 · 津液 · 神</div>
+            <div class="topic-pills">
+              <span class="topic-pill">血的生成与运行</span>
+              <span class="topic-pill">血的功能</span>
+              <span class="topic-pill">津液的生成输布代谢</span>
+              <span class="topic-pill">津液的功能</span>
+              <span class="topic-pill">神的含义</span>
+              <span class="topic-pill">气血津液的关系</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Module 4: 经络学说 -->
+    <div class="module theme-blue" data-cat="生理学说">
+      <div class="module-header" data-num="四">
+        <div class="module-tag">生理学说</div>
+        <div class="module-title">经络学说</div>
+        <div class="module-subtitle">人体通道网络 · 针灸推拿理论基础</div>
+      </div>
+      <div class="module-body">
+        <button class="toggle-btn" onclick="toggleModule(this)">
+          <span>展开知识点</span>
+          <i class="toggle-icon">+</i>
+        </button>
+        <div class="topics">
+          <div class="key-concept">
+            💡 核心：经络是运行气血、联络脏腑和体表、沟通上下内外的通道系统，是针灸、推拿的理论基础。
+          </div>
+          <div class="topic-section">
+            <div class="topic-section-title">十二正经</div>
+            <div class="topic-pills">
+              <span class="topic-pill">手三阴经（肺·心包·心）</span>
+              <span class="topic-pill">手三阳经（大肠·三焦·小肠）</span>
+              <span class="topic-pill">足三阴经（脾·厥阴·肾）</span>
+              <span class="topic-pill">足三阳经（胃·胆·膀胱）</span>
+              <span class="topic-pill">经脉走向规律</span>
+              <span class="topic-pill">表里关系</span>
+            </div>
+          </div>
+          <hr class="module-divider">
+          <div class="topic-section">
+            <div class="topic-section-title">奇经八脉 & 其他</div>
+            <div class="topic-pills">
+              <span class="topic-pill">督脉（阳脉之海）</span>
+              <span class="topic-pill">任脉（阴脉之海）</span>
+              <span class="topic-pill">冲脉·带脉·维脉·跷脉</span>
+              <span class="topic-pill">十五络脉</span>
+              <span class="topic-pill">经别·经筋·皮部</span>
+            </div>
+          </div>
+          <hr class="module-divider">
+          <div class="topic-section">
+            <div class="topic-section-title">经络的功能</div>
+            <div class="topic-pills">
+              <span class="topic-pill">沟通内外上下</span>
+              <span class="topic-pill">运行气血</span>
+              <span class="topic-pill">感应传导</span>
+              <span class="topic-pill">调节机能平衡</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Module 5: 病因病机 -->
+    <div class="module theme-purple" data-cat="病因病机">
+      <div class="module-header" data-num="五">
+        <div class="module-tag">病因病机</div>
+        <div class="module-title">病因与发病</div>
+        <div class="module-subtitle">致病因素 · 邪正关系 · 发病原理</div>
+      </div>
+      <div class="module-body">
+        <button class="toggle-btn" onclick="toggleModule(this)">
+          <span>展开知识点</span>
+          <i class="toggle-icon">+</i>
+        </button>
+        <div class="topics">
+          <div class="key-concept">
+            💡 核心：正气存内，邪不可干。疾病的发生是正气与邪气斗争的结果，病因分为外因（六淫）、内因（七情）、不内外因三类。
+          </div>
+          <div class="topic-section">
+            <div class="topic-section-title">外感病因 · 六淫</div>
+            <div class="topic-pills">
+              <span class="topic-pill">风（百病之长）</span>
+              <span class="topic-pill">寒（收引凝滞）</span>
+              <span class="topic-pill">暑（炎热升散）</span>
+              <span class="topic-pill">湿（重浊黏滞）</span>
+              <span class="topic-pill">燥（干涩伤津）</span>
+              <span class="topic-pill">火（炎上灼伤）</span>
+              <span class="topic-pill">疠气（传染性病邪）</span>
+            </div>
+          </div>
+          <hr class="module-divider">
+          <div class="topic-section">
+            <div class="topic-section-title">内伤病因 · 七情</div>
+            <div class="topic-pills">
+              <span class="topic-pill">喜伤心</span>
+              <span class="topic-pill">怒伤肝</span>
+              <span class="topic-pill">思伤脾</span>
+              <span class="topic-pill">悲忧伤肺</span>
+              <span class="topic-pill">恐惊伤肾</span>
+              <span class="topic-pill">七情与气机</span>
+            </div>
+          </div>
+          <hr class="module-divider">
+          <div class="topic-section">
+            <div class="topic-section-title">其他病因</div>
+            <div class="topic-pills">
+              <span class="topic-pill">饮食失宜</span>
+              <span class="topic-pill">劳逸失度</span>
+              <span class="topic-pill">痰饮</span>
+              <span class="topic-pill">瘀血</span>
+              <span class="topic-pill">结石</span>
+              <span class="topic-pill">外伤</span>
+            </div>
+          </div>
+          <hr class="module-divider">
+          <div class="topic-section">
+            <div class="topic-section-title">基本病机</div>
+            <div class="topic-pills">
+              <span class="topic-pill">邪正盛衰</span>
+              <span class="topic-pill">阴阳失调</span>
+              <span class="topic-pill">精气血津液失常</span>
+              <span class="topic-pill">内生五邪</span>
+              <span class="topic-pill">气机失常</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Module 6: 四诊辨证 -->
+    <div class="module theme-teal" data-cat="诊断辨证">
+      <div class="module-header" data-num="六">
+        <div class="module-tag">诊断辨证</div>
+        <div class="module-title">四诊与辨证</div>
+        <div class="module-subtitle">望闻问切 · 八纲辨证 · 脏腑辨证</div>
+      </div>
+      <div class="module-body">
+        <button class="toggle-btn" onclick="toggleModule(this)">
+          <span>展开知识点</span>
+          <i class="toggle-icon">+</i>
+        </button>
+        <div class="topics">
+          <div class="key-concept">
+            💡 核心：四诊合参，全面收集信息；辨证是对疾病性质的综合判断，八纲（阴阳表里寒热虚实）是辨证的总纲。
+          </div>
+          <div class="topic-section">
+            <div class="topic-section-title">四诊</div>
+            <div class="topic-pills">
+              <span class="topic-pill">望诊（神·色·形·舌）</span>
+              <span class="topic-pill">闻诊（声音·气味）</span>
+              <span class="topic-pill">问诊（十问歌）</span>
+              <span class="topic-pill">切诊（脉诊·按诊）</span>
+              <span class="topic-pill">28种常见脉象</span>
+              <span class="topic-pill">舌诊（舌质·舌苔）</span>
+            </div>
+          </div>
+          <hr class="module-divider">
+          <div class="topic-section">
+            <div class="topic-section-title">八纲辨证（辨证总纲）</div>
+            <div class="topic-pills">
+              <span class="topic-pill">表证 ↔ 里证</span>
+              <span class="topic-pill">寒证 ↔ 热证</span>
+              <span class="topic-pill">虚证 ↔ 实证</span>
+              <span class="topic-pill">阴证 ↔ 阳证</span>
+              <span class="topic-pill">表里出入</span>
+              <span class="topic-pill">寒热转化</span>
+              <span class="topic-pill">虚实夹杂</span>
+            </div>
+          </div>
+          <hr class="module-divider">
+          <div class="topic-section">
+            <div class="topic-section-title">其他辨证方法</div>
+            <div class="topic-pills">
+              <span class="topic-pill">脏腑辨证</span>
+              <span class="topic-pill">气血津液辨证</span>
+              <span class="topic-pill">六经辨证（伤寒）</span>
+              <span class="topic-pill">卫气营血辨证（温病）</span>
+              <span class="topic-pill">三焦辨证</span>
+              <span class="topic-pill">经络辨证</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Module 7: 治则治法 -->
+    <div class="module theme-red" data-cat="治则治法">
+      <div class="module-header" data-num="七">
+        <div class="module-tag">治则治法</div>
+        <div class="module-title">治则与治法</div>
+        <div class="module-subtitle">治疗原则 · 常用治法 · 预防养生</div>
+      </div>
+      <div class="module-body">
+        <button class="toggle-btn" onclick="toggleModule(this)">
+          <span>展开知识点</span>
+          <i class="toggle-icon">+</i>
+        </button>
+        <div class="topics">
+          <div class="key-concept">
+            💡 核心：治病必求于本，以扶正祛邪为总原则；三因制宜（因人·因时·因地）是重要的个性化治疗思想。
+          </div>
+          <div class="topic-section">
+            <div class="topic-section-title">基本治则</div>
+            <div class="topic-pills">
+              <span class="topic-pill">治病求本</span>
+              <span class="topic-pill">正治与反治</span>
+              <span class="topic-pill">标本缓急</span>
+              <span class="topic-pill">扶正祛邪</span>
+              <span class="topic-pill">调整阴阳</span>
+              <span class="topic-pill">三因制宜</span>
+              <span class="topic-pill">调理气血津液</span>
+            </div>
+          </div>
+          <hr class="module-divider">
+          <div class="topic-section">
+            <div class="topic-section-title">汗吐下和温清消补（八法）</div>
+            <div class="topic-pills">
+              <span class="topic-pill">汗法（解表）</span>
+              <span class="topic-pill">吐法（涌吐）</span>
+              <span class="topic-pill">下法（攻下）</span>
+              <span class="topic-pill">和法（和解）</span>
+              <span class="topic-pill">温法（温里祛寒）</span>
+              <span class="topic-pill">清法（清热）</span>
+              <span class="topic-pill">消法（消散）</span>
+              <span class="topic-pill">补法（扶正）</span>
+            </div>
+          </div>
+          <hr class="module-divider">
+          <div class="topic-section">
+            <div class="topic-section-title">预防与养生</div>
+            <div class="topic-pills">
+              <span class="topic-pill">未病先防</span>
+              <span class="topic-pill">既病防变</span>
+              <span class="topic-pill">顺应自然</span>
+              <span class="topic-pill">形神共养</span>
+              <span class="topic-pill">饮食调养</span>
+              <span class="topic-pill">起居有常</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /grid -->
+
+  <!-- Learning Path -->
+  <div class="learning-path">
+    <h2>⟡ 建议学习路径</h2>
+    <div class="path-steps">
+      <div class="path-step">
+        <div class="step-num">STEP 01</div>
+        <div class="step-name">哲学入门</div>
+        <div class="step-desc">阴阳五行<br>建立中医宇宙观</div>
+      </div>
+      <div class="path-step">
+        <div class="step-num">STEP 02</div>
+        <div class="step-name">了解人体</div>
+        <div class="step-desc">藏象 + 精气血<br>掌握生理基础</div>
+      </div>
+      <div class="path-step">
+        <div class="step-num">STEP 03</div>
+        <div class="step-name">认识通道</div>
+        <div class="step-desc">经络学说<br>理解针灸推拿</div>
+      </div>
+      <div class="path-step">
+        <div class="step-num">STEP 04</div>
+        <div class="step-name">认识疾病</div>
+        <div class="step-desc">病因病机<br>掌握致病规律</div>
+      </div>
+      <div class="path-step">
+        <div class="step-num">STEP 05</div>
+        <div class="step-name">学会诊断</div>
+        <div class="step-desc">四诊 + 八纲<br>辨证思维培养</div>
+      </div>
+      <div class="path-step">
+        <div class="step-num">STEP 06</div>
+        <div class="step-name">掌握治疗</div>
+        <div class="step-desc">治则治法<br>融会贯通全体系</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="quote-section">
+    <div class="quote-text">上工治未病，不治已病</div>
+    <div class="quote-source">《黄帝内经·素问》</div>
+  </div>
+
+</div>
+
+<script>
+  function toggleModule(btn) {
+    const module = btn.closest('.module');
+    const topics = module.querySelector('.topics');
+    module.classList.toggle('open');
+    topics.classList.toggle('open');
+    btn.querySelector('span').textContent = module.classList.contains('open') ? '收起知识点' : '展开知识点';
+  }
+
+  function filterAll(btn) {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.module').forEach(m => {
+      m.style.display = '';
+      m.style.animation = 'fadeIn 0.4s ease';
+    });
+  }
+
+  function filterCategory(cat, btn) {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.module').forEach(m => {
+      if (m.dataset.cat === cat) {
+        m.style.display = '';
+        m.style.animation = 'fadeIn 0.4s ease';
+      } else {
+        m.style.display = 'none';
+      }
+    });
+  }
+</script>
+</body>
+</html>
