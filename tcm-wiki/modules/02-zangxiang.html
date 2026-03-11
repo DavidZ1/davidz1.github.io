@@ -6,146 +6,432 @@
 <title>藏象学说 · 中医基础理论</title>
 <link rel="stylesheet" href="../assets/css/base.css">
 <style>
-.mod-hero{padding:100px 0 60px;}
-.mh-num{font-size:11px;letter-spacing:4px;color:var(--gold);font-family:'Noto Sans SC',sans-serif;font-weight:300;margin-bottom:14px;display:block;}
-.mh-title{font-size:clamp(32px,5vw,60px);font-weight:900;letter-spacing:8px;margin-bottom:16px;line-height:1.2;}
-.mh-title em{font-style:normal;color:var(--gold2);}
-.mh-lead{font-size:14px;line-height:2.2;color:var(--text2);font-family:'Noto Sans SC',sans-serif;font-weight:300;max-width:560px;}
-.topics-sections{margin-top:60px;}
-.topic-block{margin-bottom:48px;padding-bottom:48px;border-bottom:1px solid rgba(201,150,10,0.08);}
-.topic-block:last-child{border-bottom:none;}
-.tb-header{display:flex;align-items:baseline;gap:16px;margin-bottom:20px;}
-.tb-num{font-size:11px;letter-spacing:3px;color:var(--gold);font-family:'Noto Sans SC',sans-serif;}
-.tb-title{font-size:22px;font-weight:700;letter-spacing:4px;color:var(--text);}
-.tb-sub{font-size:12px;color:var(--text3);font-family:'Noto Sans SC',sans-serif;}
-.tb-body{font-size:14px;line-height:2.3;color:var(--text2);font-family:'Noto Sans SC',sans-serif;font-weight:300;margin-bottom:20px;}
-.tb-pills{display:flex;flex-wrap:wrap;gap:8px;}
-.tb-pill{font-size:12px;font-family:'Noto Sans SC',sans-serif;padding:5px 14px;border-radius:20px;background:var(--surface2);color:var(--text2);border:1px solid rgba(201,150,10,0.1);}
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500&display=swap');
+:root{--bg:#0d0a06;--surface:#201a10;--surface2:#2a2218;--surface3:#332b1c;--gold:#c9960a;--gold2:#e8b84b;--gold-dim:rgba(201,150,10,0.13);--text:#f0e6d0;--text2:#b8a888;--text3:#7a6a50;--heart:#c94a2a;--lung:#8ab4d4;--spleen:#d4a830;--liver:#5aaa5a;--kidney:#5a7acc;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Serif SC',serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 20% 20%,rgba(201,74,42,0.04) 0%,transparent 60%),radial-gradient(ellipse 60% 70% at 80% 80%,rgba(201,150,10,0.04) 0%,transparent 60%);pointer-events:none;z-index:0;}
+.topnav{position:fixed;top:0;left:0;right:0;height:56px;background:rgba(13,10,6,0.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(201,150,10,0.2);display:flex;align-items:center;padding:0 32px;z-index:1000;}
+.tnlogo{font-size:18px;font-weight:700;letter-spacing:4px;color:#e8b84b;text-decoration:none;margin-right:40px;white-space:nowrap;flex-shrink:0;}
+.tnlinks{display:flex;align-items:center;gap:4px;flex:1;overflow-x:auto;scrollbar-width:none;}
+.tnlinks::-webkit-scrollbar{display:none;}
+.tnlink{font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;transition:all 0.3s;}
+.tnlink:hover,.tnlink.active{color:#e8b84b;background:rgba(201,150,10,0.12);}
+.tndiv{width:1px;height:16px;background:rgba(201,150,10,0.2);margin:0 8px;flex-shrink:0;}
+.breadcrumb{position:relative;z-index:1;display:flex;align-items:center;gap:8px;padding:68px 48px 0;font-size:12px;font-family:'Noto Sans SC',sans-serif;color:#7a6a50;letter-spacing:1px;}
+.breadcrumb a{color:#7a6a50;text-decoration:none;}
+.breadcrumb span{color:#c9960a;}
+.side-nav{position:fixed;left:16px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:100;}
+.nav-dot{width:6px;height:6px;border-radius:50%;background:#4a3a28;cursor:pointer;transition:all 0.3s;position:relative;}
+.nav-dot:hover,.nav-dot.active{background:#c9960a;transform:scale(1.5);}
+.nav-dot::after{content:attr(data-label);position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:10px;color:#c9960a;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;opacity:0;pointer-events:none;background:rgba(13,10,6,0.9);padding:3px 8px;border-radius:3px;}
+.nav-dot:hover::after{opacity:1;}
+.container{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:0 32px 100px;}
+
+/* HERO */
+.hero{padding:80px 0 60px;text-align:center;position:relative;}
+.hero-organ-ring{display:flex;align-items:center;justify-content:center;gap:0;margin:0 auto 48px;width:200px;height:200px;position:relative;}
+.organ-circle{position:absolute;width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;border:1.5px solid;transition:transform 0.3s;}
+.organ-circle:hover{transform:scale(1.15);z-index:10;}
+.oc-heart{top:0;left:50%;transform:translateX(-50%);background:rgba(201,74,42,0.15);border-color:var(--heart);color:var(--heart);}
+.oc-lung{top:50px;right:0;background:rgba(138,180,212,0.15);border-color:var(--lung);color:var(--lung);}
+.oc-spleen{bottom:0;right:20px;background:rgba(212,168,48,0.15);border-color:var(--spleen);color:var(--spleen);}
+.oc-liver{bottom:0;left:20px;background:rgba(90,170,90,0.15);border-color:var(--liver);color:var(--liver);}
+.oc-kidney{top:50px;left:0;background:rgba(90,122,204,0.15);border-color:var(--kidney);color:var(--kidney);}
+.oc-center{width:48px;height:48px;background:var(--gold-dim);border-color:var(--gold);color:var(--gold);font-size:16px;}
+.hero-eyebrow{font-size:11px;letter-spacing:6px;color:var(--gold);font-family:'Noto Sans SC',sans-serif;font-weight:300;margin-bottom:16px;opacity:0;animation:fadeUp 1s ease 0.2s forwards;}
+.hero-title{font-size:clamp(36px,7vw,72px);font-weight:900;letter-spacing:10px;background:linear-gradient(135deg,#f5d070,#e8b84b,#e89040);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:14px;opacity:0;animation:fadeUp 1s ease 0.4s forwards;}
+.hero-sub{font-size:15px;letter-spacing:4px;color:var(--text2);font-weight:300;margin-bottom:24px;opacity:0;animation:fadeUp 1s ease 0.6s forwards;}
+.hero-desc{max-width:580px;margin:0 auto;font-size:14px;line-height:2.3;color:var(--text3);font-family:'Noto Sans SC',sans-serif;font-weight:300;opacity:0;animation:fadeUp 1s ease 0.8s forwards;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* SECTION */
+.section{padding:72px 0;border-top:1px solid rgba(201,150,10,0.08);}
+.section-eyebrow{display:block;font-size:10px;letter-spacing:4px;color:var(--gold);font-family:'Noto Sans SC',sans-serif;text-transform:uppercase;margin-bottom:10px;}
+.section-title{font-size:clamp(22px,4vw,38px);font-weight:700;letter-spacing:5px;margin-bottom:12px;line-height:1.3;}
+.section-title em{font-style:normal;color:var(--gold2);}
+.section-lead{font-size:14px;line-height:2.1;color:var(--text2);font-family:'Noto Sans SC',sans-serif;font-weight:300;max-width:600px;margin-bottom:40px;}
+.insight{background:var(--gold-dim);border:1px solid rgba(201,150,10,0.18);border-left:3px solid var(--gold);padding:18px 22px;border-radius:0 4px 4px 0;font-size:13px;line-height:2.1;color:var(--text2);font-family:'Noto Sans SC',sans-serif;font-weight:300;margin:0 0 32px;}
+.insight strong{color:var(--gold2);font-weight:500;}
+
+/* ORGAN CARDS */
+.organ-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;margin-bottom:48px;}
+.organ-card{background:var(--surface);border:1px solid rgba(201,150,10,0.1);border-radius:4px;overflow:hidden;transition:all 0.3s;cursor:default;}
+.organ-card:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,0.25);}
+.oc-header{padding:24px 24px 16px;display:flex;align-items:center;gap:16px;}
+.oc-char{font-size:48px;font-weight:900;line-height:1;}
+.oc-info{}
+.oc-title-en{font-size:10px;letter-spacing:3px;font-family:'Noto Sans SC',sans-serif;font-weight:300;opacity:0.6;margin-bottom:4px;}
+.oc-title{font-size:22px;font-weight:700;letter-spacing:4px;}
+.oc-subtitle{font-size:12px;font-family:'Noto Sans SC',sans-serif;font-weight:300;opacity:0.7;margin-top:2px;}
+.oc-body{padding:0 24px 24px;}
+.oc-govern{font-size:13px;line-height:2.2;color:var(--text2);font-family:'Noto Sans SC',sans-serif;font-weight:300;margin-bottom:16px;}
+.oc-tags{display:flex;flex-wrap:wrap;gap:6px;}
+.oc-tag{font-size:11px;font-family:'Noto Sans SC',sans-serif;padding:4px 12px;border-radius:20px;border:1px solid;}
+
+/* Heart */
+.heart-card .oc-header{background:linear-gradient(135deg,rgba(201,74,42,0.12),rgba(201,74,42,0.05));}
+.heart-card .oc-char,.heart-card .oc-title{color:var(--heart);}
+.heart-card .oc-tag{background:rgba(201,74,42,0.08);border-color:rgba(201,74,42,0.2);color:#e88a7a;}
+/* Lung */
+.lung-card .oc-header{background:linear-gradient(135deg,rgba(138,180,212,0.12),rgba(138,180,212,0.05));}
+.lung-card .oc-char,.lung-card .oc-title{color:var(--lung);}
+.lung-card .oc-tag{background:rgba(138,180,212,0.08);border-color:rgba(138,180,212,0.2);color:var(--lung);}
+/* Spleen */
+.spleen-card .oc-header{background:linear-gradient(135deg,rgba(212,168,48,0.12),rgba(212,168,48,0.05));}
+.spleen-card .oc-char,.spleen-card .oc-title{color:var(--spleen);}
+.spleen-card .oc-tag{background:rgba(212,168,48,0.08);border-color:rgba(212,168,48,0.2);color:var(--spleen);}
+/* Liver */
+.liver-card .oc-header{background:linear-gradient(135deg,rgba(90,170,90,0.12),rgba(90,170,90,0.05));}
+.liver-card .oc-char,.liver-card .oc-title{color:var(--liver);}
+.liver-card .oc-tag{background:rgba(90,170,90,0.08);border-color:rgba(90,170,90,0.2);color:var(--liver);}
+/* Kidney */
+.kidney-card .oc-header{background:linear-gradient(135deg,rgba(90,122,204,0.12),rgba(90,122,204,0.05));}
+.kidney-card .oc-char,.kidney-card .oc-title{color:var(--kidney);}
+.kidney-card .oc-tag{background:rgba(90,122,204,0.08);border-color:rgba(90,122,204,0.2);color:var(--kidney);}
+
+/* RELATION TABLE */
+.rel-table{width:100%;border-collapse:collapse;margin-bottom:40px;font-size:13px;}
+.rel-table th{padding:12px 16px;text-align:center;font-family:'Noto Sans SC',sans-serif;font-weight:500;font-size:10px;letter-spacing:2px;color:var(--text3);border-bottom:1px solid rgba(201,150,10,0.15);background:var(--surface);}
+.rel-table td{padding:14px 16px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.04);font-family:'Noto Sans SC',sans-serif;font-weight:300;color:var(--text2);background:var(--surface);}
+.rel-table tr:hover td{background:var(--surface2);}
+.rel-table .rn{font-size:18px;font-weight:700;letter-spacing:2px;font-family:'Noto Serif SC',serif;}
+.rt-heart .rn{color:var(--heart);}
+.rt-lung .rn{color:var(--lung);}
+.rt-spleen .rn{color:var(--spleen);}
+.rt-liver .rn{color:var(--liver);}
+.rt-kidney .rn{color:var(--kidney);}
+.rt-heart td{background:rgba(201,74,42,0.03);}
+.rt-lung td{background:rgba(138,180,212,0.03);}
+.rt-spleen td{background:rgba(212,168,48,0.03);}
+.rt-liver td{background:rgba(90,170,90,0.03);}
+.rt-kidney td{background:rgba(90,122,204,0.03);}
+
+/* FUFU */
+.fufu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:40px;}
+.fufu-card{background:var(--surface);border:1px solid rgba(201,150,10,0.1);border-radius:4px;padding:22px;text-align:center;transition:all 0.3s;}
+.fufu-card:hover{border-color:rgba(201,150,10,0.3);transform:translateY(-2px);}
+.fufu-icon{font-size:28px;margin-bottom:10px;}
+.fufu-name{font-size:16px;font-weight:700;letter-spacing:3px;color:var(--gold2);margin-bottom:6px;}
+.fufu-pair{font-size:11px;color:var(--text3);font-family:'Noto Sans SC',sans-serif;letter-spacing:1px;margin-bottom:10px;}
+.fufu-desc{font-size:12px;color:var(--text2);font-family:'Noto Sans SC',sans-serif;font-weight:300;line-height:1.9;}
+
+/* QIHENG */
+.qiheng-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:rgba(201,150,10,0.1);border:1px solid rgba(201,150,10,0.1);border-radius:4px;overflow:hidden;margin-bottom:40px;}
+.qh-item{background:var(--surface);padding:20px 12px;text-align:center;transition:background 0.2s;}
+.qh-item:hover{background:var(--surface2);}
+.qh-icon{font-size:24px;margin-bottom:8px;}
+.qh-name{font-size:14px;font-weight:600;letter-spacing:2px;color:var(--gold2);margin-bottom:4px;}
+.qh-desc{font-size:11px;color:var(--text3);font-family:'Noto Sans SC',sans-serif;font-weight:300;line-height:1.7;}
+
+/* Summary */
+.sum-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:40px;}
+.sum-card{background:var(--surface);border:1px solid rgba(201,150,10,0.1);border-radius:4px;padding:24px;text-align:center;transition:all 0.3s;}
+.sum-card:hover{border-color:rgba(201,150,10,0.3);transform:translateY(-2px);}
+.sum-icon{font-size:32px;margin-bottom:12px;}
+.sum-title{font-size:15px;font-weight:600;letter-spacing:2px;margin-bottom:8px;}
+.sum-text{font-size:12px;line-height:1.9;color:var(--text3);font-family:'Noto Sans SC',sans-serif;font-weight:300;}
+
+.final-quote{text-align:center;padding:60px 0 20px;position:relative;}
+.final-quote::before{content:'藏';position:absolute;top:0;left:50%;transform:translateX(-50%);font-size:80px;opacity:0.04;font-weight:900;}
+.fq-text{font-size:clamp(15px,2.5vw,22px);letter-spacing:4px;color:var(--gold2);font-weight:300;line-height:2.4;margin-bottom:12px;}
+.fq-source{font-size:12px;letter-spacing:3px;color:var(--text3);font-family:'Noto Sans SC',sans-serif;}
+.divider{height:1px;background:linear-gradient(90deg,transparent,rgba(201,150,10,0.25),transparent);margin:24px 0;}
 .page-nav{display:flex;justify-content:space-between;align-items:center;padding:48px 0 0;border-top:1px solid rgba(201,150,10,0.1);margin-top:20px;}
 .pn-btn{display:flex;align-items:center;gap:10px;padding:14px 24px;border:1px solid rgba(201,150,10,0.2);border-radius:4px;color:#b8a888;text-decoration:none;font-size:13px;font-family:'Noto Sans SC',sans-serif;letter-spacing:1.5px;transition:all 0.3s;}
 .pn-btn:hover{border-color:var(--gold);color:var(--gold2);background:rgba(201,150,10,0.12);}
 .pn-center{font-size:12px;color:#7a6a50;letter-spacing:2px;font-family:'Noto Sans SC',sans-serif;text-decoration:none;}
+@media(max-width:700px){.organ-grid{grid-template-columns:1fr;}.fufu-grid{grid-template-columns:repeat(2,1fr);}.qiheng-strip{grid-template-columns:repeat(3,1fr);}.sum-grid{grid-template-columns:1fr 1fr;}.side-nav{display:none;}.topnav{padding:0 16px;}.tnlogo{font-size:15px;margin-right:16px;}}
 </style>
 </head>
 <body>
-<nav class="topnav" style="position:fixed;top:0;left:0;right:0;height:56px;background:rgba(13,10,6,0.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(201,150,10,0.2);display:flex;align-items:center;padding:0 32px;z-index:1000;">
-  <a href="../index.html" style="font-size:18px;font-weight:700;letter-spacing:4px;color:#e8b84b;text-decoration:none;margin-right:40px;white-space:nowrap;flex-shrink:0;">中医</a>
-  <div style="display:flex;align-items:center;gap:4px;flex:1;overflow-x:auto;scrollbar-width:none;">
-    <a href="../index.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">首页</a>
-    <a href="../overview.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">知识框架</a>
-    <div style="width:1px;height:16px;background:rgba(201,150,10,0.2);margin:0 8px;flex-shrink:0;"></div>
-    <a href="01-yinyang.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">阴阳五行</a>
-    <a href="02-zangxiang.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">藏象学说</a>
-    <a href="03-jingqi.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">精气血津液</a>
-    <a href="04-jingluo.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">经络学说</a>
-    <a href="05-bingyin.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">病因病机</a>
-    <a href="06-sizheng.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">四诊辨证</a>
-    <a href="07-zhize.html" style="font-size:12px;letter-spacing:1.5px;color:#7a6a50;text-decoration:none;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;">治则治法</a>
+<nav class="topnav">
+  <a href="../index.html" class="tnlogo">中医</a>
+  <div class="tnlinks">
+    <a href="../index.html" class="tnlink">首页</a>
+    <a href="../overview.html" class="tnlink">知识框架</a>
+    <div class="tndiv"></div>
+    <a href="01-yinyang.html" class="tnlink">阴阳五行</a>
+    <a href="02-zangxiang.html" class="tnlink active">藏象学说</a>
+    <a href="03-jingqi.html" class="tnlink">精气血津液</a>
+    <a href="04-jingluo.html" class="tnlink">经络学说</a>
+    <a href="05-bingyin.html" class="tnlink">病因病机</a>
+    <a href="06-sizheng.html" class="tnlink">四诊辨证</a>
+    <a href="07-zhize.html" class="tnlink">治则治法</a>
   </div>
 </nav>
-<div class="page-wrap">
-<div style="position:relative;z-index:1;display:flex;align-items:center;gap:8px;padding:68px 32px 0;font-size:12px;font-family:'Noto Sans SC',sans-serif;color:#7a6a50;letter-spacing:1px;">
-  <a href="../index.html" style="color:#7a6a50;text-decoration:none;">首页</a><span>›</span>
-  <a href="../overview.html" style="color:#7a6a50;text-decoration:none;">知识框架</a><span>›</span>
-  <span style="color:#c9960a;">第2章 · 藏象学说</span>
+<div class="breadcrumb">
+  <a href="../index.html">首页</a>›<a href="../overview.html">知识框架</a>›<span>第二章 · 藏象学说</span>
 </div>
+<nav class="side-nav">
+  <div class="nav-dot active" data-label="概述" onclick="document.getElementById('hero').scrollIntoView({behavior:'smooth'})"></div>
+  <div class="nav-dot" data-label="五脏详解" onclick="document.getElementById('wuzang').scrollIntoView({behavior:'smooth'})"></div>
+  <div class="nav-dot" data-label="五脏对应表" onclick="document.getElementById('wuzang-table').scrollIntoView({behavior:'smooth'})"></div>
+  <div class="nav-dot" data-label="六腑" onclick="document.getElementById('liufu').scrollIntoView({behavior:'smooth'})"></div>
+  <div class="nav-dot" data-label="奇恒之腑" onclick="document.getElementById('qiheng').scrollIntoView({behavior:'smooth'})"></div>
+  <div class="nav-dot" data-label="应用总结" onclick="document.getElementById('summary').scrollIntoView({behavior:'smooth'})"></div>
+</nav>
 <div class="container">
-  <div class="mod-hero reveal">
-    <span class="mh-num">第2章 · CHAPTER TWO</span>
-    <h1 class="mh-title"><em>藏象学说</em></h1>
-    <div class="mh-lead">五脏六腑奇恒之腑 · 中医生理核心</div>
+
+<div class="hero" id="hero">
+  <div class="hero-organ-ring">
+    <div class="organ-circle oc-heart">心</div>
+    <div class="organ-circle oc-lung">肺</div>
+    <div class="organ-circle oc-spleen">脾</div>
+    <div class="organ-circle oc-liver">肝</div>
+    <div class="organ-circle oc-kidney">肾</div>
+    <div class="organ-circle oc-center" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">藏</div>
   </div>
-  <div class="section topics-sections">
-    <div class="topic-block">
-      <div class="tb-header">
-        <span class="tb-num">TOPIC 01</span>
-        <div>
-          <div class="tb-title">心</div>
-          <div class="tb-sub">主血脉·藏神</div>
+  <div class="hero-eyebrow">Chapter 02 · Zangxiang Theory</div>
+  <h1 class="hero-title">藏象学说</h1>
+  <div class="hero-sub">五脏六腑奇恒之腑 · 中医生理核心</div>
+  <p class="hero-desc">「藏」指藏于体内的内脏，「象」指表现于外的生理病理现象。藏象学说通过观察外在表象推断内脏功能，是中医生理学的核心理论，也是辨证论治的重要基础。</p>
+</div>
+
+<!-- 五脏 -->
+<section class="section" id="wuzang">
+  <span class="section-eyebrow">Part 01 · 五脏</span>
+  <h2 class="section-title">五脏<em>详解</em></h2>
+  <p class="section-lead">五脏（心、肺、脾、肝、肾）的共同特点是「藏精气而不泻」——贮藏精气，维持生命活动。每脏各有其独特功能，并与六腑、形体、官窍构成整体联系。</p>
+  <div class="insight"><strong>记忆口诀：</strong>心主血脉神志藏，肺主气与呼吸将，脾主运化统血强，肝主疏泄血来藏，肾主藏精纳气忙。五脏与五行一一对应：心→火，肺→金，脾→土，肝→木，肾→水。</div>
+
+  <div class="organ-grid">
+    <div class="organ-card heart-card">
+      <div class="oc-header">
+        <div class="oc-char">心</div>
+        <div class="oc-info">
+          <div class="oc-title-en">HEART · 火</div>
+          <div class="oc-title">君主之官</div>
+          <div class="oc-subtitle">神明出焉</div>
         </div>
       </div>
-      <div class="tb-body">心为君主之官，主宰全身血液循环与精神意识。心主血脉指心气推动血液在脉中运行；心藏神指心是人体生命活动的主宰，主持精神意识思维活动。</div>
-      <div class="tb-pills"><span class="tb-pill">主血脉</span><span class="tb-pill">藏神</span><span class="tb-pill">心开窍于舌</span><span class="tb-pill">其华在面</span><span class="tb-pill">汗为心之液</span></div>
-    </div>
-    <div class="topic-block">
-      <div class="tb-header">
-        <span class="tb-num">TOPIC 02</span>
-        <div>
-          <div class="tb-title">肺</div>
-          <div class="tb-sub">主气·司呼吸·通调水道</div>
+      <div class="oc-body">
+        <div class="oc-govern">
+          <strong style="color:#e88a7a;">主血脉：</strong>心气推动血液在脉中循环运行，营养全身脏腑组织。心气充沛则脉搏有力，面色红润。<br><br>
+          <strong style="color:#e88a7a;">藏神：</strong>心主神明，统领人的精神意识、思维活动与睡眠。心神安则神清气爽；心神不宁则失眠多梦、心悸怔忡。<br><br>
+          <strong style="color:#e88a7a;">主汗液：</strong>「汗为心之液」，大汗伤心，心阳虚则自汗，心阴虚则盗汗。
+        </div>
+        <div class="oc-tags">
+          <span class="oc-tag">开窍于舌</span><span class="oc-tag">其华在面</span><span class="oc-tag">在志为喜</span><span class="oc-tag">表里小肠</span><span class="oc-tag">五行属火</span><span class="oc-tag">色赤味苦</span>
         </div>
       </div>
-      <div class="tb-body">肺为相傅之官，主气、司呼吸。肺主气包括主呼吸之气（气体交换）和主一身之气（参与气的生成与运行）。肺通调水道指肺气宣发肃降，调节水液代谢。</div>
-      <div class="tb-pills"><span class="tb-pill">主气</span><span class="tb-pill">司呼吸</span><span class="tb-pill">通调水道</span><span class="tb-pill">朝百脉</span><span class="tb-pill">主宣发肃降</span><span class="tb-pill">开窍于鼻</span><span class="tb-pill">其华在毛</span></div>
-    </div>
-    <div class="topic-block">
-      <div class="tb-header">
-        <span class="tb-num">TOPIC 03</span>
-        <div>
-          <div class="tb-title">脾</div>
-          <div class="tb-sub">主运化·统血·后天之本</div>
-        </div>
-      </div>
-      <div class="tb-body">脾为仓廪之官，是后天之本、气血生化之源。脾主运化包括运化水谷（消化吸收）和运化水液（水液代谢）。脾统血指脾气统摄血液在脉中运行，防止出血。</div>
-      <div class="tb-pills"><span class="tb-pill">主运化</span><span class="tb-pill">主升清</span><span class="tb-pill">统血</span><span class="tb-pill">后天之本</span><span class="tb-pill">开窍于口</span><span class="tb-pill">其华在唇</span><span class="tb-pill">主四肢肌肉</span></div>
-    </div>
-    <div class="topic-block">
-      <div class="tb-header">
-        <span class="tb-num">TOPIC 04</span>
-        <div>
-          <div class="tb-title">肝</div>
-          <div class="tb-sub">主疏泄·藏血·刚脏</div>
-        </div>
-      </div>
-      <div class="tb-body">肝为将军之官，主疏泄与藏血。主疏泄指肝气疏通、调畅全身气机，包括调节情志、促进消化、调节气血津液运行、促进生殖。主藏血指肝具有储藏血液、调节血量的功能。</div>
-      <div class="tb-pills"><span class="tb-pill">主疏泄</span><span class="tb-pill">藏血</span><span class="tb-pill">主筋</span><span class="tb-pill">开窍于目</span><span class="tb-pill">其华在爪</span><span class="tb-pill">调节情志</span></div>
-    </div>
-    <div class="topic-block">
-      <div class="tb-header">
-        <span class="tb-num">TOPIC 05</span>
-        <div>
-          <div class="tb-title">肾</div>
-          <div class="tb-sub">藏精·主水·先天之本</div>
-        </div>
-      </div>
-      <div class="tb-body">肾为作强之官，是先天之本、生命之根。肾藏精包括先天之精（禀受于父母）和后天之精（水谷精微）。肾主水指肾气对水液代谢的主导作用。肾主纳气指肾有摄纳肺气的功能。</div>
-      <div class="tb-pills"><span class="tb-pill">藏精</span><span class="tb-pill">主水</span><span class="tb-pill">主纳气</span><span class="tb-pill">先天之本</span><span class="tb-pill">主骨生髓</span><span class="tb-pill">开窍于耳及二阴</span><span class="tb-pill">其华在发</span></div>
-    </div>
-    <div class="topic-block">
-      <div class="tb-header">
-        <span class="tb-num">TOPIC 06</span>
-        <div>
-          <div class="tb-title">六腑</div>
-          <div class="tb-sub">传化物而不藏·以通为用</div>
-        </div>
-      </div>
-      <div class="tb-body">六腑的共同生理特点是传化物而不藏，以通降为顺。胆主决断、储存胆汁；胃主受纳腐熟；小肠主受盛化物、泌别清浊；大肠主传化糟粕；膀胱储尿排尿；三焦通行元气、运行水液。</div>
-      <div class="tb-pills"><span class="tb-pill">胆主决断</span><span class="tb-pill">胃主受纳</span><span class="tb-pill">小肠泌别清浊</span><span class="tb-pill">大肠传化糟粕</span><span class="tb-pill">膀胱储尿</span><span class="tb-pill">三焦通行元气</span></div>
     </div>
 
+    <div class="organ-card lung-card">
+      <div class="oc-header">
+        <div class="oc-char">肺</div>
+        <div class="oc-info">
+          <div class="oc-title-en">LUNG · 金</div>
+          <div class="oc-title">相傅之官</div>
+          <div class="oc-subtitle">治节出焉</div>
+        </div>
+      </div>
+      <div class="oc-body">
+        <div class="oc-govern">
+          <strong style="color:var(--lung);">主气司呼吸：</strong>肺主呼吸之气（气体交换）和一身之气（参与宗气生成与全身气的调节）。<br><br>
+          <strong style="color:var(--lung);">主宣发肃降：</strong>宣发指肺气向上向外散布；肃降指肺气向下向内肃清。两者协调维持呼吸、水液代谢。<br><br>
+          <strong style="color:var(--lung);">通调水道：</strong>「肺为水之上源」，肺气宣发肃降调节水液的输布与排泄，水液代谢失常可影响肺。
+        </div>
+        <div class="oc-tags">
+          <span class="oc-tag">开窍于鼻</span><span class="oc-tag">其华在毛</span><span class="oc-tag">在志为悲忧</span><span class="oc-tag">表里大肠</span><span class="oc-tag">五行属金</span><span class="oc-tag">朝百脉</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="organ-card spleen-card">
+      <div class="oc-header">
+        <div class="oc-char">脾</div>
+        <div class="oc-info">
+          <div class="oc-title-en">SPLEEN · 土</div>
+          <div class="oc-title">仓廪之官</div>
+          <div class="oc-subtitle">后天之本</div>
+        </div>
+      </div>
+      <div class="oc-body">
+        <div class="oc-govern">
+          <strong style="color:var(--spleen);">主运化：</strong>运化水谷（消化吸收营养）和运化水液（水液代谢），脾为后天之本、气血生化之源。<br><br>
+          <strong style="color:var(--spleen);">主升清：</strong>脾气以升为健，将水谷精微上输心肺，再输布全身；脾气下陷则脱垂。<br><br>
+          <strong style="color:var(--spleen);">统血：</strong>脾气统摄血液在脉中运行，防止溢出脉外。脾虚不统血则出现各种出血证候。
+        </div>
+        <div class="oc-tags">
+          <span class="oc-tag">开窍于口</span><span class="oc-tag">其华在唇</span><span class="oc-tag">在志为思</span><span class="oc-tag">表里胃</span><span class="oc-tag">五行属土</span><span class="oc-tag">主四肢肌肉</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="organ-card liver-card">
+      <div class="oc-header">
+        <div class="oc-char">肝</div>
+        <div class="oc-info">
+          <div class="oc-title-en">LIVER · 木</div>
+          <div class="oc-title">将军之官</div>
+          <div class="oc-subtitle">谋虑出焉</div>
+        </div>
+      </div>
+      <div class="oc-body">
+        <div class="oc-govern">
+          <strong style="color:var(--liver);">主疏泄：</strong>调畅全身气机，包括调节情志（主喜条达，恶抑郁）、促进消化（协助脾胃）、调节气血津液运行、促进生殖功能。<br><br>
+          <strong style="color:var(--liver);">藏血：</strong>储藏血液，调节血量。活动时血流向四肢，安静时血归于肝。「人卧则血归于肝」。肝血不足则视力减退、筋脉失养。
+        </div>
+        <div class="oc-tags">
+          <span class="oc-tag">开窍于目</span><span class="oc-tag">其华在爪</span><span class="oc-tag">在志为怒</span><span class="oc-tag">表里胆</span><span class="oc-tag">五行属木</span><span class="oc-tag">主筋</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="organ-card kidney-card">
+      <div class="oc-header">
+        <div class="oc-char">肾</div>
+        <div class="oc-info">
+          <div class="oc-title-en">KIDNEY · 水</div>
+          <div class="oc-title">作强之官</div>
+          <div class="oc-subtitle">先天之本</div>
+        </div>
+      </div>
+      <div class="oc-body">
+        <div class="oc-govern">
+          <strong style="color:var(--kidney);">藏精：</strong>先天之精（禀受于父母，决定生命本质）和后天之精（水谷精微，充养先天）。肾精化肾气，肾阴肾阳为全身阴阳之根本。<br><br>
+          <strong style="color:var(--kidney);">主水：</strong>肾气主导水液代谢，开合有度。肾阳不足则水肿、小便清长；肾阴不足则尿少色黄。<br><br>
+          <strong style="color:var(--kidney);">主纳气：</strong>肾摄纳肺气，使呼吸深沉有根。肾不纳气则气喘动辄加剧。
+        </div>
+        <div class="oc-tags">
+          <span class="oc-tag">开窍于耳及二阴</span><span class="oc-tag">其华在发</span><span class="oc-tag">在志为恐</span><span class="oc-tag">表里膀胱</span><span class="oc-tag">主骨生髓</span><span class="oc-tag">命门之火</span>
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="page-nav">
-    <a href="01-yinyang.html" class="pn-btn">← 上一章：阴阳五行</a>
-    <a href="../overview.html" class="pn-center">· 章节目录 ·</a>
-    <a href="03-jingqi.html" class="pn-btn">下一章：精气血津液神 →</a>
+</section>
+
+<!-- 五脏关系总表 -->
+<section class="section" id="wuzang-table">
+  <span class="section-eyebrow">Part 02 · 五脏对应</span>
+  <h2 class="section-title">五脏<em>全面对应表</em></h2>
+  <p class="section-lead">五脏与五行、五官、五体、五志、五色、五味等一一对应，体现了中医「天人合一」的整体观，也是临床望诊、辨证的重要参考依据。</p>
+  <div class="insight"><strong>临床意义：</strong>面色青→肝；面色赤→心；面色黄→脾；面色白→肺；面色黑→肾。出现某色，提示相应脏腑可能存在病变，须结合四诊综合判断。</div>
+  <table class="rel-table">
+    <thead>
+      <tr>
+        <th>五脏</th><th>五行</th><th>六腑</th><th>五官</th><th>五体</th><th>五志</th><th>五色</th><th>五味</th><th>五季</th><th>五液</th><th>功能核心</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="rt-heart"><td class="rn">心</td><td>火</td><td>小肠</td><td>舌</td><td>脉</td><td>喜</td><td style="color:var(--heart)">赤</td><td>苦</td><td>夏</td><td>汗</td><td>主血脉·藏神</td></tr>
+      <tr class="rt-lung"><td class="rn">肺</td><td>金</td><td>大肠</td><td>鼻</td><td>皮毛</td><td>悲忧</td><td style="color:#ddd">白</td><td>辛</td><td>秋</td><td>涕</td><td>主气·通调水道</td></tr>
+      <tr class="rt-spleen"><td class="rn">脾</td><td>土</td><td>胃</td><td>口唇</td><td>肌肉</td><td>思</td><td style="color:var(--spleen)">黄</td><td>甘</td><td>长夏</td><td>涎</td><td>主运化·统血</td></tr>
+      <tr class="rt-liver"><td class="rn">肝</td><td>木</td><td>胆</td><td>目</td><td>筋</td><td>怒</td><td style="color:var(--liver)">青</td><td>酸</td><td>春</td><td>泪</td><td>主疏泄·藏血</td></tr>
+      <tr class="rt-kidney"><td class="rn">肾</td><td>水</td><td>膀胱</td><td>耳·二阴</td><td>骨·髓</td><td>恐</td><td style="color:#888">黑</td><td>咸</td><td>冬</td><td>唾</td><td>藏精·主水·纳气</td></tr>
+    </tbody>
+  </table>
+
+  <!-- 五脏之间的关系 -->
+  <div class="insight"><strong>五脏相互关系要点：</strong>①心肺同居上焦，心主血、肺主气，气血相辅；②脾肺为母子关系（土生金），脾健则肺气充；③肝心为母子（木生火），肝血充则心血足；④肝脾相互影响，肝气郁结可横逆犯脾；⑤肺肾金水相生，肺主呼气、肾主纳气，共司呼吸。</div>
+</section>
+
+<!-- 六腑 -->
+<section class="section" id="liufu">
+  <span class="section-eyebrow">Part 03 · 六腑</span>
+  <h2 class="section-title">六腑<em>各司其职</em></h2>
+  <p class="section-lead">六腑的共同特点是「传化物而不藏」，以通降为顺，泻而不藏。六腑与五脏表里相合，共同完成饮食物的消化、吸收与排泄。</p>
+  <div class="insight"><strong>核心原则：</strong>「六腑以通为用，以降为顺」。六腑不通则病，临床上胃痛、腹胀、便秘等均与六腑通降失常有关，治疗多以通法为主。</div>
+  <div class="fufu-grid">
+    <div class="fufu-card">
+      <div class="fufu-icon">🟤</div>
+      <div class="fufu-name">胆</div>
+      <div class="fufu-pair">表里：肝 | 五行：木</div>
+      <div class="fufu-desc">储存和排泄胆汁，助脾胃消化。「中正之官，决断出焉」——主决断，与人的勇怯情志相关。亦属奇恒之腑（藏精汁而不传化物）。胆汁上逆可见口苦。</div>
+    </div>
+    <div class="fufu-card">
+      <div class="fufu-icon">🟡</div>
+      <div class="fufu-name">胃</div>
+      <div class="fufu-pair">表里：脾 | 五行：土</div>
+      <div class="fufu-desc">主受纳腐熟（接受并初步消化饮食物）。「太仓」「水谷之海」。胃气以降为顺，胃气上逆则恶心呕吐。「保胃气」是中医重要治疗原则。</div>
+    </div>
+    <div class="fufu-card">
+      <div class="fufu-icon">🔴</div>
+      <div class="fufu-name">小肠</div>
+      <div class="fufu-pair">表里：心 | 五行：火</div>
+      <div class="fufu-desc">主受盛化物（进一步消化），泌别清浊（分清水谷精微上输于脾，糟粕下传大肠，水液渗入膀胱）。小肠有热可见尿赤涩痛（心移热于小肠）。</div>
+    </div>
+    <div class="fufu-card">
+      <div class="fufu-icon">⚪</div>
+      <div class="fufu-name">大肠</div>
+      <div class="fufu-pair">表里：肺 | 五行：金</div>
+      <div class="fufu-desc">主传化糟粕，将食物残渣形成粪便排出体外。大肠传导失常则便秘或泄泻。肺与大肠相表里，肺气肃降有助于大肠传导，故便秘有时需宣肺。</div>
+    </div>
+    <div class="fufu-card">
+      <div class="fufu-icon">🔵</div>
+      <div class="fufu-name">膀胱</div>
+      <div class="fufu-pair">表里：肾 | 五行：水</div>
+      <div class="fufu-desc">储存和排泄尿液。膀胱的气化功能依赖肾的气化作用。肾阳不足可导致膀胱气化失职，出现小便频数、遗尿或癃闭。</div>
+    </div>
+    <div class="fufu-card">
+      <div class="fufu-icon">🌀</div>
+      <div class="fufu-name">三焦</div>
+      <div class="fufu-pair">表里：心包 | 为孤腑</div>
+      <div class="fufu-desc">「决渎之官，水道出焉」——通行元气，运行水液的通道。上焦（心肺）主宣发，中焦（脾胃）主运化，下焦（肝肾）主分清泌浊。三焦通则水道通。</div>
+    </div>
   </div>
+</section>
+
+<!-- 奇恒之腑 -->
+<section class="section" id="qiheng">
+  <span class="section-eyebrow">Part 04 · 奇恒之腑</span>
+  <h2 class="section-title"><em>奇恒之腑</em>详解</h2>
+  <p class="section-lead">奇恒之腑形态中空似腑，功能贮藏精气似脏，「奇」指异于常规，「恒」指相对恒定。共六种：脑、髓、骨、脉、胆、女子胞。</p>
+  <div class="qiheng-strip">
+    <div class="qh-item"><div class="qh-icon">🧠</div><div class="qh-name">脑</div><div class="qh-desc">元神之府，主精神意识与感官功能，与肾精、心神密切相关</div></div>
+    <div class="qh-item"><div class="qh-icon">🦴</div><div class="qh-name">髓</div><div class="qh-desc">充养骨骼，上通于脑（脑为髓海），由肾精所化生</div></div>
+    <div class="qh-item"><div class="qh-icon">🦷</div><div class="qh-name">骨</div><div class="qh-desc">支撑形体，储藏骨髓，肾主骨，肾精充则骨骼坚强</div></div>
+    <div class="qh-item"><div class="qh-icon">🩸</div><div class="qh-name">脉</div><div class="qh-desc">血府，约束和引导血液沿一定轨道运行，心主血脉</div></div>
+    <div class="qh-item"><div class="qh-icon">🟫</div><div class="qh-name">胆</div><div class="qh-desc">既属六腑又属奇恒之腑，因其藏精汁（胆汁）而不直接传化</div></div>
+    <div class="qh-item"><div class="qh-icon">🌸</div><div class="qh-name">女子胞</div><div class="qh-desc">子宫，主月经和孕育胎儿，与心、肝、脾、肾及冲任二脉密切相关</div></div>
+  </div>
+  <div class="insight"><strong>女子胞与月经：</strong>月经产生与肾精充盛（天癸至）、冲任二脉通盛、心肝脾三脏调节有关。肾为月经之本，肝气郁结可致月经不调，脾虚不摄血可致崩漏。</div>
+</section>
+
+<!-- 应用总结 -->
+<section class="section" id="summary">
+  <span class="section-eyebrow">Part 05 · 临床应用</span>
+  <h2 class="section-title">藏象学说的<em>临床应用</em></h2>
+  <p class="section-lead">藏象学说不仅是理论基础，更直接指导中医临床的诊断与治疗，通过观察外在征象推断内脏状态，再针对脏腑进行调治。</p>
+  <div class="sum-grid">
+    <div class="sum-card"><div class="sum-icon">👁️</div><div class="sum-title">望诊定位</div><div class="sum-text">五色主五脏：面青主肝，面赤主心，面黄主脾，面白主肺，面黑主肾；舌象反映心脏状态；目视肝血是否充盛。</div></div>
+    <div class="sum-card"><div class="sum-icon">🎯</div><div class="sum-title">脏腑辨证</div><div class="sum-text">以五脏为核心进行辨证：心气虚、心血虚、心阴虚、心阳虚各有不同表现，治法也各异，须精准辨别。</div></div>
+    <div class="sum-card"><div class="sum-icon">🌿</div><div class="sum-title">五味归经</div><div class="sum-text">药物五味各入相应脏腑：酸入肝、苦入心、甘入脾、辛入肺、咸入肾。用药时须考虑药物对相应脏腑的亲和性。</div></div>
+    <div class="sum-card"><div class="sum-icon">🍽️</div><div class="sum-title">饮食调养</div><div class="sum-text">肝病宜食酸，心病宜食苦，脾病宜食甘，肺病宜食辛，肾病宜食咸；但过食某味也会损伤对应脏腑，须适度。</div></div>
+    <div class="sum-card"><div class="sum-icon">😊</div><div class="sum-title">情志护养</div><div class="sum-text">五志伤五脏：过喜伤心，过怒伤肝，过思伤脾，悲忧伤肺，恐惊伤肾。保持情志平和是养护五脏的重要方法。</div></div>
+    <div class="sum-card"><div class="sum-icon">🌙</div><div class="sum-title">顺时养脏</div><div class="sum-text">春养肝（疏肝理气）、夏养心（养心安神）、长夏养脾（健脾除湿）、秋养肺（润肺防燥）、冬养肾（温肾固精）。</div></div>
+  </div>
+</section>
+
+<div class="final-quote">
+  <div class="fq-text">心者，君主之官也，神明出焉；<br>肺者，相傅之官，治节出焉；<br>脾胃者，仓廪之官，五味出焉。</div>
+  <div class="fq-source">《黄帝内经·素问·灵兰秘典论》</div>
+</div>
+
+<div class="page-nav">
+  <a href="01-yinyang.html" class="pn-btn">← 上一章：阴阳五行</a>
+  <a href="../overview.html" class="pn-center">· 章节目录 ·</a>
+  <a href="03-jingqi.html" class="pn-btn">下一章：精气血津液神 →</a>
+</div>
 </div>
 <footer style="border-top:1px solid rgba(201,150,10,0.2);padding:32px 48px;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#7a6a50;font-family:'Noto Sans SC',sans-serif;font-weight:300;letter-spacing:1px;position:relative;z-index:1;">
   <div style="font-size:16px;font-weight:700;letter-spacing:4px;color:#c9960a;font-family:'Noto Serif SC',serif;">中医基础理论</div>
-  <div>第2章 · 藏象学说</div>
-  <div style="display:flex;gap:24px;">
-    <a href="../index.html" style="color:#7a6a50;text-decoration:none;">首页</a>
-    <a href="../overview.html" style="color:#7a6a50;text-decoration:none;">目录</a>
-  </div>
+  <div>第二章 · 藏象学说</div>
+  <div style="display:flex;gap:24px;"><a href="../index.html" style="color:#7a6a50;text-decoration:none;">首页</a><a href="../overview.html" style="color:#7a6a50;text-decoration:none;">目录</a><a href="03-jingqi.html" style="color:#7a6a50;text-decoration:none;">下一章</a></div>
 </footer>
-</div>
-<a href="#" id="bt" style="position:fixed;bottom:32px;right:32px;width:44px;height:44px;background:#2a2218;border:1px solid rgba(201,150,10,0.2);border-radius:50%;display:none;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:#c9960a;z-index:200;text-decoration:none;"></a>
+<a href="#" id="backTop" style="position:fixed;bottom:32px;right:32px;width:44px;height:44px;background:#2a2218;border:1px solid rgba(201,150,10,0.2);border-radius:50%;display:none;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:#c9960a;z-index:200;text-decoration:none;"></a>
 <script>
-const b=document.getElementById('bt');
-window.addEventListener('scroll',()=>{b.style.display=window.scrollY>400?'flex':'none';},{passive:true});
-b.addEventListener('click',(e)=>{e.preventDefault();window.scrollTo({top:0,behavior:'smooth'});});
-const obs=new IntersectionObserver((en)=>{en.forEach(e=>{if(e.isIntersecting){e.target.style.opacity='1';e.target.style.transform='none';obs.unobserve(e.target);}})},{threshold:0.08});
-document.querySelectorAll('.reveal,.topic-block').forEach((el,i)=>{el.style.opacity='0';el.style.transform='translateY(18px)';el.style.transition=`opacity 0.6s ease ${i*0.06}s,transform 0.6s ease ${i*0.06}s`;obs.observe(el);});
+const btn=document.getElementById('backTop');
+window.addEventListener('scroll',()=>{btn.style.display=window.scrollY>400?'flex':'none';},{passive:true});
+btn.addEventListener('click',(e)=>{e.preventDefault();window.scrollTo({top:0,behavior:'smooth'});});
+const secs=['hero','wuzang','wuzang-table','liufu','qiheng','summary'];
+const dots=document.querySelectorAll('.nav-dot');
+function upd(){let c=0;secs.forEach((id,i)=>{const el=document.getElementById(id);if(el&&el.getBoundingClientRect().top<window.innerHeight*0.45)c=i;});dots.forEach((d,i)=>d.classList.toggle('active',i===c));}
+window.addEventListener('scroll',upd,{passive:true});
+const obs=new IntersectionObserver((en)=>{en.forEach(e=>{if(e.isIntersecting){e.target.style.opacity='1';e.target.style.transform='translateY(0)';obs.unobserve(e.target);}});},{threshold:0.08});
+document.querySelectorAll('.organ-card,.fufu-card,.sum-card,.qh-item').forEach((el,i)=>{el.style.opacity='0';el.style.transform='translateY(18px)';el.style.transition=`opacity 0.6s ease ${i%5*0.07}s,transform 0.6s ease ${i%5*0.07}s`;obs.observe(el);});
 </script>
 </body>
 </html>
