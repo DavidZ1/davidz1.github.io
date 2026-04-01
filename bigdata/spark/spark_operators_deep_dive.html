@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apache Spark 算子深度解析</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Noto+Serif+SC:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+
+  :root {
+    --bg: #0a0d14;
+    --surface: #0f1117;
+    --card: #1e293b;
+    --border: #334155;
+    --text-primary: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --blue-dark: #1d4ed8;
+    --blue-light: #0ea5e9;
+    --green-dark: #065f46;
+    --green-light: #34d399;
+    --purple-dark: #5b21b6;
+    --purple-light: #a78bfa;
+    --orange-dark: #d97706;
+    --orange-light: #fbbf24;
+    --red-dark: #7f1d1d;
+    --red-light: #f87171;
+    --accent: #38bdf8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    font-size: 15px;
+    line-height: 1.8;
+    padding: 0;
+  }
+
+  .hero {
+    background: linear-gradient(135deg, #0a0d14 0%, #0f1f3d 50%, #0a0d14 100%);
+    border-bottom: 1px solid #1d4ed830;
+    padding: 60px 0 50px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 70% 50% at 50% 0%, #1d4ed815, transparent);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-block;
+    background: #1d4ed820;
+    border: 1px solid #1d4ed850;
+    color: #60a5fa;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 5px 16px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 40px;
+    font-weight: 700;
+    color: #f1f5f9;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero-sub {
+    color: var(--text-secondary);
+    font-size: 16px;
+    max-width: 600px;
+    margin: 0 auto 28px;
+  }
+  .hero-tags { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .tag {
+    padding: 4px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .tag-blue { background: #1d4ed820; color: #60a5fa; border: 1px solid #1d4ed840; }
+  .tag-green { background: #065f4620; color: #34d399; border: 1px solid #065f4640; }
+  .tag-purple { background: #5b21b620; color: #a78bfa; border: 1px solid #5b21b640; }
+  .tag-orange { background: #d9770620; color: #fbbf24; border: 1px solid #d9770640; }
+
+  .container { max-width: 960px; margin: 0 auto; padding: 40px 28px; }
+
+  /* TOC */
+  .toc {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 48px;
+  }
+  .toc h3 {
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .toc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .toc a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 13px;
+    padding: 4px 0;
+    display: flex; align-items: center; gap: 8px;
+    transition: color 0.2s;
+  }
+  .toc a:hover { color: var(--accent); }
+  .toc-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px;
+    background: #0ea5e910;
+    border: 1px solid #0ea5e930;
+    border-radius: 4px;
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* Sections */
+  .section { margin-bottom: 60px; }
+  .section-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-num {
+    display: flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .num-blue { background: #1d4ed820; color: #60a5fa; border: 1px solid #1d4ed840; }
+  .num-green { background: #065f4620; color: #34d399; border: 1px solid #065f4640; }
+  .num-purple { background: #5b21b620; color: #a78bfa; border: 1px solid #5b21b640; }
+  .num-orange { background: #d9770620; color: #fbbf24; border: 1px solid #d9770640; }
+  .num-red { background: #7f1d1d20; color: #f87171; border: 1px solid #7f1d1d40; }
+
+  .section-header h2 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #f1f5f9;
+  }
+  .section-header h2 small {
+    display: block;
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  p { color: var(--text-secondary); margin-bottom: 14px; }
+  strong { color: var(--text-primary); font-weight: 600; }
+
+  .analogy-box {
+    background: #0ea5e908;
+    border-left: 3px solid #0ea5e9;
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 16px 0;
+    color: var(--text-secondary);
+  }
+  .analogy-box .label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #0ea5e9;
+    margin-bottom: 6px;
+  }
+
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 20px 0; }
+  .info-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .info-card .ic-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .info-card p { margin: 0; font-size: 13px; }
+
+  svg { width: 100%; height: auto; border-radius: 12px; margin: 20px 0; }
+
+  pre {
+    background: #090c12;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 22px;
+    overflow-x: auto;
+    margin: 16px 0;
+  }
+  code {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #e2e8f0;
+  }
+  .c-kw { color: #c792ea; }
+  .c-fn { color: #82aaff; }
+  .c-str { color: #c3e88d; }
+  .c-cm { color: #546e7a; }
+  .c-num { color: #f78c6c; }
+  .c-cls { color: #ffcb6b; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 13px;
+  }
+  th {
+    background: #1e293b;
+    color: var(--text-primary);
+    font-weight: 600;
+    padding: 10px 14px;
+    text-align: left;
+    border: 1px solid var(--border);
+  }
+  td {
+    padding: 9px 14px;
+    border: 1px solid #1e293b;
+    color: var(--text-secondary);
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #0f1117; }
+  tr:nth-child(odd) td { background: #0a0d14; }
+
+  .best-practices { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+  .bp-item {
+    display: flex; gap: 12px; align-items: flex-start;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+  }
+  .bp-num {
+    flex-shrink: 0;
+    width: 22px; height: 22px;
+    background: #34d39920;
+    border: 1px solid #34d39940;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #34d399;
+  }
+  .bp-item p { margin: 0; font-size: 13px; }
+
+  .learning-path {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 2;
+  }
+  .lp-root { color: #60a5fa; font-weight: 700; }
+  .lp-l1 { color: #34d399; }
+  .lp-l2 { color: var(--text-secondary); }
+  .lp-l3 { color: var(--text-muted); }
+
+  .key-points {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 16px 0;
+  }
+  .kp-item {
+    display: flex; gap: 10px; align-items: flex-start;
+    background: #1d4ed808;
+    border: 1px solid #1d4ed820;
+    border-radius: 8px;
+    padding: 10px 14px;
+  }
+  .kp-dot {
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    margin-top: 8px;
+    flex-shrink: 0;
+  }
+  .kp-item span { font-size: 13px; color: var(--text-secondary); }
+  .kp-item strong { color: var(--text-primary); }
+
+  .footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 28px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-top: 20px;
+  }
+  .footer a { color: var(--accent); text-decoration: none; }
+
+  h3 { color: var(--text-primary); font-size: 17px; margin: 24px 0 12px; font-weight: 600; }
+  h4 { color: #94a3b8; font-size: 14px; margin: 18px 0 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  @media (max-width: 640px) {
+    .toc-grid, .info-grid, .key-points { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== HERO ===== -->
+<div class="hero">
+  <div class="hero-badge">Apache Spark · 深度解析</div>
+  <h1>Spark <span>算子</span> 完全指南</h1>
+  <p class="hero-sub">从 Transformation 到 Action，透彻理解 Spark 的核心执行引擎，掌握分布式计算的精髓</p>
+  <div class="hero-tags">
+    <span class="tag tag-blue">Transformation 算子</span>
+    <span class="tag tag-green">Action 算子</span>
+    <span class="tag tag-purple">DAG 调度</span>
+    <span class="tag tag-orange">Shuffle 优化</span>
+    <span class="tag tag-blue">RDD / DataFrame</span>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- TOC -->
+<div class="toc">
+  <h3>📑 文档目录</h3>
+  <div class="toc-grid">
+    <a href="#s1"><span class="toc-num">一</span>概念定义</a>
+    <a href="#s2"><span class="toc-num">二</span>整体架构全景图</a>
+    <a href="#s3"><span class="toc-num">三</span>核心子概念详解</a>
+    <a href="#s4"><span class="toc-num">四</span>执行流程图</a>
+    <a href="#s5"><span class="toc-num">五</span>核心分类对比</a>
+    <a href="#s6"><span class="toc-num">六</span>关联关系</a>
+    <a href="#s7"><span class="toc-num">七</span>进阶特性与底层原理</a>
+    <a href="#s8"><span class="toc-num">八</span>生产实践调优指南</a>
+    <a href="#s9"><span class="toc-num">九</span>完整生命周期图</a>
+    <a href="#s10"><span class="toc-num">十</span>总结与学习路线</a>
+  </div>
+</div>
+
+<!-- ===== 一、概念定义 ===== -->
+<div class="section" id="s1">
+  <div class="section-header">
+    <div class="section-num num-blue">一</div>
+    <h2>概念定义 <small>Concept Definition</small></h2>
+  </div>
+
+  <p><strong>算子（Operator）</strong>是 Apache Spark 中对分布式数据集（RDD / DataFrame / Dataset）进行操作的<strong>函数式编程接口</strong>，它定义了对数据"做什么"而非"怎么做"，由 Spark 运行时将其转化为分布式并行任务执行。</p>
+
+  <p>在整个 Spark 体系中，算子是构建数据处理管道的<strong>基本积木</strong>。用户通过链式调用算子描述计算逻辑，Spark 则通过 <strong>DAG（有向无环图，Directed Acyclic Graph）调度器</strong>将算子序列优化后翻译成 Stage 和 Task，分发到集群执行。</p>
+
+  <div class="analogy-box">
+    <div class="label">💡 直观类比</div>
+    算子就像<strong>工厂流水线上的工序卡片</strong>：你先把所有工序卡片（Transformation 算子）依次排好，贴在看板上（构建 DAG），最后按下"开工"按钮（Action 算子）时，工厂才真正启动，自动并行地完成每道工序。整个过程的关键在于：<em>描述计划（惰性求值）</em> 与 <em>真正执行</em> 分开发生。
+  </div>
+
+  <div class="info-grid">
+    <div class="info-card">
+      <div class="ic-label" style="color:#60a5fa">📌 地位</div>
+      <p>Spark 编程模型的核心接口，开发者与底层引擎沟通的唯一桥梁</p>
+    </div>
+    <div class="info-card">
+      <div class="ic-label" style="color:#34d399">⚙️ 作用</div>
+      <p>描述数据转换逻辑；触发分布式计算；控制数据流动与 Shuffle</p>
+    </div>
+    <div class="info-card">
+      <div class="ic-label" style="color:#a78bfa">🔑 核心特性</div>
+      <p>惰性求值（Lazy Evaluation）；不可变性；函数式组合；容错重算</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 二、架构全景图 ===== -->
+<div class="section" id="s2">
+  <div class="section-header">
+    <div class="section-num num-green">二</div>
+    <h2>整体架构全景图 <small>Overall Architecture</small></h2>
+  </div>
+
+  <p>下图展示 Spark 算子的完整分类体系，以及从用户代码到 Task 执行的全链路映射关系。</p>
+
+  <svg viewBox="0 0 880 560" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI','Noto Sans SC',Arial,sans-serif">
+    <defs>
+      <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#475569"/>
+      </marker>
+      <marker id="arr-blue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#0ea5e9"/>
+      </marker>
+      <marker id="arr-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#34d399"/>
+      </marker>
+      <marker id="arr-orange" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#fbbf24"/>
+      </marker>
+    </defs>
+
+    <!-- bg -->
+    <rect width="880" height="560" fill="#0f1117" rx="12"/>
+    <text x="440" y="32" text-anchor="middle" fill="#e2e8f0" font-size="15" font-weight="bold">Apache Spark 算子体系全景图</text>
+
+    <!-- User Code -->
+    <rect x="330" y="52" width="220" height="44" fill="#1d4ed8" rx="8"/>
+    <text x="440" y="70" text-anchor="middle" fill="white" font-size="13" font-weight="bold">用户代码 (User Code)</text>
+    <text x="440" y="86" text-anchor="middle" fill="#bfdbfe" font-size="11">Scala / Python / Java / R</text>
+
+    <!-- Arrow down -->
+    <line x1="440" y1="96" x2="440" y2="118" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
+
+    <!-- Operator API Layer -->
+    <rect x="60" y="118" width="760" height="52" fill="#1e293b" rx="8" stroke="#334155" stroke-width="1"/>
+    <text x="440" y="138" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="600" letter-spacing="1">算子 API 层</text>
+    <text x="440" y="155" text-anchor="middle" fill="#e2e8f0" font-size="12">RDD API &nbsp;|&nbsp; DataFrame API &nbsp;|&nbsp; Dataset API &nbsp;|&nbsp; Streaming API</text>
+
+    <!-- Two columns: Transformation / Action -->
+    <!-- Transformation Column -->
+    <rect x="60" y="196" width="370" height="300" fill="#0d1f3c" rx="10" stroke="#1d4ed840"/>
+    <text x="245" y="218" text-anchor="middle" fill="#60a5fa" font-size="13" font-weight="bold">🔁 Transformation 算子</text>
+    <text x="245" y="234" text-anchor="middle" fill="#475569" font-size="10">惰性求值 · 返回新 RDD/DataFrame · 不触发计算</text>
+
+    <!-- Narrow Transformation -->
+    <rect x="76" y="244" width="164" height="140" fill="#1e293b" rx="8" stroke="#1d4ed830"/>
+    <text x="158" y="262" text-anchor="middle" fill="#0ea5e9" font-size="11" font-weight="bold">窄依赖 Narrow</text>
+    <text x="158" y="278" text-anchor="middle" fill="#64748b" font-size="9">无 Shuffle · 高效</text>
+    <text x="90" y="298" fill="#94a3b8" font-size="10">• map()</text>
+    <text x="90" y="314" fill="#94a3b8" font-size="10">• flatMap()</text>
+    <text x="90" y="330" fill="#94a3b8" font-size="10">• filter()</text>
+    <text x="90" y="346" fill="#94a3b8" font-size="10">• mapPartitions()</text>
+    <text x="90" y="362" fill="#94a3b8" font-size="10">• union()</text>
+
+    <!-- Wide Transformation -->
+    <rect x="254" y="244" width="164" height="140" fill="#1e293b" rx="8" stroke="#5b21b630"/>
+    <text x="336" y="262" text-anchor="middle" fill="#a78bfa" font-size="11" font-weight="bold">宽依赖 Wide</text>
+    <text x="336" y="278" text-anchor="middle" fill="#64748b" font-size="9">有 Shuffle · 跨 Partition</text>
+    <text x="268" y="298" fill="#94a3b8" font-size="10">• groupByKey()</text>
+    <text x="268" y="314" fill="#94a3b8" font-size="10">• reduceByKey()</text>
+    <text x="268" y="330" fill="#94a3b8" font-size="10">• sortBy()</text>
+    <text x="268" y="346" fill="#94a3b8" font-size="10">• join()</text>
+    <text x="268" y="362" fill="#94a3b8" font-size="10">• repartition()</text>
+
+    <!-- Persistence -->
+    <rect x="76" y="398" width="340" height="40" fill="#1e293b" rx="8" stroke="#34d39930"/>
+    <text x="246" y="413" text-anchor="middle" fill="#34d399" font-size="11" font-weight="bold">持久化 / 缓存</text>
+    <text x="246" y="428" text-anchor="middle" fill="#64748b" font-size="10">cache() · persist(StorageLevel) · unpersist()</text>
+
+    <!-- Action Column -->
+    <rect x="450" y="196" width="370" height="300" fill="#1a1a0d" rx="10" stroke="#d9770640"/>
+    <text x="635" y="218" text-anchor="middle" fill="#fbbf24" font-size="13" font-weight="bold">⚡ Action 算子</text>
+    <text x="635" y="234" text-anchor="middle" fill="#475569" font-size="10">触发执行 · 提交 Job · 返回结果到 Driver</text>
+
+    <!-- Action sub-groups -->
+    <rect x="466" y="244" width="155" height="180" fill="#1e293b" rx="8" stroke="#d9770630"/>
+    <text x="543" y="262" text-anchor="middle" fill="#fbbf24" font-size="11" font-weight="bold">聚合类</text>
+    <text x="480" y="282" fill="#94a3b8" font-size="10">• count()</text>
+    <text x="480" y="298" fill="#94a3b8" font-size="10">• reduce()</text>
+    <text x="480" y="314" fill="#94a3b8" font-size="10">• aggregate()</text>
+    <text x="480" y="330" fill="#94a3b8" font-size="10">• fold()</text>
+    <text x="480" y="346" fill="#94a3b8" font-size="10">• countByKey()</text>
+    <text x="480" y="362" fill="#94a3b8" font-size="10">• sum() / max()</text>
+    <text x="480" y="378" fill="#94a3b8" font-size="10">• mean() / stddev()</text>
+    <text x="480" y="394" fill="#94a3b8" font-size="10">• agg()</text>
+
+    <rect x="634" y="244" width="170" height="180" fill="#1e293b" rx="8" stroke="#d9770630"/>
+    <text x="719" y="262" text-anchor="middle" fill="#fbbf24" font-size="11" font-weight="bold">采集 / 输出类</text>
+    <text x="648" y="282" fill="#94a3b8" font-size="10">• collect()</text>
+    <text x="648" y="298" fill="#94a3b8" font-size="10">• take(n)</text>
+    <text x="648" y="314" fill="#94a3b8" font-size="10">• first()</text>
+    <text x="648" y="330" fill="#94a3b8" font-size="10">• takeSample()</text>
+    <text x="648" y="346" fill="#94a3b8" font-size="10">• foreach()</text>
+    <text x="648" y="362" fill="#94a3b8" font-size="10">• saveAsTextFile()</text>
+    <text x="648" y="378" fill="#94a3b8" font-size="10">• saveAsParquet()</text>
+    <text x="648" y="394" fill="#94a3b8" font-size="10">• write.jdbc()</text>
+
+    <rect x="466" y="438" width="338" height="40" fill="#1e293b" rx="8" stroke="#f8717130"/>
+    <text x="635" y="453" text-anchor="middle" fill="#f87171" font-size="11" font-weight="bold">Show / 调试类</text>
+    <text x="635" y="468" text-anchor="middle" fill="#64748b" font-size="10">show() · printSchema() · explain() · describe()</text>
+
+    <!-- Arrow from API to Transformation -->
+    <line x1="245" y1="170" x2="245" y2="196" stroke="#0ea5e9" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+    <!-- Arrow from API to Action -->
+    <line x1="635" y1="170" x2="635" y2="196" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arr-orange)"/>
+
+    <!-- DAG Optimizer at bottom -->
+    <rect x="180" y="516" width="520" height="32" fill="#1e293b" rx="8" stroke="#334155"/>
+    <text x="440" y="531" text-anchor="middle" fill="#94a3b8" font-size="11">⬇ Action 触发 →</text>
+    <text x="440" y="545" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="600">DAG Scheduler → Stage 划分 → Task 分发 → Executor 执行</text>
+
+    <line x1="440" y1="496" x2="440" y2="516" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
+  </svg>
+</div>
+
+<!-- ===== 三、核心子概念详解 ===== -->
+<div class="section" id="s3">
+  <div class="section-header">
+    <div class="section-num num-blue">三</div>
+    <h2>核心子概念逐一详解 <small>Core Concepts Deep Dive</small></h2>
+  </div>
+
+  <h3>3.1 Transformation 算子 — 惰性转换</h3>
+  <p>Transformation（转换）算子对数据集进行描述性操作，<strong>不立即执行</strong>，而是将操作记录到 DAG 中。其返回值始终是新的 RDD 或 DataFrame。</p>
+
+  <h4>窄依赖算子（Narrow Dependency）</h4>
+  <p>每个输入 Partition 最多只影响一个输出 Partition，<strong>无需网络传输</strong>，可在同一 Stage 内流水线执行。</p>
+
+  <pre><code><span class="c-cm">// Scala 示例：窄依赖算子链式调用</span>
+<span class="c-kw">val</span> rdd = sc.textFile(<span class="c-str">"hdfs://logs/*.log"</span>)
+
+<span class="c-kw">val</span> result = rdd
+  .filter(line => line.contains(<span class="c-str">"ERROR"</span>))          <span class="c-cm">// 过滤：窄依赖</span>
+  .map(line => (line.split(<span class="c-str">" "</span>)(<span class="c-num">0</span>), <span class="c-num">1</span>))            <span class="c-cm">// 映射：窄依赖</span>
+  .flatMap(pair => Seq(pair, (pair._1 + <span class="c-str">"_total"</span>, <span class="c-num">1</span>))) <span class="c-cm">// 展开：窄依赖</span>
+<span class="c-cm">// 此时尚未执行任何计算，仅构建 DAG 节点</span></code></pre>
+
+  <h4>宽依赖算子（Wide Dependency / Shuffle）</h4>
+  <p>输入 Partition 的数据需要<strong>跨节点重新分发</strong>（Shuffle），是 Stage 边界划分的依据，也是性能优化的核心关注点。</p>
+
+  <pre><code><span class="c-cm">// Scala 示例：宽依赖算子触发 Shuffle</span>
+<span class="c-kw">val</span> wordCount = rdd
+  .map(line => (line.split(<span class="c-str">" "</span>)(<span class="c-num">0</span>), <span class="c-num">1</span>))
+  .reduceByKey(_ + _)    <span class="c-cm">// 宽依赖！在 Map 端预聚合后 Shuffle</span>
+  .sortBy(_._2, ascending = <span class="c-kw">false</span>)  <span class="c-cm">// 宽依赖！全局排序</span>
+
+<span class="c-cm">// DataFrame API 等价写法（Catalyst 优化器会自动优化）</span>
+<span class="c-kw">import</span> org.apache.spark.sql.functions._
+df.groupBy(<span class="c-str">"word"</span>)
+  .agg(count(<span class="c-str">"*"</span>).as(<span class="c-str">"cnt"</span>))
+  .orderBy(desc(<span class="c-str">"cnt"</span>))</code></pre>
+
+  <!-- SVG: Narrow vs Wide -->
+  <svg viewBox="0 0 840 280" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI',Arial,sans-serif">
+    <rect width="840" height="280" fill="#0f1117" rx="12"/>
+    <text x="420" y="28" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="bold">窄依赖 vs 宽依赖 · Partition 数据流向示意</text>
+
+    <!-- Narrow -->
+    <text x="200" y="56" text-anchor="middle" fill="#0ea5e9" font-size="12" font-weight="bold">窄依赖 (Narrow) · map / filter</text>
+    <!-- P0 -> P0 -->
+    <rect x="60" y="70" width="80" height="32" fill="#1d4ed8" rx="6"/>
+    <text x="100" y="91" text-anchor="middle" fill="white" font-size="11">P0</text>
+    <rect x="60" y="120" width="80" height="32" fill="#1d4ed8" rx="6"/>
+    <text x="100" y="141" text-anchor="middle" fill="white" font-size="11">P1</text>
+    <rect x="60" y="170" width="80" height="32" fill="#1d4ed8" rx="6"/>
+    <text x="100" y="191" text-anchor="middle" fill="white" font-size="11">P2</text>
+
+    <rect x="260" y="70" width="80" height="32" fill="#065f46" rx="6"/>
+    <text x="300" y="91" text-anchor="middle" fill="white" font-size="11">P0'</text>
+    <rect x="260" y="120" width="80" height="32" fill="#065f46" rx="6"/>
+    <text x="300" y="141" text-anchor="middle" fill="white" font-size="11">P1'</text>
+    <rect x="260" y="170" width="80" height="32" fill="#065f46" rx="6"/>
+    <text x="300" y="191" text-anchor="middle" fill="white" font-size="11">P2'</text>
+
+    <defs>
+      <marker id="an" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#0ea5e9"/>
+      </marker>
+      <marker id="wn" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#a78bfa"/>
+      </marker>
+    </defs>
+    <line x1="140" y1="86" x2="260" y2="86" stroke="#0ea5e9" stroke-width="1.5" marker-end="url(#an)"/>
+    <line x1="140" y1="136" x2="260" y2="136" stroke="#0ea5e9" stroke-width="1.5" marker-end="url(#an)"/>
+    <line x1="140" y1="186" x2="260" y2="186" stroke="#0ea5e9" stroke-width="1.5" marker-end="url(#an)"/>
+
+    <text x="200" y="230" text-anchor="middle" fill="#34d399" font-size="11">✓ 同 Stage，无 Shuffle，高效</text>
+
+    <!-- Divider -->
+    <line x1="420" y1="50" x2="420" y2="250" stroke="#334155" stroke-width="1" stroke-dasharray="4,4"/>
+
+    <!-- Wide -->
+    <text x="630" y="56" text-anchor="middle" fill="#a78bfa" font-size="12" font-weight="bold">宽依赖 (Wide) · reduceByKey</text>
+
+    <rect x="480" y="70" width="80" height="32" fill="#5b21b6" rx="6"/>
+    <text x="520" y="91" text-anchor="middle" fill="white" font-size="11">P0</text>
+    <rect x="480" y="120" width="80" height="32" fill="#5b21b6" rx="6"/>
+    <text x="520" y="141" text-anchor="middle" fill="white" font-size="11">P1</text>
+    <rect x="480" y="170" width="80" height="32" fill="#5b21b6" rx="6"/>
+    <text x="520" y="191" text-anchor="middle" fill="white" font-size="11">P2</text>
+
+    <rect x="700" y="70" width="80" height="32" fill="#d97706" rx="6"/>
+    <text x="740" y="91" text-anchor="middle" fill="white" font-size="11">P0'</text>
+    <rect x="700" y="120" width="80" height="32" fill="#d97706" rx="6"/>
+    <text x="740" y="141" text-anchor="middle" fill="white" font-size="11">P1'</text>
+    <rect x="700" y="170" width="80" height="32" fill="#d97706" rx="6"/>
+    <text x="740" y="191" text-anchor="middle" fill="white" font-size="11">P2'</text>
+
+    <!-- cross arrows -->
+    <line x1="560" y1="86" x2="700" y2="86" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#wn)"/>
+    <line x1="560" y1="86" x2="700" y2="136" stroke="#a78bfa" stroke-width="1.2" stroke-dasharray="3,2" marker-end="url(#wn)"/>
+    <line x1="560" y1="136" x2="700" y2="86" stroke="#a78bfa" stroke-width="1.2" stroke-dasharray="3,2" marker-end="url(#wn)"/>
+    <line x1="560" y1="136" x2="700" y2="136" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#wn)"/>
+    <line x1="560" y1="170" x2="700" y2="170" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#wn)"/>
+    <line x1="560" y1="170" x2="700" y2="86" stroke="#a78bfa" stroke-width="1.2" stroke-dasharray="3,2" marker-end="url(#wn)"/>
+
+    <text x="630" y="230" text-anchor="middle" fill="#f87171" font-size="11">⚠ 新 Stage，触发 Shuffle，有网络开销</text>
+  </svg>
+
+  <h3>3.2 Action 算子 — 触发执行</h3>
+  <p>Action（行动）算子是<strong>计算的触发器</strong>。调用 Action 时，Spark 将构建好的 DAG 提交给 DAG Scheduler，划分 Stage，生成 TaskSet，提交给集群执行。</p>
+
+  <pre><code><span class="c-cm">// Python (PySpark) 示例：常用 Action 算子</span>
+df = spark.read.parquet(<span class="c-str">"/data/orders"</span>)
+result = df.filter(df.amount > <span class="c-num">1000</span>).groupBy(<span class="c-str">"region"</span>).sum(<span class="c-str">"amount"</span>)
+
+<span class="c-cm"># 采集到 Driver（小数据量）</span>
+rows = result.collect()            <span class="c-cm"># ⚡ 触发执行！返回 List[Row]</span>
+first_row = result.first()         <span class="c-cm"># ⚡ 触发执行！返回第一行</span>
+top5 = result.take(<span class="c-num">5</span>)            <span class="c-cm"># ⚡ 取前 5 行</span>
+
+<span class="c-cm"># 统计类（只返回数字，效率高）</span>
+total = result.count()             <span class="c-cm"># ⚡ 统计行数</span>
+
+<span class="c-cm"># 写出到外部存储</span>
+result.write.parquet(<span class="c-str">"/output/region_sales"</span>)  <span class="c-cm"># ⚡ 写 Parquet</span>
+result.write.jdbc(url, <span class="c-str">"table"</span>, props)         <span class="c-cm"># ⚡ 写 JDBC</span></code></pre>
+
+  <h3>3.3 持久化算子（Persistence）</h3>
+  <p>当一个 RDD/DataFrame 被多个 Action 复用时，应使用 <strong>cache() / persist()</strong> 将其缓存，避免重复计算。</p>
+
+  <pre><code><span class="c-cm">// Scala：选择合适的存储级别</span>
+<span class="c-kw">import</span> org.apache.spark.storage.StorageLevel
+
+<span class="c-kw">val</span> hotData = df.filter(<span class="c-str">"is_active = true"</span>)
+  .persist(StorageLevel.MEMORY_AND_DISK_SER) <span class="c-cm">// 序列化后存内存+磁盘</span>
+
+hotData.count()    <span class="c-cm">// ⚡ 第一次触发，同时填充缓存</span>
+hotData.show()     <span class="c-cm">// 第二次直接从缓存读，无需重算</span>
+
+hotData.unpersist() <span class="c-cm">// 使用完毕后释放</span></code></pre>
+</div>
+
+<!-- ===== 四、执行流程图 ===== -->
+<div class="section" id="s4">
+  <div class="section-header">
+    <div class="section-num num-green">四</div>
+    <h2>工作原理 / 执行流程图 <small>Execution Flow</small></h2>
+  </div>
+
+  <p>从一行 Spark 代码到数据真正在集群上流动，需要经历以下完整的执行链路。</p>
+
+  <svg viewBox="0 0 860 620" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI',Arial,sans-serif">
+    <defs>
+      <marker id="fa" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#475569"/>
+      </marker>
+      <marker id="fa-g" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#34d399"/>
+      </marker>
+      <marker id="fa-o" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#fbbf24"/>
+      </marker>
+      <marker id="fa-b" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#0ea5e9"/>
+      </marker>
+    </defs>
+    <rect width="860" height="620" fill="#0f1117" rx="12"/>
+    <text x="430" y="30" text-anchor="middle" fill="#e2e8f0" font-size="14" font-weight="bold">Spark 算子完整执行流程</text>
+
+    <!-- Step 1 -->
+    <rect x="300" y="48" width="260" height="50" fill="#1d4ed8" rx="8"/>
+    <text x="430" y="68" text-anchor="middle" fill="white" font-size="12" font-weight="bold">① 用户构建算子链</text>
+    <text x="430" y="86" text-anchor="middle" fill="#bfdbfe" font-size="10">map().filter().groupByKey()... (仅描述，不执行)</text>
+
+    <line x1="430" y1="98" x2="430" y2="120" stroke="#475569" stroke-width="1.5" marker-end="url(#fa)"/>
+
+    <!-- Step 2 -->
+    <rect x="300" y="120" width="260" height="50" fill="#065f46" rx="8"/>
+    <text x="430" y="140" text-anchor="middle" fill="white" font-size="12" font-weight="bold">② Action 触发 Job 提交</text>
+    <text x="430" y="157" text-anchor="middle" fill="#a7f3d0" font-size="10">collect() / count() / write() ...</text>
+
+    <line x1="430" y1="170" x2="430" y2="192" stroke="#34d399" stroke-width="1.5" marker-end="url(#fa-g)"/>
+
+    <!-- Step 3: Catalyst / SparkContext -->
+    <rect x="200" y="192" width="460" height="64" fill="#1e293b" rx="8" stroke="#334155"/>
+    <text x="430" y="212" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="600" letter-spacing="1">③ 逻辑计划优化（DataFrame API）</text>
+    <text x="280" y="234" fill="#94a3b8" font-size="10">未解析的逻辑计划</text>
+    <text x="380" y="234" fill="#64748b" font-size="10">→ Analyze →</text>
+    <text x="460" y="234" fill="#94a3b8" font-size="10">解析后逻辑计划</text>
+    <text x="560" y="234" fill="#64748b" font-size="10">→ Optimize</text>
+    <text x="280" y="248" fill="#64748b" font-size="9">Unresolved Plan</text>
+    <text x="470" y="248" fill="#64748b" font-size="9">Analyzed Plan</text>
+    <text x="560" y="248" fill="#a78bfa" font-size="9">Catalyst Optimizer</text>
+
+    <line x1="430" y1="256" x2="430" y2="278" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#fa)"/>
+
+    <!-- Step 4: DAG -->
+    <rect x="200" y="278" width="460" height="54" fill="#1e293b" rx="8" stroke="#5b21b630"/>
+    <text x="430" y="298" text-anchor="middle" fill="#a78bfa" font-size="12" font-weight="bold">④ DAG Scheduler · Stage 划分</text>
+    <text x="430" y="316" text-anchor="middle" fill="#64748b" font-size="10">以宽依赖（Shuffle）为边界，切分为多个 Stage（ResultStage / ShuffleMapStage）</text>
+
+    <line x1="430" y1="332" x2="430" y2="354" stroke="#475569" stroke-width="1.5" marker-end="url(#fa)"/>
+
+    <!-- Step 5: Task Scheduler -->
+    <rect x="200" y="354" width="460" height="54" fill="#1e293b" rx="8" stroke="#d9770630"/>
+    <text x="430" y="374" text-anchor="middle" fill="#fbbf24" font-size="12" font-weight="bold">⑤ Task Scheduler · Task 分发</text>
+    <text x="430" y="392" text-anchor="middle" fill="#64748b" font-size="10">每个 Stage 生成 TaskSet，按数据本地性（Data Locality）分发到 Executor</text>
+
+    <line x1="430" y1="408" x2="430" y2="430" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#fa-o)"/>
+
+    <!-- Step 6: Executors -->
+    <rect x="80" y="430" width="680" height="80" fill="#1e293b" rx="8" stroke="#334155"/>
+    <text x="430" y="452" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="bold">⑥ Executor 并行执行 Task</text>
+
+    <!-- Executor boxes -->
+    <rect x="100" y="462" width="140" height="36" fill="#0d1f3c" rx="6"/>
+    <text x="170" y="476" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="bold">Executor 1</text>
+    <text x="170" y="490" text-anchor="middle" fill="#64748b" font-size="9">Task 0, Task 1</text>
+
+    <rect x="260" y="462" width="140" height="36" fill="#0d1f3c" rx="6"/>
+    <text x="330" y="476" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="bold">Executor 2</text>
+    <text x="330" y="490" text-anchor="middle" fill="#64748b" font-size="9">Task 2, Task 3</text>
+
+    <rect x="420" y="462" width="140" height="36" fill="#0d1f3c" rx="6"/>
+    <text x="490" y="476" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="bold">Executor 3</text>
+    <text x="490" y="490" text-anchor="middle" fill="#64748b" font-size="9">Task 4, Task 5</text>
+
+    <rect x="580" y="462" width="160" height="36" fill="#0d1f3c" rx="6"/>
+    <text x="660" y="476" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="bold">Executor N</text>
+    <text x="660" y="490" text-anchor="middle" fill="#64748b" font-size="9">Task N-1, Task N</text>
+
+    <line x1="430" y1="510" x2="430" y2="532" stroke="#34d399" stroke-width="1.5" marker-end="url(#fa-g)"/>
+
+    <!-- Step 7: Result -->
+    <rect x="200" y="532" width="460" height="50" fill="#065f46" rx="8"/>
+    <text x="430" y="553" text-anchor="middle" fill="white" font-size="12" font-weight="bold">⑦ 结果汇总 · 返回 Driver</text>
+    <text x="430" y="569" text-anchor="middle" fill="#a7f3d0" font-size="10">collect → List[Row] ｜ count → Long ｜ write → 外部存储</text>
+
+    <!-- Decision diamond: is Shuffle needed? -->
+    <polygon points="700,270 740,295 700,320 660,295" fill="#7f1d1d" stroke="#f87171" stroke-width="1"/>
+    <text x="700" y="291" text-anchor="middle" fill="white" font-size="9" font-weight="bold">宽依赖?</text>
+    <text x="700" y="305" text-anchor="middle" fill="#fca5a5" font-size="8">Shuffle</text>
+    <text x="756" y="296" fill="#f87171" font-size="9">Yes→新Stage</text>
+    <text x="740" y="274" fill="#34d399" font-size="9">No→同Stage</text>
+  </svg>
+</div>
+
+<!-- ===== 五、分类对比 ===== -->
+<div class="section" id="s5">
+  <div class="section-header">
+    <div class="section-num num-purple">五</div>
+    <h2>核心分类对比 <small>Classification Comparison</small></h2>
+  </div>
+
+  <!-- SVG Comparison -->
+  <svg viewBox="0 0 860 340" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI',Arial,sans-serif">
+    <rect width="860" height="340" fill="#0f1117" rx="12"/>
+    <text x="430" y="30" text-anchor="middle" fill="#e2e8f0" font-size="14" font-weight="bold">Transformation vs Action · 核心对比</text>
+
+    <!-- Transformation Card -->
+    <rect x="40" y="50" width="380" height="270" fill="#1e293b" rx="10" stroke="#1d4ed840"/>
+    <rect x="40" y="50" width="380" height="44" fill="#1d4ed8" rx="10"/>
+    <rect x="40" y="82" width="380" height="12" fill="#1d4ed8"/>
+    <text x="230" y="78" text-anchor="middle" fill="white" font-size="13" font-weight="bold">🔁 Transformation</text>
+
+    <text x="60" y="118" fill="#94a3b8" font-size="11" font-weight="600">返回值</text>
+    <text x="200" y="118" fill="#e2e8f0" font-size="11">新 RDD / DataFrame</text>
+    <line x1="60" y1="126" x2="400" y2="126" stroke="#334155" stroke-width="0.5"/>
+
+    <text x="60" y="146" fill="#94a3b8" font-size="11" font-weight="600">执行时机</text>
+    <text x="200" y="146" fill="#fbbf24" font-size="11">惰性（Lazy Evaluation）</text>
+    <line x1="60" y1="154" x2="400" y2="154" stroke="#334155" stroke-width="0.5"/>
+
+    <text x="60" y="174" fill="#94a3b8" font-size="11" font-weight="600">是否触发 Job</text>
+    <text x="200" y="174" fill="#34d399" font-size="11">❌ 否，只构建 DAG</text>
+    <line x1="60" y1="182" x2="400" y2="182" stroke="#334155" stroke-width="0.5"/>
+
+    <text x="60" y="202" fill="#94a3b8" font-size="11" font-weight="600">Shuffle</text>
+    <text x="200" y="202" fill="#e2e8f0" font-size="11">窄依赖无，宽依赖有</text>
+    <line x1="60" y1="210" x2="400" y2="210" stroke="#334155" stroke-width="0.5"/>
+
+    <text x="60" y="230" fill="#94a3b8" font-size="11" font-weight="600">常见算子</text>
+    <text x="200" y="230" fill="#e2e8f0" font-size="10">map/filter/groupBy/join/sort</text>
+    <line x1="60" y1="238" x2="400" y2="238" stroke="#334155" stroke-width="0.5"/>
+
+    <text x="60" y="258" fill="#94a3b8" font-size="11" font-weight="600">适用场景</text>
+    <text x="200" y="258" fill="#e2e8f0" font-size="10">数据清洗、转换、聚合逻辑</text>
+
+    <text x="230" y="308" text-anchor="middle" fill="#64748b" font-size="10">可无限链式调用，不消耗计算资源</text>
+
+    <!-- Action Card -->
+    <rect x="440" y="50" width="380" height="270" fill="#1e293b" rx="10" stroke="#d9770840"/>
+    <rect x="440" y="50" width="380" height="44" fill="#d97706" rx="10"/>
+    <rect x="440" y="82" width="380" height="12" fill="#d97706"/>
+    <text x="630" y="78" text-anchor="middle" fill="white" font-size="13" font-weight="bold">⚡ Action</text>
+
+    <text x="460" y="118" fill="#94a3b8" font-size="11" font-weight="600">返回值</text>
+    <text x="600" y="118" fill="#e2e8f0" font-size="11">具体值 / 写出副作用</text>
+    <line x1="460" y1="126" x2="800" y2="126" stroke="#334155" stroke-width="0.5"/>
+
+    <text x="460" y="146" fill="#94a3b8" font-size="11" font-weight="600">执行时机</text>
+    <text x="600" y="146" fill="#f87171" font-size="11">立即执行（Eager）</text>
+    <line x1="460" y1="154" x2="800" y2="154" stroke="#334155" stroke-width="0.5"/>
+
+    <text x="460" y="174" fill="#94a3b8" font-size="11" font-weight="600">是否触发 Job</text>
+    <text x="600" y="174" fill="#34d399" font-size="11">✅ 是，提交完整 Job</text>
+    <line x1="460" y1="182" x2="800" y2="182" stroke="#334155" stroke-width="0.5"/>
+
+    <text x="460" y="202" fill="#94a3b8" font-size="11" font-weight="600">Shuffle</text>
+    <text x="600" y="202" fill="#e2e8f0" font-size="11">由前序 Transformation 决定</text>
+    <line x1="460" y1="210" x2="800" y2="210" stroke="#334155" stroke-width="0.5"/>
+
+    <text x="460" y="230" fill="#94a3b8" font-size="11" font-weight="600">常见算子</text>
+    <text x="600" y="230" fill="#e2e8f0" font-size="10">collect/count/save/show/foreach</text>
+    <line x1="460" y1="238" x2="800" y2="238" stroke="#334155" stroke-width="0.5"/>
+
+    <text x="460" y="258" fill="#94a3b8" font-size="11" font-weight="600">适用场景</text>
+    <text x="600" y="258" fill="#e2e8f0" font-size="10">获取结果、写出数据、调试验证</text>
+
+    <text x="630" y="308" text-anchor="middle" fill="#64748b" font-size="10">每次调用都是一个新 Job，消耗计算资源</text>
+  </svg>
+
+  <table>
+    <tr>
+      <th>算子类型</th>
+      <th>代表算子</th>
+      <th>特点</th>
+      <th>适用场景</th>
+      <th>注意事项</th>
+    </tr>
+    <tr>
+      <td><strong style="color:#60a5fa">窄依赖 Transformation</strong></td>
+      <td>map, filter, flatMap, mapPartitions, union, coalesce</td>
+      <td>无 Shuffle，同 Stage，流水线执行</td>
+      <td>字段提取、过滤脏数据、格式转换</td>
+      <td>可放心链式调用，基本无额外开销</td>
+    </tr>
+    <tr>
+      <td><strong style="color:#a78bfa">宽依赖 Transformation</strong></td>
+      <td>groupByKey, reduceByKey, join, sortBy, repartition, distinct</td>
+      <td>触发 Shuffle，划分新 Stage</td>
+      <td>分组聚合、多表关联、全局排序</td>
+      <td>尽量用 reduceByKey 代替 groupByKey；join 时注意数据倾斜</td>
+    </tr>
+    <tr>
+      <td><strong style="color:#fbbf24">采集类 Action</strong></td>
+      <td>collect, take, first, takeSample</td>
+      <td>将数据拉取到 Driver 内存</td>
+      <td>调试、小结果集展示</td>
+      <td>⚠ 数据量大时 Driver OOM，生产慎用</td>
+    </tr>
+    <tr>
+      <td><strong style="color:#34d399">聚合类 Action</strong></td>
+      <td>count, reduce, aggregate, fold, sum, mean</td>
+      <td>在 Executor 端聚合，只返回标量</td>
+      <td>统计指标、业务 KPI 计算</td>
+      <td>多个 count 可合并为一次 agg() 减少 Job 数</td>
+    </tr>
+    <tr>
+      <td><strong style="color:#f87171">写出类 Action</strong></td>
+      <td>saveAsTextFile, write.parquet, write.jdbc, foreach</td>
+      <td>将结果写入外部存储系统</td>
+      <td>ETL 落地、数仓写入</td>
+      <td>注意幂等性；分区数影响输出文件数</td>
+    </tr>
+    <tr>
+      <td><strong style="color:#94a3b8">持久化算子</strong></td>
+      <td>cache, persist, unpersist, checkpoint</td>
+      <td>缓存 RDD/DataFrame 到内存或磁盘</td>
+      <td>复用热点数据集、迭代算法</td>
+      <td>checkpoint 会截断 lineage，防止 DAG 过长</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ===== 六、关联关系 ===== -->
+<div class="section" id="s6">
+  <div class="section-header">
+    <div class="section-num num-orange">六</div>
+    <h2>与其他概念的关联关系 <small>Relationships</small></h2>
+  </div>
+
+  <p>算子并不孤立存在，它与 Spark 体系中的以下核心概念紧密协作：</p>
+
+  <p><strong>RDD / DataFrame / Dataset</strong>：算子的操作对象。RDD 是底层不可变分布式集合，DataFrame 是带 Schema 的结构化数据集，Dataset 兼具类型安全与 Catalyst 优化，算子在三者上的 API 形式略有不同，但语义一致。</p>
+
+  <p><strong>Catalyst 优化器</strong>：DataFrame/Dataset 上的算子会经过 Catalyst 进行逻辑计划优化（谓词下推、列裁剪、常量折叠），RDD 算子则不经过此优化，这是推荐优先使用 DataFrame API 的核心原因。</p>
+
+  <p><strong>Tungsten 执行引擎</strong>：在物理执行层，Tungsten 通过代码生成（Whole-Stage CodeGen）将多个算子合并为单一 JVM 字节码循环执行，极大减少虚函数调用和对象创建开销。</p>
+
+  <pre><code><span class="c-cm">// 典型组合示例：算子 + DataFrame + 外部数据源</span>
+<span class="c-kw">val</span> orders = spark.read
+  .option(<span class="c-str">"header"</span>, <span class="c-str">"true"</span>)
+  .csv(<span class="c-str">"s3://bucket/orders/"</span>)        <span class="c-cm">// 数据源读取</span>
+
+<span class="c-kw">val</span> products = spark.read.parquet(<span class="c-str">"s3://bucket/products/"</span>)
+
+<span class="c-cm">// 算子链：Transformation（宽依赖 join + groupBy + agg）</span>
+<span class="c-kw">val</span> result = orders
+  .join(products, orders(<span class="c-str">"product_id"</span>) === products(<span class="c-str">"id"</span>), <span class="c-str">"inner"</span>) <span class="c-cm">// 宽依赖</span>
+  .filter(col(<span class="c-str">"order_date"</span>) >= <span class="c-str">"2024-01-01"</span>)                      <span class="c-cm">// 窄依赖</span>
+  .groupBy(<span class="c-str">"category"</span>, <span class="c-str">"region"</span>)                                  <span class="c-cm">// 宽依赖</span>
+  .agg(
+    sum(<span class="c-str">"amount"</span>).as(<span class="c-str">"total_gmv"</span>),
+    countDistinct(<span class="c-str">"user_id"</span>).as(<span class="c-str">"uv"</span>)
+  )
+  .orderBy(desc(<span class="c-str">"total_gmv"</span>))                                   <span class="c-cm">// 宽依赖</span>
+
+<span class="c-cm">// Action：触发执行并写出</span>
+result.write.mode(<span class="c-str">"overwrite"</span>).parquet(<span class="c-str">"s3://output/report/"</span>)  <span class="c-cm">// ⚡</span></code></pre>
+</div>
+
+<!-- ===== 七、进阶特性与底层原理 ===== -->
+<div class="section" id="s7">
+  <div class="section-header">
+    <div class="section-num num-purple">七</div>
+    <h2>进阶特性与底层原理 <small>Advanced Internals</small></h2>
+  </div>
+
+  <h3>7.1 惰性求值（Lazy Evaluation）的实现机制</h3>
+  <p>每次调用 Transformation 算子，Spark 并不执行任何计算，而是在内部维护一个 <strong>RDD Lineage（血统）图</strong>。以 RDD 为例，每个 RDD 都记录了：① 父 RDD 引用 ② 生成该 RDD 的函数 ③ 分区数量。这个 Lineage 本质上是一棵 DAG 树，只有 Action 被调用时，DAGScheduler 才会从终点 Action 出发，反向遍历 Lineage，将其转化为 Stage 执行计划。</p>
+
+  <p>这样设计的原因在于：惰性求值允许 Spark 在实际执行前<strong>看到整个计算计划</strong>，从而实现全局优化（如谓词下推到数据源层，避免读取不需要的列和行）。</p>
+
+  <pre><code><span class="c-cm">// 验证惰性求值：以下代码只构建 DAG，不执行</span>
+<span class="c-kw">val</span> rdd1 = sc.parallelize(<span class="c-num">1</span> to <span class="c-num">1000000</span>)   <span class="c-cm">// 创建 RDD，不真正分发数据</span>
+<span class="c-kw">val</span> rdd2 = rdd1.map(x => x * x)            <span class="c-cm">// 只记录"平方"操作到 Lineage</span>
+<span class="c-kw">val</span> rdd3 = rdd2.filter(_ > <span class="c-num">100</span>)           <span class="c-cm">// 只记录"过滤"操作</span>
+println(rdd3.toDebugString)                 <span class="c-cm">// 查看 Lineage 树（仍不执行）</span>
+<span class="c-kw">val</span> sum = rdd3.reduce(_ + _)               <span class="c-cm">// ⚡ Action！此时才真正执行</span></code></pre>
+
+  <h3>7.2 Shuffle 内部实现（Sort-Based Shuffle）</h3>
+  <p>Spark 2.0+ 默认使用 <strong>Sort-Based Shuffle</strong>，每个 Map Task 将数据写入一个<strong>单一排序文件</strong>（外加一个 Index 索引文件），Reduce Task 通过 HTTP 拉取对应分区的数据块。相比老版本的 Hash-Based Shuffle（每个 Map Task 产生 R 个文件），它将文件数从 M×R 降低到 2×M，大幅减少小文件数量和随机 I/O。</p>
+
+  <!-- Shuffle SVG -->
+  <svg viewBox="0 0 840 320" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI',Arial,sans-serif">
+    <defs>
+      <marker id="sa" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#a78bfa"/>
+      </marker>
+    </defs>
+    <rect width="840" height="320" fill="#0f1117" rx="12"/>
+    <text x="420" y="28" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="bold">Sort-Based Shuffle 内部数据流</text>
+
+    <!-- Map Side -->
+    <rect x="30" y="44" width="340" height="250" fill="#0d1f3c" rx="8" stroke="#1d4ed830"/>
+    <text x="200" y="64" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="bold">Map 端（Write 阶段）</text>
+
+    <rect x="50" y="76" width="120" height="36" fill="#1d4ed8" rx="6"/>
+    <text x="110" y="90" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Map Task 0</text>
+    <text x="110" y="104" text-anchor="middle" fill="#bfdbfe" font-size="9">处理 Partition 0</text>
+
+    <rect x="50" y="126" width="120" height="36" fill="#1d4ed8" rx="6"/>
+    <text x="110" y="140" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Map Task 1</text>
+    <text x="110" y="154" text-anchor="middle" fill="#bfdbfe" font-size="9">处理 Partition 1</text>
+
+    <rect x="50" y="176" width="120" height="36" fill="#1d4ed8" rx="6"/>
+    <text x="110" y="190" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Map Task 2</text>
+    <text x="110" y="204" text-anchor="middle" fill="#bfdbfe" font-size="9">处理 Partition 2</text>
+
+    <!-- Sort & Write -->
+    <rect x="200" y="76" width="150" height="176" fill="#1e293b" rx="6" stroke="#5b21b640"/>
+    <text x="275" y="96" text-anchor="middle" fill="#a78bfa" font-size="10" font-weight="bold">Sort &amp; Write</text>
+    <text x="275" y="114" text-anchor="middle" fill="#64748b" font-size="9">ExternalSorter</text>
+    <text x="214" y="140" fill="#94a3b8" font-size="9">data.0.file</text>
+    <rect x="210" y="145" width="124" height="8" fill="#5b21b6" rx="2"/>
+    <text x="275" y="154" text-anchor="middle" fill="#64748b" font-size="8">[P0 data][P1 data][P2 data] 有序合并</text>
+    <text x="214" y="176" fill="#94a3b8" font-size="9">index.0.file</text>
+    <rect x="210" y="181" width="124" height="8" fill="#065f46" rx="2"/>
+    <text x="275" y="190" text-anchor="middle" fill="#64748b" font-size="8">[offset0, offset1, offset2]</text>
+    <text x="275" y="220" text-anchor="middle" fill="#64748b" font-size="8">文件数 = 2 × M</text>
+    <text x="275" y="234" text-anchor="middle" fill="#34d399" font-size="9">✓ vs 旧 Hash: M×R 文件</text>
+
+    <line x1="170" y1="94" x2="200" y2="130" stroke="#a78bfa" stroke-width="1" marker-end="url(#sa)"/>
+    <line x1="170" y1="144" x2="200" y2="158" stroke="#a78bfa" stroke-width="1" marker-end="url(#sa)"/>
+    <line x1="170" y1="194" x2="200" y2="185" stroke="#a78bfa" stroke-width="1" marker-end="url(#sa)"/>
+
+    <!-- Network -->
+    <text x="420" y="170" text-anchor="middle" fill="#64748b" font-size="10">HTTP Fetch</text>
+    <text x="420" y="184" text-anchor="middle" fill="#64748b" font-size="9">BlockManager</text>
+    <line x1="370" y1="145" x2="470" y2="145" stroke="#a78bfa" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#sa)"/>
+    <line x1="370" y1="165" x2="470" y2="165" stroke="#a78bfa" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#sa)"/>
+    <line x1="370" y1="185" x2="470" y2="185" stroke="#a78bfa" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#sa)"/>
+
+    <!-- Reduce Side -->
+    <rect x="470" y="44" width="340" height="250" fill="#1a1a0d" rx="8" stroke="#d9770830"/>
+    <text x="640" y="64" text-anchor="middle" fill="#fbbf24" font-size="11" font-weight="bold">Reduce 端（Read 阶段）</text>
+
+    <rect x="490" y="76" width="300" height="58" fill="#1e293b" rx="6" stroke="#d9770640"/>
+    <text x="640" y="94" text-anchor="middle" fill="#fbbf24" font-size="10" font-weight="bold">Reduce Task 0 → 拉取所有 Map 的 P0</text>
+    <text x="640" y="110" text-anchor="middle" fill="#64748b" font-size="9">mergeSort → 聚合函数 → 写 ResultPartition</text>
+    <text x="640" y="124" text-anchor="middle" fill="#94a3b8" font-size="9">ExternalAppendOnlyMap（防 OOM）</text>
+
+    <rect x="490" y="148" width="300" height="58" fill="#1e293b" rx="6" stroke="#d9770640"/>
+    <text x="640" y="166" text-anchor="middle" fill="#fbbf24" font-size="10" font-weight="bold">Reduce Task 1 → 拉取所有 Map 的 P1</text>
+    <text x="640" y="182" text-anchor="middle" fill="#64748b" font-size="9">mergeSort → 聚合函数 → 写 ResultPartition</text>
+    <text x="640" y="196" text-anchor="middle" fill="#94a3b8" font-size="9">支持 Spill to Disk</text>
+
+    <rect x="490" y="220" width="300" height="58" fill="#1e293b" rx="6" stroke="#d9770640"/>
+    <text x="640" y="238" text-anchor="middle" fill="#fbbf24" font-size="10" font-weight="bold">Reduce Task 2 → 拉取所有 Map 的 P2</text>
+    <text x="640" y="254" text-anchor="middle" fill="#64748b" font-size="9">mergeSort → 聚合函数 → 写 ResultPartition</text>
+    <text x="640" y="268" text-anchor="middle" fill="#94a3b8" font-size="9">spark.reducer.maxSizeInFlight 控制拉取量</text>
+  </svg>
+
+  <h3>7.3 mapPartitions vs map：为什么粒度很重要</h3>
+  <p><code>map(f)</code> 对每条记录调用一次函数 f，<code>mapPartitions(f)</code> 则对每个 Partition 调用一次 f，传入一个迭代器。当函数 f 需要初始化重量级资源（如数据库连接、模型加载）时，<code>mapPartitions</code> 可将资源创建次数从 N（记录数）降低到 P（分区数），性能提升显著。</p>
+
+  <pre><code><span class="c-cm">// 对比：map vs mapPartitions 处理数据库写入</span>
+
+<span class="c-cm">// ❌ 低效：每条记录都创建一次连接</span>
+rdd.map { record =>
+  <span class="c-kw">val</span> conn = <span class="c-cls">DB</span>.getConnection()   <span class="c-cm">// 百万次连接创建！</span>
+  conn.insert(record)
+  conn.close()
+}
+
+<span class="c-cm">// ✅ 高效：每个 Partition 只创建一次连接</span>
+rdd.mapPartitions { records =>
+  <span class="c-kw">val</span> conn = <span class="c-cls">DB</span>.getConnection()   <span class="c-cm">// 只创建 partition 数次</span>
+  <span class="c-kw">val</span> result = records.map { record =>
+    conn.insert(record)
+    record
+  }.toList
+  conn.close()
+  result.iterator
+}</code></pre>
+</div>
+
+<!-- ===== 八、生产实践 ===== -->
+<div class="section" id="s8">
+  <div class="section-header">
+    <div class="section-num num-orange">八</div>
+    <h2>生产实践 / 调优指南 <small>Production Best Practices</small></h2>
+  </div>
+
+  <table>
+    <tr>
+      <th>常见问题</th>
+      <th>根本原因</th>
+      <th>解决方案</th>
+    </tr>
+    <tr>
+      <td><strong style="color:#f87171">数据倾斜（Skew）</strong></td>
+      <td>Key 分布不均，某些 Reduce Task 处理数据量远大于其他</td>
+      <td>① 加盐（Salting）打散热点 Key<br>② 使用 skewHint() / AQE 自动倾斜处理<br>③ 广播小表替代 Shuffle Join</td>
+    </tr>
+    <tr>
+      <td><strong style="color:#f87171">Driver OOM</strong></td>
+      <td>collect() 或 take() 拉取数据量超过 Driver 内存</td>
+      <td>改用 write() 写出；或先 limit() 再 collect()</td>
+    </tr>
+    <tr>
+      <td><strong style="color:#f87171">Executor OOM</strong></td>
+      <td>groupByKey 将同 Key 所有数据加载到内存</td>
+      <td>改用 reduceByKey / aggregateByKey（Map 端预聚合）</td>
+    </tr>
+    <tr>
+      <td><strong style="color:#f87171">小文件过多</strong></td>
+      <td>repartition 数过大，每个 Partition 写出一个文件</td>
+      <td>写出前 coalesce(N)；或使用 AQE 自动合并小 Shuffle 分区</td>
+    </tr>
+    <tr>
+      <td><strong style="color:#f87171">重复计算</strong></td>
+      <td>同一 RDD/DataFrame 被多个 Action 多次触发重算</td>
+      <td>在第一个 Action 前调用 cache() / persist()</td>
+    </tr>
+    <tr>
+      <td><strong style="color:#f87171">Stage 数过多</strong></td>
+      <td>算子链中宽依赖过多，Shuffle 次数多</td>
+      <td>合并多次 groupBy 为一次 agg()；使用 repartition 一次性重分区</td>
+    </tr>
+  </table>
+
+  <h3>最佳实践建议</h3>
+  <div class="best-practices">
+    <div class="bp-item">
+      <div class="bp-num">1</div>
+      <p><strong>优先使用 DataFrame/Dataset API</strong>：相比 RDD，DataFrame 受 Catalyst 优化器保护，会自动执行谓词下推、列裁剪、连接重排等优化，性能通常高出数倍。</p>
+    </div>
+    <div class="bp-item">
+      <div class="bp-num">2</div>
+      <p><strong>用 reduceByKey 替代 groupByKey</strong>：groupByKey 将所有数据 Shuffle 后才聚合，内存压力大；reduceByKey 在 Map 端预聚合，大幅减少网络传输量。</p>
+    </div>
+    <div class="bp-item">
+      <div class="bp-num">3</div>
+      <p><strong>广播小表（Broadcast Join）</strong>：当一个表远小于另一个时（通常 &lt;10MB），使用 <code>broadcast(smallDF)</code> 将其广播到每个 Executor，避免大规模 Shuffle Join。</p>
+    </div>
+    <div class="bp-item">
+      <div class="bp-num">4</div>
+      <p><strong>合理设置 Shuffle 分区数</strong>：默认 <code>spark.sql.shuffle.partitions=200</code> 并非万能，应根据数据量调整（经验值：每个分区 128MB~256MB 数据）。开启 AQE（Adaptive Query Execution）可自动调整。</p>
+    </div>
+    <div class="bp-item">
+      <div class="bp-num">5</div>
+      <p><strong>避免在 Action 中使用 collect 大结果集</strong>：collect() 会将所有数据拉到 Driver，生产环境应直接使用 write() 写出到 HDFS/S3，或用 limit()+collect() 只取样本。</p>
+    </div>
+  </div>
+
+  <h4>关键配置参数</h4>
+  <table>
+    <tr><th>参数</th><th>默认值</th><th>说明</th></tr>
+    <tr><td><code>spark.sql.shuffle.partitions</code></td><td>200</td><td>SQL/DataFrame Shuffle 后的分区数</td></tr>
+    <tr><td><code>spark.sql.adaptive.enabled</code></td><td>true (3.0+)</td><td>启用 AQE 自适应查询执行</td></tr>
+    <tr><td><code>spark.sql.autoBroadcastJoinThreshold</code></td><td>10MB</td><td>自动广播 Join 的表大小阈值</td></tr>
+    <tr><td><code>spark.reducer.maxSizeInFlight</code></td><td>48MB</td><td>Reduce 端单次拉取的最大数据量</td></tr>
+    <tr><td><code>spark.serializer</code></td><td>JavaSerializer</td><td>改为 KryoSerializer 可提升 Shuffle 性能</td></tr>
+    <tr><td><code>spark.memory.fraction</code></td><td>0.6</td><td>堆内存中用于执行和存储的比例</td></tr>
+  </table>
+</div>
+
+<!-- ===== 九、生命周期图 ===== -->
+<div class="section" id="s9">
+  <div class="section-header">
+    <div class="section-num num-green">九</div>
+    <h2>完整生命周期图 <small>Full Lifecycle</small></h2>
+  </div>
+
+  <p>一个 Spark 算子从代码编写到最终结果产出，经历以下完整生命周期阶段：</p>
+
+  <svg viewBox="0 0 860 480" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI',Arial,sans-serif">
+    <defs>
+      <marker id="la" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#475569"/>
+      </marker>
+      <marker id="la2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#34d399"/>
+      </marker>
+    </defs>
+    <rect width="860" height="480" fill="#0f1117" rx="12"/>
+    <text x="430" y="30" text-anchor="middle" fill="#e2e8f0" font-size="14" font-weight="bold">Spark 算子完整生命周期</text>
+
+    <!-- Phase 1 -->
+    <rect x="30" y="50" width="180" height="80" fill="#1d4ed8" rx="8"/>
+    <text x="120" y="72" text-anchor="middle" fill="white" font-size="11" font-weight="bold">① 创建阶段</text>
+    <text x="120" y="90" text-anchor="middle" fill="#bfdbfe" font-size="9">SparkContext / SparkSession</text>
+    <text x="120" y="104" text-anchor="middle" fill="#bfdbfe" font-size="9">sc.parallelize() / read.*()</text>
+    <text x="120" y="118" text-anchor="middle" fill="#93c5fd" font-size="9">API: sparkContext.textFile()</text>
+
+    <line x1="210" y1="90" x2="240" y2="90" stroke="#475569" stroke-width="1.5" marker-end="url(#la)"/>
+
+    <!-- Phase 2 -->
+    <rect x="240" y="50" width="180" height="80" fill="#065f46" rx="8"/>
+    <text x="330" y="72" text-anchor="middle" fill="white" font-size="11" font-weight="bold">② 描述阶段</text>
+    <text x="330" y="90" text-anchor="middle" fill="#a7f3d0" font-size="9">链式调用 Transformation</text>
+    <text x="330" y="104" text-anchor="middle" fill="#a7f3d0" font-size="9">构建 Lineage / Logical Plan</text>
+    <text x="330" y="118" text-anchor="middle" fill="#6ee7b7" font-size="9">API: .map() .filter() .join()</text>
+
+    <line x1="420" y1="90" x2="450" y2="90" stroke="#475569" stroke-width="1.5" marker-end="url(#la)"/>
+
+    <!-- Phase 3 -->
+    <rect x="450" y="50" width="180" height="80" fill="#5b21b6" rx="8"/>
+    <text x="540" y="72" text-anchor="middle" fill="white" font-size="11" font-weight="bold">③ 优化阶段</text>
+    <text x="540" y="90" text-anchor="middle" fill="#ddd6fe" font-size="9">Catalyst: 谓词下推 / 列裁剪</text>
+    <text x="540" y="104" text-anchor="middle" fill="#ddd6fe" font-size="9">生成物理执行计划</text>
+    <text x="540" y="118" text-anchor="middle" fill="#c4b5fd" font-size="9">API: .explain(true)</text>
+
+    <line x1="630" y1="90" x2="660" y2="90" stroke="#475569" stroke-width="1.5" marker-end="url(#la)"/>
+
+    <!-- Phase 4 -->
+    <rect x="660" y="50" width="168" height="80" fill="#d97706" rx="8"/>
+    <text x="744" y="72" text-anchor="middle" fill="white" font-size="11" font-weight="bold">④ 触发阶段</text>
+    <text x="744" y="90" text-anchor="middle" fill="#fef3c7" font-size="9">Action 调用提交 Job</text>
+    <text x="744" y="104" text-anchor="middle" fill="#fef3c7" font-size="9">DAGScheduler 接收</text>
+    <text x="744" y="118" text-anchor="middle" fill="#fde68a" font-size="9">API: .count() .collect()</text>
+
+    <!-- Downward flow -->
+    <line x1="744" y1="130" x2="744" y2="155" stroke="#d97706" stroke-width="1.5" marker-end="url(#la)"/>
+
+    <!-- Phase 5 -->
+    <rect x="570" y="155" width="350" height="80" fill="#1e293b" rx="8" stroke="#334155"/>
+    <text x="745" y="175" text-anchor="middle" fill="#fbbf24" font-size="11" font-weight="bold">⑤ Stage 划分</text>
+    <text x="745" y="193" text-anchor="middle" fill="#94a3b8" font-size="9">DAGScheduler 扫描 Lineage</text>
+    <text x="745" y="207" text-anchor="middle" fill="#94a3b8" font-size="9">以 Shuffle 为界划分 ResultStage / ShuffleMapStage</text>
+    <text x="745" y="222" text-anchor="middle" fill="#64748b" font-size="9">API: SparkUI Job → Stages 页面可视化</text>
+
+    <line x1="570" y1="195" x2="420" y2="195" stroke="#475569" stroke-width="1.5" marker-end="url(#la)"/>
+
+    <!-- Phase 6 -->
+    <rect x="30" y="155" width="390" height="80" fill="#1e293b" rx="8" stroke="#334155"/>
+    <text x="225" y="175" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="bold">⑥ Task 调度与执行</text>
+    <text x="225" y="193" text-anchor="middle" fill="#94a3b8" font-size="9">TaskScheduler → Executor → Task 并行执行</text>
+    <text x="225" y="207" text-anchor="middle" fill="#94a3b8" font-size="9">数据本地性优先（PROCESS_LOCAL > NODE_LOCAL > RACK_LOCAL）</text>
+    <text x="225" y="222" text-anchor="middle" fill="#64748b" font-size="9">API: SparkUI Stages → Tasks 页面</text>
+
+    <line x1="225" y1="235" x2="225" y2="260" stroke="#475569" stroke-width="1.5" marker-end="url(#la)"/>
+
+    <!-- Phase 7 (Cache) -->
+    <rect x="30" y="260" width="180" height="70" fill="#1e293b" rx="8" stroke="#34d39930"/>
+    <text x="120" y="280" text-anchor="middle" fill="#34d399" font-size="11" font-weight="bold">⑦ 缓存（可选）</text>
+    <text x="120" y="296" text-anchor="middle" fill="#64748b" font-size="9">cache() / persist()</text>
+    <text x="120" y="310" text-anchor="middle" fill="#64748b" font-size="9">RDD 存 BlockManager</text>
+    <text x="120" y="324" text-anchor="middle" fill="#6ee7b7" font-size="9">API: .persist(StorageLevel.X)</text>
+
+    <!-- Phase 8 (Result) -->
+    <rect x="240" y="260" width="180" height="70" fill="#1e293b" rx="8" stroke="#d9770640"/>
+    <text x="330" y="280" text-anchor="middle" fill="#fbbf24" font-size="11" font-weight="bold">⑧ 结果返回</text>
+    <text x="330" y="296" text-anchor="middle" fill="#64748b" font-size="9">汇总到 Driver / 写外存</text>
+    <text x="330" y="310" text-anchor="middle" fill="#64748b" font-size="9">collect / count / write</text>
+    <text x="330" y="324" text-anchor="middle" fill="#fde68a" font-size="9">API: List[Row] / Long / Unit</text>
+
+    <!-- Phase 9 (Cleanup) -->
+    <rect x="450" y="260" width="180" height="70" fill="#1e293b" rx="8" stroke="#7f1d1d30"/>
+    <text x="540" y="280" text-anchor="middle" fill="#f87171" font-size="11" font-weight="bold">⑨ 清理阶段</text>
+    <text x="540" y="296" text-anchor="middle" fill="#64748b" font-size="9">释放缓存 / 关闭连接</text>
+    <text x="540" y="310" text-anchor="middle" fill="#64748b" font-size="9">GC / BlockManager 回收</text>
+    <text x="540" y="324" text-anchor="middle" fill="#fca5a5" font-size="9">API: .unpersist() / spark.stop()</text>
+
+    <line x1="210" y1="295" x2="240" y2="295" stroke="#34d399" stroke-width="1.2" marker-end="url(#la2)"/>
+    <line x1="420" y1="295" x2="450" y2="295" stroke="#475569" stroke-width="1.2" marker-end="url(#la)"/>
+
+    <!-- Bottom Summary -->
+    <rect x="30" y="360" width="800" height="92" fill="#1e293b" rx="8" stroke="#334155"/>
+    <text x="430" y="382" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="bold">生命周期要点总结</text>
+    <text x="80" y="404" fill="#94a3b8" font-size="10">📌 惰性阶段（①②③）：</text>
+    <text x="80" y="420" fill="#64748b" font-size="10">不消耗计算资源，只构建 DAG/逻辑计划，可无限叠加 Transformation</text>
+    <text x="80" y="438" fill="#94a3b8" font-size="10">⚡ 执行阶段（④⑤⑥）：</text>
+    <text x="80" y="438" fill="#94a3b8" font-size="10">⚡ 执行阶段（④⑤⑥⑦⑧⑨）：</text>
+    <text x="430" y="404" fill="#94a3b8" font-size="10">⚡ 执行阶段（④⑤⑥⑦⑧⑨）：</text>
+    <text x="430" y="420" fill="#64748b" font-size="10">每个 Action 是一个独立 Job；Stage 数 = Shuffle 依赖数 + 1</text>
+    <text x="430" y="438" fill="#64748b" font-size="10">合理使用 cache() 避免重复执行相同 Stage</text>
+  </svg>
+</div>
+
+<!-- ===== 十、总结与学习路线 ===== -->
+<div class="section" id="s10">
+  <div class="section-header">
+    <div class="section-num num-blue">十</div>
+    <h2>总结与学习路线 <small>Summary & Learning Path</small></h2>
+  </div>
+
+  <h3>从入门到精通的学习路径</h3>
+  <div class="learning-path">
+    <div><span class="lp-root">Spark 算子体系</span></div>
+    <div>├── <span class="lp-l1">入门阶段</span></div>
+    <div>│   ├── <span class="lp-l2">理解 RDD 概念与惰性求值</span></div>
+    <div>│   ├── <span class="lp-l2">掌握常用窄依赖算子：map / filter / flatMap</span></div>
+    <div>│   ├── <span class="lp-l2">掌握常用 Action：collect / count / reduce</span></div>
+    <div>│   └── <span class="lp-l2">熟悉 SparkUI：Job / Stage / Task 页面解读</span></div>
+    <div>├── <span class="lp-l1">进阶阶段</span></div>
+    <div>│   ├── <span class="lp-l2">宽依赖算子与 Shuffle 机制</span></div>
+    <div>│   ├── <span class="lp-l2">DataFrame API + Catalyst 优化原理</span></div>
+    <div>│   ├── <span class="lp-l2">cache / persist / checkpoint 使用场景</span></div>
+    <div>│   └── <span class="lp-l2">数据倾斜识别与处理技巧</span></div>
+    <div>└── <span class="lp-l1">高级阶段</span></div>
+    <div>    ├── <span class="lp-l3">AQE（自适应查询执行）工作原理</span></div>
+    <div>    ├── <span class="lp-l3">Tungsten 代码生成与内存管理</span></div>
+    <div>    ├── <span class="lp-l3">自定义 UDAF / UDF 优化</span></div>
+    <div>    └── <span class="lp-l3">源码级别理解：DAGScheduler / TaskScheduler</span></div>
+  </div>
+
+  <h3>核心记忆要点</h3>
+  <div class="key-points">
+    <div class="kp-item">
+      <div class="kp-dot"></div>
+      <span><strong>惰性求值是根本</strong>：Transformation 只构建计划，Action 才触发执行。每个 Action 对应一个 Job。</span>
+    </div>
+    <div class="kp-item">
+      <div class="kp-dot"></div>
+      <span><strong>宽依赖划分 Stage</strong>：每遇到一个有 Shuffle 的宽依赖算子，就产生一个新 Stage 边界。</span>
+    </div>
+    <div class="kp-item">
+      <div class="kp-dot"></div>
+      <span><strong>reduceByKey > groupByKey</strong>：前者 Map 端预聚合，后者全量 Shuffle，数据量差异可能达数十倍。</span>
+    </div>
+    <div class="kp-item">
+      <div class="kp-dot"></div>
+      <span><strong>DataFrame > RDD（性能）</strong>：Catalyst 优化 + Tungsten 执行，同等逻辑性能通常高出 2~5 倍。</span>
+    </div>
+    <div class="kp-item">
+      <div class="kp-dot"></div>
+      <span><strong>cache 要及时释放</strong>：persist() 后记得 unpersist()，否则长期占用 Executor 内存影响其他任务。</span>
+    </div>
+    <div class="kp-item">
+      <div class="kp-dot"></div>
+      <span><strong>collect() 有 OOM 风险</strong>：生产环境大数据集应直接 write() 写出，不要 collect 后再处理。</span>
+    </div>
+    <div class="kp-item">
+      <div class="kp-dot"></div>
+      <span><strong>开启 AQE</strong>（Spark 3.0+）：<code>spark.sql.adaptive.enabled=true</code> 可自动处理倾斜、动态调整分区数。</span>
+    </div>
+    <div class="kp-item">
+      <div class="kp-dot"></div>
+      <span><strong>mapPartitions 比 map 更高效</strong>：初始化重量级资源（连接、模型）时，应选择按分区操作。</span>
+    </div>
+  </div>
+
+  <h3>参考资料</h3>
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin-top:16px;">
+    <p style="margin:4px 0;font-size:13px;">📖 <a href="https://spark.apache.org/docs/latest/rdd-programming-guide.html" style="color:var(--accent);text-decoration:none;">Spark RDD Programming Guide</a> — 官方算子参考</p>
+    <p style="margin:4px 0;font-size:13px;">📖 <a href="https://spark.apache.org/docs/latest/sql-programming-guide.html" style="color:var(--accent);text-decoration:none;">Spark SQL, DataFrames and Datasets Guide</a></p>
+    <p style="margin:4px 0;font-size:13px;">📖 <a href="https://spark.apache.org/docs/latest/tuning.html" style="color:var(--accent);text-decoration:none;">Tuning Spark</a> — 官方调优指南</p>
+    <p style="margin:4px 0;font-size:13px;">📖 <a href="https://databricks.com/blog/2015/04/13/deep-dive-into-spark-sqls-catalyst-optimizer.html" style="color:var(--accent);text-decoration:none;">Deep Dive into Spark SQL's Catalyst Optimizer</a></p>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<div class="footer">
+  <p>Apache Spark 算子深度解析 · 基于通用知识体系深度解析 Prompt 模板生成</p>
+  <p style="margin-top:6px;">Spark 3.x · Scala / PySpark · 适合有一定基础的开发者进阶学习</p>
+</div>
+
+</body>
+</html>
