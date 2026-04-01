@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flink 运行时架构 & 任务提交流程</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Noto+Sans+SC:wght@300;400;700;900&display=swap');
+
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e3a5f;
+    --accent: #00d4ff;
+    --accent2: #ff6b35;
+    --accent3: #7c3aed;
+    --accent4: #10b981;
+    --text: #e2e8f0;
+    --text-muted: #64748b;
+    --glow: rgba(0, 212, 255, 0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans SC', sans-serif;
+    line-height: 1.6;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 60px;
+  }
+
+  .header .badge {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 4px 14px;
+    border-radius: 2px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .header h1 {
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+
+  .header h1 span {
+    color: var(--accent);
+    text-shadow: 0 0 40px rgba(0,212,255,0.5);
+  }
+
+  .header p {
+    color: var(--text-muted);
+    font-size: 16px;
+    font-weight: 300;
+  }
+
+  /* Section */
+  .section {
+    margin-bottom: 60px;
+  }
+
+  .section-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
+  }
+
+  /* Component Cards */
+  .components-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 16px;
+  }
+
+  .component-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s, transform 0.2s;
+  }
+
+  .component-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .component-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .component-card.client::before { background: linear-gradient(90deg, var(--accent), transparent); }
+  .component-card.jm::before { background: linear-gradient(90deg, var(--accent2), transparent); }
+  .component-card.rm::before { background: linear-gradient(90deg, var(--accent3), transparent); }
+  .component-card.tm::before { background: linear-gradient(90deg, var(--accent4), transparent); }
+  .component-card.ds::before { background: linear-gradient(90deg, #f59e0b, transparent); }
+  .component-card.ha::before { background: linear-gradient(90deg, #ec4899, transparent); }
+
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .client .card-icon { background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.3); }
+  .jm .card-icon { background: rgba(255,107,53,0.1); border: 1px solid rgba(255,107,53,0.3); }
+  .rm .card-icon { background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.3); }
+  .tm .card-icon { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); }
+  .ds .card-icon { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); }
+  .ha .card-icon { background: rgba(236,72,153,0.1); border: 1px solid rgba(236,72,153,0.3); }
+
+  .card-title {
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 4px;
+  }
+
+  .card-subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .client .card-title { color: var(--accent); }
+  .jm .card-title { color: var(--accent2); }
+  .rm .card-title { color: var(--accent3); }
+  .tm .card-title { color: var(--accent4); }
+  .ds .card-title { color: #f59e0b; }
+  .ha .card-title { color: #ec4899; }
+
+  .card-body {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  .card-body ul {
+    list-style: none;
+    margin-top: 10px;
+  }
+
+  .card-body ul li {
+    padding: 3px 0;
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .card-body ul li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    font-size: 10px;
+    top: 5px;
+  }
+
+  .client ul li::before { color: var(--accent); }
+  .jm ul li::before { color: var(--accent2); }
+  .rm ul li::before { color: var(--accent3); }
+  .tm ul li::before { color: var(--accent4); }
+  .ds ul li::before { color: #f59e0b; }
+  .ha ul li::before { color: #ec4899; }
+
+  /* Flow Diagram */
+  .flow-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 48px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .flow-diagram::before {
+    content: '';
+    position: absolute;
+    top: -100px; right: -100px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(0,212,255,0.05), transparent 70%);
+    pointer-events: none;
+  }
+
+  .flow-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .flow-step {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 24px;
+    align-items: flex-start;
+    position: relative;
+  }
+
+  .flow-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 29px;
+    top: 60px;
+    width: 2px;
+    height: calc(100% - 10px);
+    background: linear-gradient(180deg, var(--border), transparent);
+  }
+
+  .step-num {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 18px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .step-content {
+    padding: 8px 0 40px;
+  }
+
+  .step-title {
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .step-from-to {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+
+  .step-desc {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  /* Step colors */
+  .step-1 .step-num { background: rgba(0,212,255,0.1); border: 2px solid var(--accent); color: var(--accent); box-shadow: 0 0 20px rgba(0,212,255,0.2); }
+  .step-1 .step-title { color: var(--accent); }
+  .step-1 .step-from-to { background: rgba(0,212,255,0.1); color: var(--accent); border: 1px solid rgba(0,212,255,0.3); }
+
+  .step-2 .step-num { background: rgba(255,107,53,0.1); border: 2px solid var(--accent2); color: var(--accent2); box-shadow: 0 0 20px rgba(255,107,53,0.2); }
+  .step-2 .step-title { color: var(--accent2); }
+  .step-2 .step-from-to { background: rgba(255,107,53,0.1); color: var(--accent2); border: 1px solid rgba(255,107,53,0.3); }
+
+  .step-3 .step-num { background: rgba(124,58,237,0.1); border: 2px solid var(--accent3); color: var(--accent3); box-shadow: 0 0 20px rgba(124,58,237,0.2); }
+  .step-3 .step-title { color: var(--accent3); }
+  .step-3 .step-from-to { background: rgba(124,58,237,0.1); color: var(--accent3); border: 1px solid rgba(124,58,237,0.3); }
+
+  .step-4 .step-num { background: rgba(16,185,129,0.1); border: 2px solid var(--accent4); color: var(--accent4); box-shadow: 0 0 20px rgba(16,185,129,0.2); }
+  .step-4 .step-title { color: var(--accent4); }
+  .step-4 .step-from-to { background: rgba(16,185,129,0.1); color: var(--accent4); border: 1px solid rgba(16,185,129,0.3); }
+
+  .step-5 .step-num { background: rgba(245,158,11,0.1); border: 2px solid #f59e0b; color: #f59e0b; box-shadow: 0 0 20px rgba(245,158,11,0.2); }
+  .step-5 .step-title { color: #f59e0b; }
+  .step-5 .step-from-to { background: rgba(245,158,11,0.1); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+
+  .step-6 .step-num { background: rgba(236,72,153,0.1); border: 2px solid #ec4899; color: #ec4899; box-shadow: 0 0 20px rgba(236,72,153,0.2); }
+  .step-6 .step-title { color: #ec4899; }
+  .step-6 .step-from-to { background: rgba(236,72,153,0.1); color: #ec4899; border: 1px solid rgba(236,72,153,0.3); }
+
+  .step-7 .step-num { background: rgba(99,179,237,0.1); border: 2px solid #63b3ed; color: #63b3ed; box-shadow: 0 0 20px rgba(99,179,237,0.2); }
+  .step-7 .step-title { color: #63b3ed; }
+  .step-7 .step-from-to { background: rgba(99,179,237,0.1); color: #63b3ed; border: 1px solid rgba(99,179,237,0.3); }
+
+  .step-8 .step-num { background: rgba(52,211,153,0.1); border: 2px solid #34d399; color: #34d399; box-shadow: 0 0 20px rgba(52,211,153,0.2); }
+  .step-8 .step-title { color: #34d399; }
+  .step-8 .step-from-to { background: rgba(52,211,153,0.1); color: #34d399; border: 1px solid rgba(52,211,153,0.3); }
+
+  /* Architecture Overview Diagram */
+  .arch-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 40px;
+    margin-bottom: 16px;
+  }
+
+  .arch-layers {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .arch-layer {
+    border-radius: 8px;
+    padding: 16px 20px;
+    border: 1px solid;
+  }
+
+  .arch-layer-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    opacity: 0.7;
+  }
+
+  .arch-layer-nodes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .arch-node {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid;
+  }
+
+  /* Layer 1: Client */
+  .layer-client {
+    background: rgba(0,212,255,0.05);
+    border-color: rgba(0,212,255,0.2);
+  }
+  .layer-client .arch-layer-label { color: var(--accent); }
+  .layer-client .arch-node {
+    background: rgba(0,212,255,0.1);
+    border-color: rgba(0,212,255,0.4);
+    color: var(--accent);
+  }
+
+  /* Layer 2: Master */
+  .layer-master {
+    background: rgba(255,107,53,0.05);
+    border-color: rgba(255,107,53,0.2);
+  }
+  .layer-master .arch-layer-label { color: var(--accent2); }
+  .layer-master .arch-node {
+    background: rgba(255,107,53,0.1);
+    border-color: rgba(255,107,53,0.4);
+    color: var(--accent2);
+  }
+
+  /* Layer 3: Resource */
+  .layer-resource {
+    background: rgba(124,58,237,0.05);
+    border-color: rgba(124,58,237,0.2);
+  }
+  .layer-resource .arch-layer-label { color: var(--accent3); }
+  .layer-resource .arch-node {
+    background: rgba(124,58,237,0.1);
+    border-color: rgba(124,58,237,0.4);
+    color: var(--accent3);
+  }
+
+  /* Layer 4: Worker */
+  .layer-worker {
+    background: rgba(16,185,129,0.05);
+    border-color: rgba(16,185,129,0.2);
+  }
+  .layer-worker .arch-layer-label { color: var(--accent4); }
+  .layer-worker .arch-node {
+    background: rgba(16,185,129,0.1);
+    border-color: rgba(16,185,129,0.4);
+    color: var(--accent4);
+  }
+
+  /* Layer 5: Storage */
+  .layer-storage {
+    background: rgba(245,158,11,0.05);
+    border-color: rgba(245,158,11,0.2);
+  }
+  .layer-storage .arch-layer-label { color: #f59e0b; }
+  .layer-storage .arch-node {
+    background: rgba(245,158,11,0.1);
+    border-color: rgba(245,158,11,0.4);
+    color: #f59e0b;
+  }
+
+  .arch-arrow {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 18px;
+    line-height: 1;
+    margin: -4px 0;
+  }
+
+  /* Graph type section */
+  .graph-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+  }
+
+  .graph-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+  }
+
+  .graph-card-title {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--accent);
+    margin-bottom: 8px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .graph-card p {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* Highlight box */
+  .highlight-box {
+    background: rgba(0,212,255,0.05);
+    border: 1px solid rgba(0,212,255,0.2);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    padding: 16px 20px;
+    margin-top: 24px;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  .highlight-box strong { color: var(--accent); }
+
+  @media (max-width: 600px) {
+    .components-grid { grid-template-columns: 1fr; }
+    .flow-step { grid-template-columns: 48px 1fr; gap: 16px; }
+    .step-num { width: 48px; height: 48px; font-size: 15px; }
+    .flow-diagram { padding: 32px 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="badge">Apache Flink</div>
+    <h1>运行时架构<br><span>& 任务提交流程</span></h1>
+    <p>深入理解 Flink 分布式流处理引擎的核心设计</p>
+  </div>
+
+  <!-- Architecture Overview -->
+  <div class="section">
+    <div class="section-title">整体架构分层</div>
+    <div class="arch-diagram">
+      <div class="arch-layers">
+        <div class="arch-layer layer-client">
+          <div class="arch-layer-label">Client Layer — 客户端层</div>
+          <div class="arch-layer-nodes">
+            <div class="arch-node">Flink CLI</div>
+            <div class="arch-node">REST API</div>
+            <div class="arch-node">Web UI</div>
+            <div class="arch-node">DataStream/Table API 程序</div>
+          </div>
+        </div>
+        <div class="arch-arrow">↕</div>
+        <div class="arch-layer layer-master">
+          <div class="arch-layer-label">Master Node — 主节点（JobManager）</div>
+          <div class="arch-layer-nodes">
+            <div class="arch-node">Dispatcher</div>
+            <div class="arch-node">JobMaster</div>
+            <div class="arch-node">Scheduler</div>
+            <div class="arch-node">CheckpointCoordinator</div>
+            <div class="arch-node">BlobServer</div>
+          </div>
+        </div>
+        <div class="arch-arrow">↕</div>
+        <div class="arch-layer layer-resource">
+          <div class="arch-layer-label">Resource Management — 资源管理层</div>
+          <div class="arch-layer-nodes">
+            <div class="arch-node">ResourceManager</div>
+            <div class="arch-node">SlotManager</div>
+            <div class="arch-node">YARN / K8s / Standalone Deployer</div>
+          </div>
+        </div>
+        <div class="arch-arrow">↕</div>
+        <div class="arch-layer layer-worker">
+          <div class="arch-layer-label">Worker Nodes — 工作节点（TaskManager）</div>
+          <div class="arch-layer-nodes">
+            <div class="arch-node">Task Slot × N</div>
+            <div class="arch-node">Operator Chain</div>
+            <div class="arch-node">Network Stack</div>
+            <div class="arch-node">Memory Manager</div>
+            <div class="arch-node">HeartbeatManager</div>
+          </div>
+        </div>
+        <div class="arch-arrow">↕</div>
+        <div class="arch-layer layer-storage">
+          <div class="arch-layer-label">External Services — 外部存储 & 协调</div>
+          <div class="arch-layer-nodes">
+            <div class="arch-node">State Backend (RocksDB / Heap)</div>
+            <div class="arch-node">ZooKeeper / K8s (HA)</div>
+            <div class="arch-node">HDFS / S3 (Checkpoint Storage)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Component Details -->
+  <div class="section">
+    <div class="section-title">核心组件详解</div>
+    <div class="components-grid">
+
+      <div class="component-card client">
+        <div class="card-header">
+          <div class="card-icon">💻</div>
+          <div>
+            <div class="card-title">Client（客户端）</div>
+            <div class="card-subtitle">不属于运行时，负责作业提交</div>
+          </div>
+        </div>
+        <div class="card-body">
+          Client 是用户与 Flink 集群交互的入口，它本身不参与实际计算。
+          <ul>
+            <li>解析用户的 DataStream / Table API 代码，生成 StreamGraph</li>
+            <li>将 StreamGraph 优化为 JobGraph（合并算子链）</li>
+            <li>将 JobGraph 及 Jar 包序列化后提交给 Dispatcher</li>
+            <li>可通过 CLI / REST API / Web UI 操作</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="component-card jm">
+        <div class="card-header">
+          <div class="card-icon">🎯</div>
+          <div>
+            <div class="card-title">JobManager（作业管理节点）</div>
+            <div class="card-subtitle">Master 节点，协调整个作业生命周期</div>
+          </div>
+        </div>
+        <div class="card-body">
+          JobManager 是 Flink 集群的大脑，包含多个核心子组件：
+          <ul>
+            <li><strong>Dispatcher</strong>：接收 Job 提交，持久化 JobGraph，为每个 Job 启动一个 JobMaster</li>
+            <li><strong>JobMaster</strong>：负责单个作业的全生命周期管理，将 JobGraph → ExecutionGraph</li>
+            <li><strong>Scheduler</strong>：决定 Task 的调度策略与执行顺序</li>
+            <li><strong>CheckpointCoordinator</strong>：周期性触发分布式快照，协调所有 TM 完成 Checkpoint</li>
+            <li><strong>BlobServer</strong>：负责 Jar 包、配置等文件的分发存储</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="component-card rm">
+        <div class="card-header">
+          <div class="card-icon">⚙️</div>
+          <div>
+            <div class="card-title">ResourceManager（资源管理器）</div>
+            <div class="card-subtitle">负责 TaskManager Slot 的申请与释放</div>
+          </div>
+        </div>
+        <div class="card-body">
+          ResourceManager 是 Flink 集群的资源调度中心，屏蔽底层资源系统差异。
+          <ul>
+            <li>管理所有 TaskManager 及其 Task Slot 的注册与状态</li>
+            <li>接收 JobMaster 的 Slot 请求，将合适的 Slot 分配给对应 Job</li>
+            <li>在 YARN/K8s 模式下，负责向外部资源系统申请启动新的 TaskManager</li>
+            <li>监控 TaskManager 心跳，处理 TM 的注册/注销/超时</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="component-card tm">
+        <div class="card-header">
+          <div class="card-icon">🔧</div>
+          <div>
+            <div class="card-title">TaskManager（任务执行节点）</div>
+            <div class="card-subtitle">Worker 节点，真正执行计算任务的地方</div>
+          </div>
+        </div>
+        <div class="card-body">
+          TaskManager 是 Flink 的工作节点，包含若干 Task Slot。
+          <ul>
+            <li><strong>Task Slot</strong>：资源隔离单元，每个 Slot 持有固定比例的 JVM 内存</li>
+            <li><strong>Operator Chain</strong>：将多个算子串联在同一线程中执行，减少网络开销</li>
+            <li><strong>Network Stack</strong>：管理 Task 之间的数据传输（基于 Netty + Credit-based 流控）</li>
+            <li><strong>Memory Manager</strong>：管理 Managed Memory（用于排序、哈希、State 等）</li>
+            <li>定期向 JobManager 上报心跳、Task 状态</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="component-card ds">
+        <div class="card-header">
+          <div class="card-icon">📊</div>
+          <div>
+            <div class="card-title">执行图谱（Graph 体系）</div>
+            <div class="card-subtitle">四层图结构表达计算逻辑</div>
+          </div>
+        </div>
+        <div class="card-body">
+          Flink 将用户程序逐层转化为可执行的物理计划：
+          <ul>
+            <li><strong>StreamGraph</strong>：用户 API 直接生成，描述算子拓扑与逻辑连接</li>
+            <li><strong>JobGraph</strong>：合并可 chain 的算子，减少序列化开销</li>
+            <li><strong>ExecutionGraph</strong>：并行化 JobGraph，每个并发生成一个 ExecutionVertex</li>
+            <li><strong>Physical Graph</strong>：最终部署到 TaskManager 的实际任务实例</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="component-card ha">
+        <div class="card-header">
+          <div class="card-icon">🛡️</div>
+          <div>
+            <div class="card-title">高可用 & Checkpoint</div>
+            <div class="card-subtitle">保障作业容错与状态一致性</div>
+          </div>
+        </div>
+        <div class="card-body">
+          Flink 通过多重机制保障系统可靠性：
+          <ul>
+            <li><strong>ZooKeeper/K8s HA</strong>：JobManager Leader 选举，避免单点故障</li>
+            <li><strong>Checkpoint</strong>：基于 Chandy-Lamport 算法的分布式快照，定期持久化全局状态</li>
+            <li><strong>Savepoint</strong>：用户手动触发的 Checkpoint，支持作业升级/迁移</li>
+            <li><strong>State Backend</strong>：HashMapStateBackend（内存）或 RocksDBStateBackend（磁盘）</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Task Submission Flow -->
+  <div class="section">
+    <div class="section-title">完整任务提交流程</div>
+    <div class="flow-diagram">
+      <div class="flow-steps">
+
+        <div class="flow-step step-1">
+          <div class="step-num">01</div>
+          <div class="step-content">
+            <div class="step-title">
+              用户编写并提交程序
+              <span class="step-from-to">User → Client</span>
+            </div>
+            <div class="step-desc">
+              用户通过 DataStream API / Table API / SQL 编写 Flink 作业代码，调用 <code style="color:#00d4ff;background:rgba(0,212,255,0.1);padding:2px 6px;border-radius:3px;">env.execute()</code> 触发提交。Client 解析整个算子 DAG，在本地构建 <strong style="color:#e2e8f0;">StreamGraph</strong>（纯逻辑拓扑，包含所有算子节点和边）。
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-step step-2">
+          <div class="step-num">02</div>
+          <div class="step-content">
+            <div class="step-title">
+              生成 JobGraph 并提交
+              <span class="step-from-to">Client → Dispatcher</span>
+            </div>
+            <div class="step-desc">
+              Client 将 StreamGraph 进行算子链（Operator Chain）合并优化，生成 <strong style="color:#e2e8f0;">JobGraph</strong>（减少不必要的序列化/反序列化）。随后将 JobGraph + 用户 Jar 包打包，通过 HTTP REST 接口发送至 JobManager 的 <strong style="color:#ff6b35;">Dispatcher</strong>。
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-step step-3">
+          <div class="step-num">03</div>
+          <div class="step-content">
+            <div class="step-title">
+              Dispatcher 持久化 & 创建 JobMaster
+              <span class="step-from-to">Dispatcher → JobMaster</span>
+            </div>
+            <div class="step-desc">
+              Dispatcher 接收 JobGraph 后，将其持久化到高可用存储（ZooKeeper/K8s）以支持故障恢复。然后为该作业创建一个专属的 <strong style="color:#ff6b35;">JobMaster</strong> 实例，将作业的完整管理权移交给 JobMaster。
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-step step-4">
+          <div class="step-num">04</div>
+          <div class="step-content">
+            <div class="step-title">
+              生成 ExecutionGraph & 申请资源
+              <span class="step-from-to">JobMaster → ResourceManager</span>
+            </div>
+            <div class="step-desc">
+              JobMaster 将 JobGraph 并行展开，生成 <strong style="color:#e2e8f0;">ExecutionGraph</strong>（每个算子按并行度拆分为多个 ExecutionVertex）。随后向 <strong style="color:#7c3aed;">ResourceManager</strong> 发送 Slot 请求，申请执行任务所需的计算资源。
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-step step-5">
+          <div class="step-num">05</div>
+          <div class="step-content">
+            <div class="step-title">
+              ResourceManager 分配 / 启动 TaskManager
+              <span class="step-from-to">ResourceManager → TaskManager</span>
+            </div>
+            <div class="step-desc">
+              ResourceManager 检查是否有空闲的 Task Slot。<br>
+              • <strong style="color:#e2e8f0;">有空闲 Slot</strong>：直接将 Slot offer 给 JobMaster<br>
+              • <strong style="color:#e2e8f0;">无空闲 Slot</strong>：向外部系统（YARN/K8s）申请启动新的 <strong style="color:#f59e0b;">TaskManager</strong> 进程，等待 TM 注册后再分配 Slot
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-step step-6">
+          <div class="step-num">06</div>
+          <div class="step-content">
+            <div class="step-title">
+              TaskManager 注册 & Slot 分配确认
+              <span class="step-from-to">TaskManager → ResourceManager → JobMaster</span>
+            </div>
+            <div class="step-desc">
+              新启动的 TaskManager 向 ResourceManager 完成注册，汇报其拥有的 Slot 数量。ResourceManager 将 Slot 信息转发给 JobMaster，JobMaster 通过 RPC 直接与 TaskManager 通信，确认 Slot 分配（Offer Slot / Allocate Slot）。
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-step step-7">
+          <div class="step-num">07</div>
+          <div class="step-content">
+            <div class="step-title">
+              Task 部署 & 启动执行
+              <span class="step-from-to">JobMaster → TaskManager</span>
+            </div>
+            <div class="step-desc">
+              JobMaster 将 ExecutionGraph 中的每个 Task（含算子代码、状态描述、网络连接信息）序列化，通过 RPC 发送给对应的 TaskManager，TaskManager 将 Task 提交到对应的 Slot 线程中开始执行。同一 Slot 内的多个算子组成 <strong style="color:#e2e8f0;">Operator Chain</strong>，在同一线程中运行以减少开销。
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-step step-8">
+          <div class="step-num">08</div>
+          <div class="step-content">
+            <div class="step-title">
+              作业运行 & 持续监控
+              <span class="step-from-to">TaskManager ↔ JobMaster（持续）</span>
+            </div>
+            <div class="step-desc">
+              作业开始正常处理数据流。运行期间：<br>
+              • TaskManager 定期向 JobMaster 发送<strong style="color:#e2e8f0;">心跳 + Task 状态</strong><br>
+              • CheckpointCoordinator 周期性向所有 Source Task 注入 Barrier，触发分布式 Checkpoint<br>
+              • 发生 Task 失败时，JobMaster 根据重启策略决定是否重启，并从最近的 Checkpoint 恢复状态<br>
+              • 作业完成后，JobMaster 通知 ResourceManager 释放所有 Slot，TM 资源归还
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="highlight-box">
+      <strong>💡 Session vs Per-Job vs Application 模式</strong>：在 <strong>Session 模式</strong>下，Dispatcher 和 ResourceManager 是预先启动的共享集群；在 <strong>Per-Job 模式</strong>下，每个作业独占一套 JobManager；在 <strong>Application 模式</strong>下，用户 main() 方法直接在 JobManager 端执行，Client 无需下载依赖，大幅降低网络传输压力。
+    </div>
+  </div>
+
+  <!-- Graph type explanation -->
+  <div class="section">
+    <div class="section-title">四层图转化关系</div>
+    <div class="graph-cards">
+      <div class="graph-card">
+        <div class="graph-card-title">① StreamGraph</div>
+        <p>由用户 API 直接生成，描述逻辑算子拓扑。每个 Transformation 对应一个节点，保留完整语义信息，尚未考虑并行度和资源。</p>
+      </div>
+      <div class="graph-card">
+        <div class="graph-card-title">② JobGraph</div>
+        <p>将满足条件的相邻算子合并为 OperatorChain，减少数据序列化与传输。在 Client 端生成并提交至集群，是跨网络传输的基本单位。</p>
+      </div>
+      <div class="graph-card">
+        <div class="graph-card-title">③ ExecutionGraph</div>
+        <p>JobGraph 按并行度展开后的物理拓扑。每个 JobVertex 对应若干 ExecutionVertex（= 并行度 × 1），包含完整的调度和执行状态机。</p>
+      </div>
+      <div class="graph-card">
+        <div class="graph-card-title">④ Physical Graph</div>
+        <p>最终部署在 TaskManager 上的运行实例。每个 ExecutionVertex 变为一个运行中的 Task，通过 Network Buffer 实现 Task 间数据流转。</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
