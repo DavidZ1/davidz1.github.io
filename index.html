@@ -10,32 +10,25 @@
     :root {
       --bg:        #f5f4f0;
       --surface:   #ffffff;
-      --border:    rgba(0,0,0,0.08);
-      --border-md: rgba(0,0,0,0.14);
+      --surface2:  #f0efe9;
+      --border:    rgba(0,0,0,0.07);
+      --border-md: rgba(0,0,0,0.13);
       --text:      #1a1a18;
       --muted:     #6b6b67;
       --hint:      #a5a5a0;
       --radius-md: 8px;
       --radius-lg: 14px;
-      --accent1: #7F77DD;
-      --accent2: #1D9E75;
-      --accent3: #D85A30;
-      --accent4: #378ADD;
-      --accent5: #D4537E;
-      --accent6: #639922;
-      --accent7: #BA7517;
-      --accent8: #A32D2D;
     }
-
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg:      #181816;
-        --surface: #222220;
-        --border:  rgba(255,255,255,0.08);
-        --border-md: rgba(255,255,255,0.14);
-        --text:    #eeeee8;
-        --muted:   #9a9a94;
-        --hint:    #606060;
+        --bg:        #161614;
+        --surface:   #202020;
+        --surface2:  #282826;
+        --border:    rgba(255,255,255,0.07);
+        --border-md: rgba(255,255,255,0.13);
+        --text:      #eeeee8;
+        --muted:     #9a9a94;
+        --hint:      #585856;
       }
     }
 
@@ -44,193 +37,221 @@
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
-      line-height: 1.6;
     }
 
-    /* ── Layout ── */
-    #app { max-width: 960px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+    #app { max-width: 980px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
 
     /* ── Header ── */
-    .header { margin-bottom: 2.75rem; }
+    .header { margin-bottom: 2.5rem; }
     .header-top {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 1rem;
-      flex-wrap: wrap;
-      margin-bottom: 6px;
+      display: flex; align-items: flex-start;
+      justify-content: space-between; gap: 1rem;
+      flex-wrap: wrap; margin-bottom: 5px;
     }
     .header h1 {
-      font-size: 26px;
-      font-weight: 600;
-      letter-spacing: -0.5px;
-      color: var(--text);
+      font-size: 26px; font-weight: 600;
+      letter-spacing: -0.5px; color: var(--text);
     }
     .header h1 span { color: var(--muted); font-weight: 400; }
     .subtitle { font-size: 14px; color: var(--muted); }
 
-    .refresh-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 13px;
-      padding: 7px 14px;
-      border: 0.5px solid var(--border-md);
-      border-radius: var(--radius-md);
-      background: var(--surface);
-      color: var(--muted);
-      cursor: pointer;
-      transition: background 0.15s, color 0.15s;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-    .refresh-btn:hover { background: var(--bg); color: var(--text); }
-    .refresh-btn svg { flex-shrink: 0; }
-
-    /* ── Controls ── */
-    .controls {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 1.5rem;
-      flex-wrap: wrap;
-      align-items: center;
+    /* ── Top bar ── */
+    .topbar {
+      display: flex; gap: 10px; margin-bottom: 1.6rem;
+      flex-wrap: wrap; align-items: center;
     }
     .search-wrap { position: relative; flex: 1; min-width: 200px; }
     .search-wrap svg {
-      position: absolute;
-      left: 11px; top: 50%;
-      transform: translateY(-50%);
-      pointer-events: none;
-      opacity: 0.35;
+      position: absolute; left: 11px; top: 50%;
+      transform: translateY(-50%); pointer-events: none; opacity: 0.35;
     }
     .search-wrap input {
-      width: 100%;
-      padding: 8px 12px 8px 34px;
+      width: 100%; padding: 8px 12px 8px 34px;
       font-size: 14px;
       border: 0.5px solid var(--border-md);
       border-radius: var(--radius-md);
-      background: var(--surface);
-      color: var(--text);
-      outline: none;
-      transition: border-color 0.15s;
+      background: var(--surface); color: var(--text);
+      outline: none; transition: border-color 0.15s;
     }
-    .search-wrap input:focus { border-color: var(--accent4); }
+    .search-wrap input:focus { border-color: #7F77DD; }
     .search-wrap input::placeholder { color: var(--hint); }
 
-    .sort-group { display: flex; gap: 6px; }
-    .sort-btn {
-      font-size: 13px;
-      padding: 7px 14px;
+    .btn-group { display: flex; gap: 0; }
+    .btn-group button {
+      font-size: 13px; padding: 7px 15px;
       border: 0.5px solid var(--border-md);
-      border-radius: var(--radius-md);
-      background: var(--surface);
-      color: var(--muted);
-      cursor: pointer;
-      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      background: var(--surface); color: var(--muted);
+      cursor: pointer; transition: background 0.13s, color 0.13s;
       white-space: nowrap;
     }
-    .sort-btn:hover { background: var(--bg); color: var(--text); }
-    .sort-btn.active {
-      background: var(--bg);
-      color: var(--text);
-      border-color: var(--border-md);
-      font-weight: 500;
+    .btn-group button:first-child { border-radius: var(--radius-md) 0 0 var(--radius-md); }
+    .btn-group button:last-child  { border-radius: 0 var(--radius-md) var(--radius-md) 0; border-left: none; }
+    .btn-group button:hover { background: var(--surface2); color: var(--text); }
+    .btn-group button.active {
+      background: var(--text); color: var(--bg);
+      border-color: var(--text);
     }
+
+    .icon-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 13px; padding: 7px 14px;
+      border: 0.5px solid var(--border-md);
+      border-radius: var(--radius-md);
+      background: var(--surface); color: var(--muted);
+      cursor: pointer; transition: background 0.13s;
+      white-space: nowrap;
+    }
+    .icon-btn:hover { background: var(--surface2); color: var(--text); }
 
     .count { font-size: 13px; color: var(--hint); margin-bottom: 1.1rem; }
 
-    /* ── Grid ── */
-    .grid {
+    /* ════════════════════════════
+       FOLDER VIEW
+    ════════════════════════════ */
+    .folder-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 14px;
+    }
+
+    .folder-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: border-color 0.15s, transform 0.12s;
+      cursor: pointer;
+    }
+    .folder-card:hover { border-color: var(--border-md); transform: translateY(-2px); }
+    .folder-card.open  { transform: none; }
+
+    .folder-card-head {
+      display: flex; align-items: center; gap: 11px;
+      padding: 1rem 1.2rem .9rem;
+      position: relative; overflow: hidden;
+    }
+    .folder-card-accent {
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+    .folder-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; flex-shrink: 0;
+    }
+    .folder-label { flex: 1; min-width: 0; }
+    .folder-name {
+      font-size: 15px; font-weight: 500; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .folder-sub { font-size: 12px; color: var(--hint); margin-top: 2px; }
+
+    .folder-arrow {
+      font-size: 15px; color: var(--hint);
+      transition: transform 0.2s; flex-shrink: 0; line-height: 1;
+    }
+    .folder-card.open .folder-arrow { transform: rotate(90deg); }
+
+    .page-list {
+      display: none;
+      border-top: 0.5px solid var(--border);
+      padding: 6px 0;
+      background: var(--surface2);
+    }
+    .folder-card.open .page-list { display: block; }
+
+    .page-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 7px 1.2rem;
+      text-decoration: none; color: var(--text);
+      font-size: 13.5px;
+      transition: background 0.12s;
+    }
+    .page-item:hover { background: rgba(0,0,0,0.04); }
+    @media (prefers-color-scheme: dark) {
+      .page-item:hover { background: rgba(255,255,255,0.05); }
+    }
+    .page-item-icon { font-size: 14px; flex-shrink: 0; }
+    .page-item-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .page-item-arrow { font-size: 11px; color: var(--hint); flex-shrink: 0; }
+
+    /* root files as chips */
+    .root-section { margin-bottom: 1.5rem; }
+    .root-label {
+      font-size: 12px; color: var(--hint);
+      text-transform: uppercase; letter-spacing: .06em;
+      margin-bottom: 8px;
+    }
+    .root-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .root-chip {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 6px 14px 6px 10px;
+      border: 0.5px solid var(--border-md);
+      border-radius: 99px;
+      background: var(--surface);
+      text-decoration: none; color: var(--text);
+      font-size: 13px;
+      transition: background 0.13s;
+    }
+    .root-chip:hover { background: var(--surface2); }
+
+    /* ════════════════════════════
+       FLAT / ALL VIEW
+    ════════════════════════════ */
+    .flat-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
       gap: 14px;
     }
-
-    /* ── Card ── */
-    .card {
+    .flat-card {
       background: var(--surface);
       border: 0.5px solid var(--border);
       border-radius: var(--radius-lg);
       padding: 1.1rem 1.2rem 1rem;
-      text-decoration: none;
-      color: inherit;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      position: relative;
-      overflow: hidden;
+      text-decoration: none; color: inherit;
+      display: flex; flex-direction: column; gap: 10px;
+      position: relative; overflow: hidden;
       transition: border-color 0.15s, transform 0.12s;
     }
-    .card:hover {
-      border-color: var(--border-md);
-      transform: translateY(-2px);
-    }
-    .card-accent {
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
+    .flat-card:hover { border-color: var(--border-md); transform: translateY(-2px); }
+    .flat-accent {
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
       border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     }
-    .card-body { display: flex; align-items: flex-start; gap: 11px; margin-top: 4px; }
-    .card-icon {
-      width: 34px; height: 34px;
-      border-radius: 9px;
+    .flat-body { display: flex; align-items: flex-start; gap: 11px; margin-top: 4px; }
+    .flat-ico {
+      width: 34px; height: 34px; border-radius: 9px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 16px;
-      flex-shrink: 0;
+      font-size: 16px; flex-shrink: 0;
     }
-    .card-info { flex: 1; min-width: 0; }
-    .card-name {
-      font-size: 15px;
-      font-weight: 500;
-      color: var(--text);
-      line-height: 1.3;
-      word-break: break-word;
-      margin-bottom: 3px;
+    .flat-info { flex: 1; min-width: 0; }
+    .flat-name {
+      font-size: 15px; font-weight: 500; color: var(--text);
+      line-height: 1.3; word-break: break-word; margin-bottom: 3px;
     }
-    .card-path {
-      font-size: 11.5px;
-      color: var(--hint);
+    .flat-path {
+      font-size: 11.5px; color: var(--hint);
       font-family: 'SFMono-Regular', Consolas, monospace;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .card-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+    .flat-footer {
+      display: flex; align-items: center; justify-content: space-between;
       padding-top: 9px;
       border-top: 0.5px solid var(--border);
-      font-size: 12px;
-      color: var(--hint);
+      font-size: 12px; color: var(--hint);
     }
     .badge {
-      display: inline-block;
-      font-size: 11px;
-      padding: 2px 9px;
-      border-radius: 99px;
+      display: inline-block; font-size: 11px;
+      padding: 2px 9px; border-radius: 99px;
       border: 0.5px solid var(--border);
-      background: var(--bg);
-      color: var(--muted);
-      max-width: 160px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      background: var(--surface2); color: var(--muted);
+      max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
-    .arrow {
-      font-size: 13px;
-      color: var(--hint);
-      transition: color 0.15s;
-    }
-    .card:hover .arrow { color: var(--muted); }
 
     /* ── States ── */
     .state {
-      text-align: center;
-      padding: 4rem 1rem;
-      color: var(--muted);
-      font-size: 14px;
+      text-align: center; padding: 4rem 1rem;
+      color: var(--muted); font-size: 14px;
       grid-column: 1 / -1;
     }
     .spinner {
@@ -243,17 +264,9 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .error-icon { font-size: 28px; margin-bottom: .75rem; }
-
-    /* ── Empty search ── */
-    .empty { font-size: 14px; color: var(--muted); grid-column: 1/-1; padding: 2rem 0; text-align: center; }
-
-    /* ── Footer ── */
     .footer {
-      margin-top: 3.5rem;
-      font-size: 12px;
-      color: var(--hint);
-      text-align: center;
+      margin-top: 3.5rem; font-size: 12px;
+      color: var(--hint); text-align: center;
     }
     .footer a { color: var(--hint); text-decoration: underline; text-underline-offset: 3px; }
   </style>
@@ -263,7 +276,7 @@
   <div class="header">
     <div class="header-top">
       <h1>DavidZ1<span>'s Pages</span></h1>
-      <button class="refresh-btn" id="refresh-btn" onclick="loadPages()" style="display:none">
+      <button class="icon-btn" id="refresh-btn" onclick="loadPages()" style="display:none">
         <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
           <path d="M14 8A6 6 0 1 1 8 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
           <path d="M8 2l2.5 2.5L8 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
@@ -271,26 +284,45 @@
         Refresh
       </button>
     </div>
-    <p class="subtitle" id="subtitle">Fetching from GitHub...</p>
+    <p class="subtitle" id="subtitle">Fetching from GitHub…</p>
   </div>
 
-  <div class="controls" id="controls" style="display:none">
+  <div class="topbar" id="topbar" style="display:none">
     <div class="search-wrap">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
         <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/>
         <path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
       </svg>
-      <input type="text" id="search" placeholder="Search pages…" oninput="render()" autocomplete="off" />
+      <input type="text" id="search" placeholder="Search pages…" oninput="onSearch()" autocomplete="off" />
     </div>
-    <div class="sort-group">
-      <button class="sort-btn active" id="sort-name" onclick="setSort('name')">Name</button>
-      <button class="sort-btn" id="sort-path" onclick="setSort('path')">Path</button>
+    <div class="btn-group">
+      <button id="view-folder" class="active" onclick="setView('folder')" title="Group by folder">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" style="vertical-align:-2px;margin-right:5px">
+          <path d="M2 4.5A1.5 1.5 0 0 1 3.5 3h3.086a1.5 1.5 0 0 1 1.06.44L8.5 4.293A1.5 1.5 0 0 0 9.56 4.5H12.5A1.5 1.5 0 0 1 14 6v5.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 11.5v-7Z" stroke="currentColor" stroke-width="1.3"/>
+        </svg>
+        Folders
+      </button>
+      <button id="view-all" onclick="setView('all')" title="Show all pages flat">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" style="vertical-align:-2px;margin-right:5px">
+          <rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/>
+          <rect x="9" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/>
+          <rect x="2" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/>
+          <rect x="9" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/>
+        </svg>
+        All Pages
+      </button>
+    </div>
+    <div class="btn-group" id="sort-group" style="display:none">
+      <button id="sort-name" class="active" onclick="setSort('name')">Name</button>
+      <button id="sort-path" onclick="setSort('path')">Path</button>
     </div>
   </div>
 
   <div class="count" id="count" style="display:none"></div>
-  <div class="grid" id="grid">
-    <div class="state"><div class="spinner"></div>Loading pages…</div>
+  <div id="main-content">
+    <div class="folder-grid">
+      <div class="state"><div class="spinner"></div>Loading pages…</div>
+    </div>
   </div>
 
   <div class="footer" id="footer" style="display:none">
@@ -299,11 +331,11 @@
 </div>
 
 <script>
-  const OWNER   = 'DavidZ1';
-  const REPO    = 'davidz1.github.io';
-  const BRANCH  = 'main';
-  const BASE    = `https://${OWNER}.github.io`;
-  const API_URL = `https://api.github.com/repos/${OWNER}/${REPO}/git/trees/${BRANCH}?recursive=1`;
+  const OWNER  = 'DavidZ1';
+  const REPO   = 'davidz1.github.io';
+  const BRANCH = 'main';
+  const BASE   = `https://${OWNER}.github.io`;
+  const API    = `https://api.github.com/repos/${OWNER}/${REPO}/git/trees/${BRANCH}?recursive=1`;
 
   const ACCENTS = ['#7F77DD','#1D9E75','#D85A30','#378ADD','#D4537E','#639922','#BA7517','#A32D2D'];
 
@@ -316,56 +348,43 @@
   };
 
   let allPages = [];
+  let currentView = 'folder';
   let sortMode = 'name';
 
-  /* ── Helpers ── */
   function hashColor(str) {
     let h = 0;
     for (let c of str) h = Math.imul(31, h) + c.charCodeAt(0) | 0;
     return ACCENTS[Math.abs(h) % ACCENTS.length];
   }
-
   function getIcon(name) {
-    const lc = name.toLowerCase().replace('.html','');
-    for (const [k, v] of Object.entries(ICON_MAP)) {
-      if (lc.includes(k)) return v;
-    }
+    const lc = name.toLowerCase().replace(/\.html?$/i, '');
+    for (const [k, v] of Object.entries(ICON_MAP)) { if (lc.includes(k)) return v; }
     return '📄';
   }
-
-  function prettify(filename) {
-    return filename
-      .replace(/\.html$/i, '')
-      .replace(/[-_]/g, ' ')
-      .replace(/\b\w/g, c => c.toUpperCase())
-      .trim() || filename;
+  function prettify(fn) {
+    return fn.replace(/\.html?$/i,'').replace(/[-_]/g,' ')
+      .replace(/\b\w/g, c => c.toUpperCase()).trim() || fn;
+  }
+  function hex2rgba(hex, a) {
+    const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+    return `rgba(${r},${g},${b},${a})`;
+  }
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  function getSection(path) {
-    const parts = path.split('/');
-    return parts.length > 1 ? parts.slice(0, -1).join('/') : '';
-  }
-
-  function hex2rgba(hex, alpha) {
-    const r = parseInt(hex.slice(1,3),16);
-    const g = parseInt(hex.slice(3,5),16);
-    const b = parseInt(hex.slice(5,7),16);
-    return `rgba(${r},${g},${b},${alpha})`;
-  }
-
-  /* ── Load ── */
   async function loadPages() {
-    const grid = document.getElementById('grid');
+    const content  = document.getElementById('main-content');
     const subtitle = document.getElementById('subtitle');
-    document.getElementById('controls').style.display = 'none';
+    document.getElementById('topbar').style.display = 'none';
     document.getElementById('count').style.display = 'none';
     document.getElementById('refresh-btn').style.display = 'none';
     document.getElementById('footer').style.display = 'none';
     subtitle.textContent = 'Fetching from GitHub…';
-    grid.innerHTML = '<div class="state"><div class="spinner"></div>Loading pages…</div>';
+    content.innerHTML = '<div class="folder-grid"><div class="state"><div class="spinner"></div>Loading pages…</div></div>';
 
     try {
-      const res = await fetch(API_URL);
+      const res = await fetch(API);
       if (!res.ok) throw new Error(`GitHub API ${res.status}`);
       const data = await res.json();
 
@@ -374,91 +393,166 @@
         .map(f => {
           const parts = f.path.split('/');
           const filename = parts[parts.length - 1];
-          const section  = getSection(f.path);
-          const accent   = hashColor(f.path);
-          return {
-            path:    f.path,
-            filename,
-            label:   prettify(filename),
-            section,
-            url:     `${BASE}/${f.path}`,
-            accent,
-            icon:    getIcon(filename),
-          };
+          const folder = parts.length > 1 ? parts.slice(0,-1).join('/') : '';
+          const accent = hashColor(f.path);
+          return { path: f.path, filename, label: prettify(filename),
+                   folder, url: `${BASE}/${f.path}`, accent, icon: getIcon(filename) };
         });
 
       subtitle.textContent = `${allPages.length} page${allPages.length !== 1 ? 's' : ''} · ${OWNER}/${REPO}`;
-      document.getElementById('controls').style.display = 'flex';
+      document.getElementById('topbar').style.display = 'flex';
       document.getElementById('count').style.display = 'block';
       document.getElementById('refresh-btn').style.display = 'inline-flex';
       document.getElementById('footer').style.display = 'block';
       render();
-    } catch (err) {
-      grid.innerHTML = `
-        <div class="state">
-          <div class="error-icon">⚠️</div>
-          <strong>Could not load pages</strong><br>
-          <small style="color:var(--hint);margin-top:6px;display:block">${err.message}</small>
-        </div>`;
+    } catch(err) {
+      content.innerHTML = `<div class="folder-grid"><div class="state">
+        <div style="font-size:28px;margin-bottom:.75rem">⚠️</div>
+        <strong>Could not load pages</strong><br>
+        <small style="color:var(--hint);margin-top:6px;display:block">${esc(err.message)}</small>
+      </div></div>`;
       subtitle.textContent = 'Failed to reach GitHub API';
     }
   }
 
-  /* ── Sort ── */
-  function setSort(mode) {
-    sortMode = mode;
-    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('sort-' + mode).classList.add('active');
+  function setView(v) {
+    currentView = v;
+    document.getElementById('view-folder').classList.toggle('active', v === 'folder');
+    document.getElementById('view-all').classList.toggle('active', v === 'all');
+    document.getElementById('sort-group').style.display = v === 'all' ? 'flex' : 'none';
+    document.getElementById('search').value = '';
     render();
   }
 
-  /* ── Render ── */
+  function setSort(s) {
+    sortMode = s;
+    document.getElementById('sort-name').classList.toggle('active', s === 'name');
+    document.getElementById('sort-path').classList.toggle('active', s === 'path');
+    render();
+  }
+
+  function onSearch() { render(); }
+
   function render() {
+    if (currentView === 'folder') renderFolders();
+    else renderAll();
+  }
+
+  /* ── Folder view ── */
+  function renderFolders() {
+    const q = (document.getElementById('search')?.value || '').toLowerCase().trim();
+    let pages = allPages;
+    if (q) pages = pages.filter(p => p.label.toLowerCase().includes(q) || p.path.toLowerCase().includes(q));
+
+    const folders = {};
+    const rootPages = [];
+    for (const p of pages) {
+      if (!p.folder) { rootPages.push(p); }
+      else {
+        if (!folders[p.folder]) folders[p.folder] = { name: p.folder, pages: [] };
+        folders[p.folder].pages.push(p);
+      }
+    }
+    const folderKeys = Object.keys(folders).sort();
+    const total = pages.length;
+
+    const count = document.getElementById('count');
+    if (q) {
+      count.textContent = `${total} result${total !== 1 ? 's' : ''} for "${q}"`;
+    } else {
+      const fc = folderKeys.length;
+      count.textContent = `${fc} folder${fc !== 1 ? 's' : ''}` +
+        (rootPages.length ? ` · ${rootPages.length} root file${rootPages.length !== 1 ? 's' : ''}` : '');
+    }
+
+    const content = document.getElementById('main-content');
+    if (!total) {
+      content.innerHTML = '<div class="folder-grid"><div class="state">No pages match your search.</div></div>';
+      return;
+    }
+
+    let html = '';
+
+    if (rootPages.length) {
+      html += `<div class="root-section">
+        <div class="root-label">Root</div>
+        <div class="root-chips">`;
+      for (const p of rootPages.sort((a,b) => a.label.localeCompare(b.label))) {
+        html += `<a class="root-chip" href="${esc(p.url)}" target="_blank" rel="noopener">
+          <span>${p.icon}</span><span>${esc(p.label)}</span>
+        </a>`;
+      }
+      html += `</div></div>`;
+    }
+
+    html += `<div class="folder-grid">`;
+    for (const key of folderKeys) {
+      const fd = folders[key];
+      const accent = hashColor(key);
+      const topName = key.split('/').pop();
+      const sorted = [...fd.pages].sort((a,b) => a.label.localeCompare(b.label));
+      const autoOpen = !!q;
+
+      html += `<div class="folder-card${autoOpen ? ' open' : ''}" onclick="toggleFolder(this)">
+        <div class="folder-card-accent" style="background:${accent}"></div>
+        <div class="folder-card-head">
+          <div class="folder-icon" style="background:${hex2rgba(accent,0.12)}">📁</div>
+          <div class="folder-label">
+            <div class="folder-name">${esc(topName)}</div>
+            <div class="folder-sub">${sorted.length} page${sorted.length !== 1 ? 's' : ''}&ensp;·&ensp;<span style="font-family:monospace;font-size:11px">${esc(key)}</span></div>
+          </div>
+          <span class="folder-arrow">›</span>
+        </div>
+        <div class="page-list">`;
+      for (const p of sorted) {
+        html += `<a class="page-item" href="${esc(p.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">
+          <span class="page-item-icon">${p.icon}</span>
+          <span class="page-item-name">${esc(p.label)}</span>
+          <span class="page-item-arrow">↗</span>
+        </a>`;
+      }
+      html += `</div></div>`;
+    }
+    html += `</div>`;
+    content.innerHTML = html;
+  }
+
+  function toggleFolder(el) { el.classList.toggle('open'); }
+
+  /* ── All pages flat view ── */
+  function renderAll() {
     const q = (document.getElementById('search')?.value || '').toLowerCase().trim();
     let pages = allPages.filter(p =>
       !q || p.label.toLowerCase().includes(q) || p.path.toLowerCase().includes(q)
     );
-
-    if (sortMode === 'name') {
-      pages.sort((a, b) => a.label.localeCompare(b.label));
-    } else {
-      pages.sort((a, b) => a.path.localeCompare(b.path));
-    }
+    if (sortMode === 'name') pages.sort((a,b) => a.label.localeCompare(b.label));
+    else pages.sort((a,b) => a.path.localeCompare(b.path));
 
     const count = document.getElementById('count');
-    count.textContent = q
-      ? `${pages.length} of ${allPages.length} pages`
-      : `${allPages.length} page${allPages.length !== 1 ? 's' : ''}`;
+    count.textContent = q ? `${pages.length} of ${allPages.length} pages` : `${allPages.length} page${allPages.length !== 1 ? 's' : ''}`;
 
-    const grid = document.getElementById('grid');
+    const content = document.getElementById('main-content');
     if (!pages.length) {
-      grid.innerHTML = '<div class="empty">No pages match your search.</div>';
+      content.innerHTML = '<div class="flat-grid"><div class="state">No pages match your search.</div></div>';
       return;
     }
-
-    grid.innerHTML = pages.map(p => `
-      <a class="card" href="${escHtml(p.url)}" target="_blank" rel="noopener">
-        <div class="card-accent" style="background:${p.accent}"></div>
-        <div class="card-body">
-          <div class="card-icon" style="background:${hex2rgba(p.accent, 0.12)}">${p.icon}</div>
-          <div class="card-info">
-            <div class="card-name">${escHtml(p.label)}</div>
-            <div class="card-path">${escHtml(p.path)}</div>
+    content.innerHTML = `<div class="flat-grid">${pages.map(p => `
+      <a class="flat-card" href="${esc(p.url)}" target="_blank" rel="noopener">
+        <div class="flat-accent" style="background:${p.accent}"></div>
+        <div class="flat-body">
+          <div class="flat-ico" style="background:${hex2rgba(p.accent,0.12)}">${p.icon}</div>
+          <div class="flat-info">
+            <div class="flat-name">${esc(p.label)}</div>
+            <div class="flat-path">${esc(p.path)}</div>
           </div>
         </div>
-        <div class="card-footer">
-          <span class="badge">${escHtml(p.section || 'root')}</span>
-          <span class="arrow">↗</span>
+        <div class="flat-footer">
+          <span class="badge">${esc(p.folder || 'root')}</span>
+          <span style="font-size:13px">↗</span>
         </div>
-      </a>
-    `).join('');
+      </a>`).join('')}</div>`;
   }
 
-  function escHtml(str) {
-    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  /* ── Boot ── */
   loadPages();
 </script>
 </body>
