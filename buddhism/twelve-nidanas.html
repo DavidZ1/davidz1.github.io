@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>十二缘起 · Paṭicca-samuppāda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #0c0b10;
+  --bg2:     #13111a;
+  --bg3:     #1a1826;
+  --surf:    #201e2e;
+  --bd:      rgba(180,160,255,0.10);
+  --bd2:     rgba(180,160,255,0.20);
+  --bd3:     rgba(180,160,255,0.35);
+  --text:    #e8e4f4;
+  --text2:   #a89ec8;
+  --text3:   #6b638a;
+  --text4:   #3e3858;
+  --gold:    #c9a84c;
+  --gold2:   #f0d07a;
+  --accent:  #9d88f0;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans SC', sans-serif;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 0;
+}
+
+/* ── Page shell ── */
+.page {
+  position: relative; z-index: 1;
+  max-width: 1280px; margin: 0 auto;
+  padding: 0 20px 60px;
+}
+
+/* ── Header ── */
+header {
+  text-align: center;
+  padding: 28px 0 20px;
+  border-bottom: 1px solid var(--bd);
+  margin-bottom: 24px;
+  position: relative;
+}
+header::after {
+  content: '';
+  position: absolute; bottom: -1px; left: 50%; transform: translateX(-50%);
+  width: 100px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.hd-kicker {
+  font-family: 'EB Garamond', serif; font-style: italic;
+  font-size: 13px; color: var(--gold); letter-spacing: 0.14em; margin-bottom: 10px;
+}
+h1 {
+  font-family: 'Noto Serif SC', serif; font-weight: 300;
+  font-size: clamp(26px, 5vw, 44px); letter-spacing: 0.28em;
+  color: var(--text); margin-bottom: 6px; line-height: 1.2;
+}
+.hd-sub {
+  font-family: 'EB Garamond', serif; font-style: italic;
+  font-size: clamp(14px, 2.5vw, 18px); color: var(--text2);
+  letter-spacing: 0.06em; margin-bottom: 10px;
+}
+.hd-desc {
+  font-size: 13px; color: var(--text3);
+  line-height: 1.9; letter-spacing: 0.04em;
+}
+
+/* ── Main 2-column: left sticky, right natural flow ── */
+.main-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 420px) 1fr;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 860px) {
+  .main-grid { grid-template-columns: 1fr; }
+  .wheel-panel { position: static !important; height: auto !important; }
+  #wheel-svg { max-height: 380px; }
+}
+
+/* ── Wheel panel: sticky ── */
+.wheel-panel {
+  position: sticky;
+  top: 20px;
+  height: calc(100vh - 80px);
+  max-height: 780px;
+  display: flex; flex-direction: column;
+}
+.wheel-wrap {
+  flex: 1; min-height: 0;
+  background: var(--bg2);
+  border: 1px solid var(--bd);
+  border-radius: 18px;
+  padding: 14px;
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.wheel-wrap::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, rgba(100,80,200,0.07) 0%, transparent 68%);
+  pointer-events: none;
+}
+#wheel-svg { width: 100%; height: 100%; display: block; }
+
+/* ── Keyboard hint ── */
+.kb-hint {
+  margin-top: 10px; text-align: center;
+  font-size: 11px; color: var(--text4); letter-spacing: 0.06em;
+  flex-shrink: 0;
+}
+.kb-hint kbd {
+  background: var(--surf); border: 1px solid var(--bd2);
+  border-radius: 4px; padding: 1px 5px; font-size: 10px; color: var(--text3);
+  font-family: inherit;
+}
+
+/* ── Detail panel: natural height, page scrolls ── */
+.detail-panel {
+  display: flex; flex-direction: column; gap: 14px;
+  min-width: 0;
+  padding-bottom: 20px;
+}
+
+/* ── Section label ── */
+.sec-label {
+  font-size: 10px; letter-spacing: 0.14em; color: var(--text4);
+  text-transform: uppercase; margin-bottom: 10px; font-weight: 500;
+  display: flex; align-items: center; gap: 8px;
+}
+.sec-label::after {
+  content: ''; flex: 1; height: 1px; background: var(--bd);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CARD A — Identity card
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.card-identity {
+  background: var(--bg2);
+  border: 1px solid var(--bd2);
+  border-radius: 16px; overflow: hidden;
+  transition: border-color 0.4s;
+}
+.ci-top {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 20px 20px 14px;
+}
+.ci-badge {
+  width: 52px; height: 52px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'EB Garamond', serif; font-size: 20px; font-style: italic;
+  flex-shrink: 0; border: 1.5px solid currentColor;
+  transition: color 0.4s, border-color 0.4s;
+}
+.ci-title { flex: 1; }
+.ci-zh {
+  font-family: 'Noto Serif SC', serif; font-size: 30px; font-weight: 400;
+  line-height: 1; margin-bottom: 5px; transition: color 0.4s;
+}
+.ci-pali {
+  font-family: 'EB Garamond', serif; font-style: italic;
+  font-size: 15px; color: var(--text2); letter-spacing: 0.04em; margin-bottom: 3px;
+}
+.ci-meta { font-size: 11px; color: var(--text3); letter-spacing: 0.07em; }
+.ci-phase-bar {
+  margin: 0 20px 16px;
+  height: 3px; border-radius: 2px; opacity: 0.6;
+  transition: background 0.4s;
+}
+.ci-desc {
+  padding: 0 20px 14px;
+  font-size: 13.5px; color: var(--text2); line-height: 2; letter-spacing: 0.03em;
+}
+.ci-tags {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  padding: 0 20px 18px;
+}
+.ci-tag {
+  font-size: 11px; padding: 3px 10px; border-radius: 20px;
+  border: 1px solid var(--bd2); color: var(--text3); letter-spacing: 0.05em;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CARD B — Classical Analysis
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.card-classical {
+  background: var(--bg2); border: 1px solid var(--bd);
+  border-radius: 16px; overflow: hidden;
+}
+.card-classical .inner { padding: 18px 20px; }
+
+.classical-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+  margin-top: 12px;
+}
+.cg-item {
+  background: var(--bg3); border: 1px solid var(--bd);
+  border-radius: 10px; padding: 12px 14px;
+}
+.cg-label {
+  font-size: 10px; letter-spacing: 0.1em; color: var(--text4);
+  margin-bottom: 6px;
+}
+.cg-value {
+  font-size: 13px; color: var(--text2); line-height: 1.75;
+}
+.cg-value em {
+  color: var(--text); font-style: normal; font-weight: 500;
+}
+
+/* Pali formula block */
+.pali-formula {
+  margin-top: 14px;
+  background: var(--surf); border-left: 2px solid var(--accent);
+  border-radius: 0 8px 8px 0; padding: 12px 16px;
+}
+.pali-formula .pf-label {
+  font-size: 10px; color: var(--text4); letter-spacing: 0.1em; margin-bottom: 6px;
+}
+.pali-formula .pf-text {
+  font-family: 'EB Garamond', serif; font-style: italic;
+  font-size: 14px; color: var(--text2); line-height: 1.8;
+}
+.pali-formula .pf-trans {
+  font-size: 12px; color: var(--text3); margin-top: 4px; line-height: 1.7;
+}
+
+/* Quote block */
+.canon-quote {
+  margin-top: 14px;
+  border: 1px solid var(--bd); border-radius: 10px; padding: 14px 16px;
+  position: relative;
+}
+.canon-quote::before {
+  content: '❝';
+  position: absolute; top: -10px; left: 14px;
+  background: var(--bg2); padding: 0 4px;
+  font-size: 16px; color: var(--gold); line-height: 1;
+}
+.cq-text {
+  font-family: 'Noto Serif SC', serif; font-size: 13px;
+  color: var(--text2); line-height: 2; letter-spacing: 0.04em;
+}
+.cq-source {
+  margin-top: 8px; font-size: 11px; color: var(--text4);
+  text-align: right; font-family: 'EB Garamond', serif; font-style: italic;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CARD C — Experiential / lived
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.card-lived {
+  background: var(--bg2); border: 1px solid var(--bd);
+  border-radius: 16px; overflow: hidden;
+}
+.card-lived .inner { padding: 18px 20px; }
+
+.scenario-box {
+  margin-top: 12px;
+  background: var(--bg3); border-radius: 10px;
+  border: 1px solid var(--bd); overflow: hidden;
+}
+.sb-header {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--bd);
+  font-size: 11px; color: var(--text4); letter-spacing: 0.1em;
+  display: flex; align-items: center; gap: 6px;
+}
+.sb-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+.sb-body { padding: 14px; font-size: 13px; color: var(--text2); line-height: 1.9; }
+.sb-body strong { color: var(--text); font-weight: 500; }
+.sb-body .moment {
+  display: block; margin-top: 10px; padding: 10px 12px;
+  background: var(--surf); border-radius: 7px;
+  border-left: 2px solid transparent;
+  font-size: 12.5px; line-height: 1.85;
+  transition: border-color 0.3s;
+}
+.sb-body .moment.ignorant { border-left-color: #b04030; }
+.sb-body .moment.aware    { border-left-color: #1a8a6a; }
+.moment-tag {
+  font-size: 10px; letter-spacing: 0.08em; color: var(--text4);
+  display: block; margin-bottom: 5px;
+}
+.practice-tip {
+  margin-top: 12px; padding: 12px 14px;
+  background: rgba(30, 138, 106, 0.08);
+  border: 1px solid rgba(30, 138, 106, 0.2);
+  border-radius: 10px;
+}
+.pt-label {
+  font-size: 10px; letter-spacing: 0.1em; color: #1a8a6a;
+  margin-bottom: 6px;
+}
+.pt-text { font-size: 13px; color: var(--text2); line-height: 1.85; }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CARD D — Modern science
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.card-modern {
+  background: var(--bg2); border: 1px solid var(--bd);
+  border-radius: 16px; overflow: hidden;
+}
+.card-modern .inner { padding: 18px 20px; }
+
+.modern-rows { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+.mr-row {
+  display: flex; gap: 12px;
+  background: var(--bg3); border-radius: 9px; padding: 11px 13px;
+  border: 1px solid var(--bd);
+}
+.mr-icon {
+  font-size: 18px; flex-shrink: 0; width: 28px;
+  display: flex; align-items: flex-start; padding-top: 2px;
+}
+.mr-content { flex: 1; }
+.mr-label {
+  font-size: 10px; letter-spacing: 0.1em; color: var(--text4); margin-bottom: 5px;
+}
+.mr-text { font-size: 13px; color: var(--text2); line-height: 1.8; }
+.mr-text strong { color: var(--text); font-weight: 500; }
+
+/* Comparison table */
+.compare-table {
+  margin-top: 14px; border-radius: 10px; overflow: hidden;
+  border: 1px solid var(--bd);
+}
+.ct-row {
+  display: grid; grid-template-columns: 90px 1fr 1fr;
+  border-bottom: 1px solid var(--bd);
+}
+.ct-row:last-child { border-bottom: none; }
+.ct-cell {
+  padding: 9px 12px; font-size: 12px; color: var(--text2); line-height: 1.6;
+}
+.ct-cell:first-child {
+  font-size: 10px; letter-spacing: 0.07em; color: var(--text4);
+  background: var(--bg3); border-right: 1px solid var(--bd);
+  display: flex; align-items: center;
+}
+.ct-cell:nth-child(2) { border-right: 1px solid var(--bd); }
+.ct-head { background: var(--surf); }
+.ct-head .ct-cell {
+  font-size: 11px; font-weight: 500; color: var(--text3);
+  letter-spacing: 0.06em;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CARD E — Chain navigator
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.card-chain {
+  background: var(--bg2); border: 1px solid var(--bd);
+  border-radius: 16px; padding: 16px 18px;
+  flex-shrink: 0;
+}
+.chain-flow {
+  display: flex; align-items: center; flex-wrap: wrap;
+  gap: 0; margin-top: 10px;
+}
+.cn-node {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 7px 9px; border-radius: 8px;
+  background: var(--surf); border: 1px solid var(--bd);
+  cursor: pointer; transition: all 0.2s; min-width: 44px; text-align: center;
+}
+.cn-node:hover { border-color: var(--bd2); background: var(--bg3); }
+.cn-node.active { border-color: var(--accent); background: rgba(157,136,240,0.1); }
+.cn-zh { font-family: 'Noto Serif SC', serif; font-size: 12px; color: var(--text); }
+.cn-num { font-size: 9px; color: var(--text3); font-family: 'EB Garamond', serif; }
+.cn-arr { font-size: 12px; color: var(--text4); padding: 0 1px; flex-shrink: 0; }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Bottom verse
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.verse {
+  text-align: center; padding: 16px 12px 6px;
+  border-top: 1px solid var(--bd); margin-top: 2px;
+  flex-shrink: 0; position: relative;
+}
+.verse::before {
+  content: ''; position: absolute; top: -1px; left: 50%; transform: translateX(-50%);
+  width: 60px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.verse-zh {
+  font-family: 'Noto Serif SC', serif; font-size: 14px; font-weight: 300;
+  color: var(--text3); letter-spacing: 0.12em; line-height: 2;
+}
+.verse-pali {
+  font-family: 'EB Garamond', serif; font-style: italic;
+  font-size: 12px; color: var(--text4); margin-top: 4px;
+}
+
+/* ── Animations ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulseDim {
+  0%,100% { opacity: 0.22; } 50% { opacity: 0.5; }
+}
+@keyframes rotateSlow {
+  from { transform: rotate(0deg); } to { transform: rotate(360deg); }
+}
+@keyframes dashFlow {
+  from { stroke-dashoffset: 0; } to { stroke-dashoffset: -60; }
+}
+
+.ring-pulse { animation: pulseDim 5s ease-in-out infinite; transform-origin: 300px 300px; }
+.ring-spin  { animation: rotateSlow 50s linear infinite; transform-origin: 300px 300px; }
+.loop-anim  { animation: dashFlow 8s linear infinite; }
+
+.card-identity, .card-classical, .card-lived, .card-modern {
+  animation: fadeUp 0.3s ease both;
+}
+
+/* SVG node cursor */
+.nidana-node { cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ── Header ── -->
+<header>
+  <div class="hd-kicker">Paṭicca-samuppāda · 缘起法 · 相互依存的十二环</div>
+  <h1>十二缘起</h1>
+  <div class="hd-sub">The Twelve Nidānas — The Chain of Dependent Origination</div>
+  <div class="hd-desc">此生故彼生，此灭故彼灭 · 点击法轮各节点深入探究每一支的义理、经典文献、当下体验与现代科学对照</div>
+</header>
+
+<!-- ── Main ── -->
+<div class="main-grid">
+
+  <!-- Left: Wheel -->
+  <div class="wheel-panel">
+    <div class="wheel-wrap">
+      <svg id="wheel-svg" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+          <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="5" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <radialGradient id="hubG" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"   stop-color="#2a2060"/>
+            <stop offset="65%"  stop-color="#1a1535"/>
+            <stop offset="100%" stop-color="#100e22"/>
+          </radialGradient>
+          <radialGradient id="bgG" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"   stop-color="#1a1535" stop-opacity="0.55"/>
+            <stop offset="100%" stop-color="transparent"/>
+          </radialGradient>
+        </defs>
+
+        <circle cx="300" cy="300" r="282" fill="url(#bgG)"/>
+        <circle class="ring-pulse" cx="300" cy="300" r="274" fill="none" stroke="#9d88f0" stroke-width="0.5" stroke-dasharray="2 10"/>
+        <circle class="ring-spin"  cx="300" cy="300" r="260" fill="none" stroke="#c9a84c" stroke-width="0.4" stroke-dasharray="5 28" opacity="0.28"/>
+        <circle cx="300" cy="300" r="244" fill="none" stroke="rgba(180,160,255,0.07)" stroke-width="1"/>
+
+        <g id="sectors"></g>
+        <g id="spokes"></g>
+
+        <path id="loop-path" class="loop-anim" fill="none" stroke="#c9a84c" stroke-width="1.2" stroke-dasharray="6 5" marker-end="url(#arr)" opacity="0.55"/>
+
+        <!-- Hub -->
+        <circle cx="300" cy="300" r="82" fill="url(#hubG)"/>
+        <circle cx="300" cy="300" r="82" fill="none" stroke="rgba(180,160,255,0.28)" stroke-width="1.5"/>
+        <circle cx="300" cy="300" r="76" fill="none" stroke="rgba(201,168,76,0.18)" stroke-width="0.6"/>
+
+        <text x="300" y="281" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="17" font-weight="300" fill="#e0d8ff" letter-spacing="10">十二</text>
+        <text x="300" y="305" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="17" font-weight="300" fill="#e0d8ff" letter-spacing="10">缘起</text>
+        <text x="300" y="324" text-anchor="middle" font-family="'EB Garamond',serif" font-style="italic" font-size="11" fill="#9d88f0" letter-spacing="1">Nidāna</text>
+
+        <g id="nodes"></g>
+        <g id="seqdots"></g>
+      </svg>
+    </div>
+    <div class="kb-hint">
+      <kbd>←</kbd> <kbd>→</kbd> 键切换 · 点击节点查看详情
+    </div>
+  </div>
+
+  <!-- Right: Detail -->
+  <div class="detail-panel" id="detail-panel">
+
+    <!-- A: Identity -->
+    <div class="card-identity" id="card-identity">
+      <div class="ci-top">
+        <div class="ci-badge" id="ci-badge">①</div>
+        <div class="ci-title">
+          <div class="ci-zh" id="ci-zh">无明</div>
+          <div class="ci-pali" id="ci-pali">Avijjā</div>
+          <div class="ci-meta" id="ci-meta">第 1 支 · 过去因 · 烦恼轮转</div>
+        </div>
+      </div>
+      <div class="ci-phase-bar" id="ci-phasebar"></div>
+      <div class="ci-desc" id="ci-desc">loading…</div>
+      <div class="ci-tags" id="ci-tags"></div>
+    </div>
+
+    <!-- B: Classical analysis -->
+    <div class="card-classical" id="card-classical">
+      <div class="inner">
+        <div class="sec-label">经论义理</div>
+        <div class="classical-grid" id="classical-grid"></div>
+        <div class="pali-formula" id="pali-formula">
+          <div class="pf-label">经典定义</div>
+          <div class="pf-text" id="pf-text"></div>
+          <div class="pf-trans" id="pf-trans"></div>
+        </div>
+        <div class="canon-quote" id="canon-quote">
+          <div class="cq-text" id="cq-text"></div>
+          <div class="cq-source" id="cq-source"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- C: Lived experience -->
+    <div class="card-lived" id="card-lived">
+      <div class="inner">
+        <div class="sec-label">当下体验</div>
+        <div class="scenario-box">
+          <div class="sb-header"><div class="sb-dot"></div><span id="sb-scene-label">生活情境</span></div>
+          <div class="sb-body" id="sb-body"></div>
+        </div>
+        <div class="practice-tip" id="practice-tip">
+          <div class="pt-label">修行要点</div>
+          <div class="pt-text" id="pt-text"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- D: Modern science -->
+    <div class="card-modern" id="card-modern">
+      <div class="inner">
+        <div class="sec-label">现代科学对照</div>
+        <div class="modern-rows" id="modern-rows"></div>
+        <div class="compare-table" id="compare-table"></div>
+      </div>
+    </div>
+
+    <!-- E: Chain nav -->
+    <div class="card-chain">
+      <div class="sec-label">缘起链导航</div>
+      <div class="chain-flow" id="chain-flow"></div>
+    </div>
+
+    <!-- Verse -->
+    <div class="verse">
+      <div class="verse-zh">此有故彼有，此生故彼生<br>此无故彼无，此灭故彼灭</div>
+      <div class="verse-pali">imasmiṃ sati idaṃ hoti · imassuppādā idaṃ uppajjati<br>imasmiṃ asati idaṃ na hoti · imassa nirodhā idaṃ nirujjhati</div>
+    </div>
+
+  </div><!-- /detail-panel -->
+</div><!-- /main-grid -->
+</div><!-- /page -->
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   DATA — 十二缘起完整内容
+═══════════════════════════════════════════════════════ */
+const nidanas = [
+{
+  zh:'无明', pali:'Avijjā', num:'①', idx:1,
+  phase:'过去因', phaseColor:'#5b48b8',
+  color:'#4a3ba0', light:'#ddd8ff', mid:'#7060d8',
+  desc:'无明不是普通意义上的「无知识」，而是对三法印——无常、苦、无我——的根本性遮蔽。在佛陀的分析中，无明是把五蕴和合的相续过程错认为一个固定不变、独立自存的「我」；把无常的现象错认为可以永久把持的实体；把苦的本质错认为可以通过获取来满足的需求。无明既是轮回的起点，也是每一刹那心识运作的背景染污。',
+  tags:['根本烦恼','十随眠之首','遮蔽三法印','与痴同义'],
+  classical:[
+    { label:'阿毗达磨分析', text:'无明（moha/avijjā）在《法集论》中被定义为：对苦、集、灭、道四谛，对过去、未来、现在，对缘起的无知。它不仅是「不知道」，更是一种积极的误知——主动地建构出一个虚幻的实在图景。' },
+    { label:'与痴的关系', text:'在心所法中，无明即<em>痴</em>（moha）。它是三毒（贪、嗔、痴）之根，所有不善心所的根本原因。《清净道论》指出无明如黑暗，慧如光明，无明与慧互为相反，不能同时生起。' },
+    { label:'两种无明', text:'俱生无明（sahajāta）：与生命俱来，无始以来的习气积累。<em>分别无明</em>（parikalpita）：通过邪见、邪教等后天形成的错误见解。两者在唯识学与中观学中有精密辨析。' },
+    { label:'《瑜伽师地论》', text:'无明有五种相：<em>一者、于诸谛中愚，二者、于诸缘起中愚，三者、于善恶业果中愚，四者、于有情界中愚，五者、于过去未来世愚。</em>这五种愚蔽构成无明的完整结构。' },
+  ],
+  paliDef:'Avijjā ti cattāri ariya-saccāni appajānāti — 无明，就是不了知四圣谛。',
+  paliTrans:'——《中部·正见经》（Sammādiṭṭhi Sutta, MN 9）',
+  quote:'「比丘们，无明是什么？对苦不了知，对苦集不了知，对苦灭不了知，对导向苦灭之道不了知——这称为无明。」',
+  quoteSource:'——《相应部·谛相应》（SN 56.17）',
+  scenarioLabel:'情境：你看到一条消息',
+  scenario:`<strong>场景：</strong>朋友在群里发了一张旅行照片，你点进去看了半分钟，心里开始出现一种模糊的不舒适。
+<span class="moment ignorant"><span class="moment-tag">无明运作中 ↓</span>意识尚未分辨这种不适，但自我保护机制已经启动：<em>「我的生活比他们差」「我应该也要去旅行」「我不够好」</em>——这些念头尚未成形，只是一种隐隐的紧绷。这就是无明：对苦的来源毫无觉察，对「我」这个建构物不加审视，任由后续反应自动生起。</span>
+<span class="moment aware"><span class="moment-tag">内观视角 ↓</span>禅修者会在第一刹那注意到：<em>有一种感受生起了</em>。然后进一步观察：这个感受是什么？它在身体的哪里？它是苦受还是舍受？是什么被触动了？——在这层觉知中，无明的遮蔽开始薄弱。</span>`,
+  practice:'无明的对治是<strong>如实知见</strong>（yathābhūta-ñāṇadassana）。修行路径并非强行压制错误见解，而是通过内观（Vipassanā）直接体验五蕴的无常生灭，让智慧在经验层面自然破除无明，而不仅是在概念层面理解「我不存在」。',
+  modern:[
+    { icon:'🧠', label:'预测编码理论（Predictive Coding）', text:'Karl Friston 的主动推断理论指出：大脑不是被动接收信息，而是主动用<strong>内部模型</strong>预测感官输入。无明恰是这个模型本身的系统性偏差——大脑把虚构的「叙事自我」当作现实实体写入模型的最高层级，而从不真正质疑这一预设。' },
+    { icon:'🪞', label:'默认模式网络（DMN）', text:'神经科学发现静息状态下活跃的 DMN（内侧前额叶、后扣带回、顶下小叶）与「自我参照」加工高度相关。对自我叙事的<strong>过度激活</strong>在功能上类似于无明对「我见」的强化。冥想研究显示长期修行者的 DMN 活动显著减弱。' },
+    { icon:'💡', label:'元认知盲点', text:'心理学中的 Dunning-Kruger 效应、确认偏见、叙事偏见，都可看作无明在具体认知层面的表现：<strong>我们不知道自己不知道</strong>。对自身心理过程的监控缺失，正是临床正念疗法（MBSR）处理的核心问题。' },
+  ],
+  compareDims: ['认知层面','情绪层面','行为层面'],
+  compareA: ['错误的世界观与自我模型','对不确定性的背景焦虑','自动化、不经审视的反应模式'],
+  compareB: ['预测误差 / 错误先验','前扣带回的持续冲突信号','习惯性神经回路的默认激活'],
+},
+{
+  zh:'行', pali:'Saṅkhāra', num:'②', idx:2,
+  phase:'过去因', phaseColor:'#5b48b8',
+  color:'#3d2e90', light:'#cfc8ff', mid:'#5a4cc8',
+  desc:'行（saṅkhāra）在十二缘起中特指由无明驱动的意志造作——身行（呼吸、身体动作）、语行（言语）、意行（思维意图）。更深层意义上，行是形成业力种子的「意志冲动」（cetanā），它在识的相续中留下印痕，塑造未来的经验结构。行不是单一动作，而是在无明背景下持续运作的心理动力系统。',
+  tags:['三行：福行·非福行·不动行','等同于业（Kamma）','意志（cetanā）的造作','熏习阿赖耶识'],
+  classical:[
+    { label:'三种行', text:'<em>福行</em>：善的意志造作，感人天善趣。<em>非福行</em>：不善的意志造作，感恶趣。<em>不动行</em>：色无色界禅定中的意志活动，感上界报。《清净道论》指出行的范围极广，一切有意志性的心理活动皆属行的范畴。' },
+    { label:'行与业的关系', text:'《俱舍论》：「业谓思及思所作。」行的核心是思心所（cetanā），即意志。每一个有意志的行为都在识的相续中留下业种（karma-bīja）。无明的背景决定了行的性质——在无明中造作的行，即便是「善行」，也仍然在轮回的结构中运作。' },
+    { label:'唯识学视角', text:'唯识学将行的业种解读为储存在<em>阿赖耶识</em>中的功能性种子（bīja）。种子遇缘现行，现行再熏种子——这个双向机制解释了业果的延续与性格、习气的形成。' },
+    { label:'中观的分析', text:'龙树菩萨在《中论》中指出：行若有自性，则不随缘而变，业果便不能成立。正因为行是缘起的（由无明而有行），所以是无自性的空，正是这种空性使得因果业报得以运转而非僵固。' },
+  ],
+  paliDef:'Katame ca bhikkhave saṅkhārā? Tayo me bhikkhave saṅkhārā — kāya-saṅkhāro, vacī-saṅkhāro, citta-saṅkhāro.',
+  paliTrans:'「什么是行？有三种行：身行、语行、心行。」——《相应部·蕴相应》（SN 22.56）',
+  quote:'「以无明为缘，行生起。如果无明被彻底离弃、消灭，行便不再生起。」',
+  quoteSource:'——《相应部·因缘相应》（SN 12.23）',
+  scenarioLabel:'情境：习惯性的手机依赖',
+  scenario:`<strong>场景：</strong>工作间隙，你感到一丝无聊，手就自动伸向手机——甚至在有意识地想「我要看手机」之前，动作已经完成了。
+<span class="moment ignorant"><span class="moment-tag">行在无明中运作 ↓</span>这个<em>自动伸手</em>的动作，就是「行」——一个被无数次重复刻入神经回路的意志冲动，在无明（不知道这只是逃避无聊的习惯性反应）的驱动下自动执行。每一次执行，都在加深这个行的沟槽。</span>
+<span class="moment aware"><span class="moment-tag">在行生起时觉知 ↓</span>有修行基础的人可能在手伸出的那一瞬间注意到：<em>「想拿手机的冲动生起了。」</em>这就是观行——不是压制，而是如实看到意志冲动的生灭，不随之认同，就在识层面留下不同的印痕。</span>`,
+  practice:'对「行」的修行不是要消灭一切意志活动，而是以<strong>正思维</strong>（sammā-saṅkappa）取代在无明中的邪思维。正思维包括：出离思维（离欲）、无恚思维（慈）、无害思维（悲）。通过戒律的约束，为善行的养成创造结构性条件。',
+  modern:[
+    { icon:'🔁', label:'习惯回路（Habit Loop）', text:'Charles Duhigg 的习惯回路模型：触发（Cue）→ <strong>例行行为（Routine）→ 奖励（Reward）</strong>。「行」对应「例行行为」层，但佛教分析更深入：指出习惯性行为背后的意志成分（cetanā）及其情绪-动机结构。' },
+    { icon:'⚡', label:'神经可塑性（Neuroplasticity）', text:'赫布定律：<strong>一起放电的神经元连在一起</strong>（Neurons that fire together, wire together）。每一次行的重复都在物理意义上改变神经连接的强度，这正是行「熏习」识的现代诠释。' },
+    { icon:'🎯', label:'意志疲劳（Decision Fatigue）', text:'研究显示一天中的决策数量导致自我控制能力下降。行的「自动化」是双刃剑：减少认知负荷，但在无明背景下的自动化行为会带来习惯性苦。正念修行通过重新引入<strong>元认知监控</strong>来干预自动化过程。' },
+  ],
+  compareDims: ['生成机制','储存方式','转变条件'],
+  compareA: ['无明驱动的意志造作','业种熏习于识（阿赖耶识）','修习正道，正思维代替邪思维'],
+  compareB: ['奖惩回路驱动的行为','突触权重强化（LTP/LTD）','重复新行为 + 元认知介入'],
+},
+{
+  zh:'识', pali:'Viññāṇa', num:'③', idx:3,
+  phase:'现在果', phaseColor:'#1e5aa0',
+  color:'#1a4e8a', light:'#b8d8ff', mid:'#2e7acc',
+  desc:'十二缘起中的「识」有双重涵义：一是由业行引导的<strong>结生识</strong>（paṭisandhi-citta），即投生母胎的意识；二是在每一生命中持续运作的六种感官意识（眼识、耳识、鼻识、舌识、身识、意识）。识与名色相互依存——识是名色存在的认知基础，名色是识活动的所依。识不是一个固定的「觉知者」，而是不断生灭的认知过程的流动。',
+  tags:['结生识','六识身','识与名色相互依存','刹那生灭'],
+  classical:[
+    { label:'识的两个层次', text:'<em>结生识</em>：此生命流中第一刹那的心识，由上一生的临死速行心（maraṇāsanna-javana）中的业种引发，决定投生处。<em>有分识</em>（bhavaṅga）：生命流的基础意识，在没有主动认知活动时持续流转，维持生命的连续性。' },
+    { label:'识与名色的相互依存', text:'《大缘经》（DN 15）中佛陀说：「阿难，若识不入母胎，名色能成就否？」「不能，世尊。」这段对话揭示识与名色的<em>相互缘依</em>——识需要名色作为运作基础，名色需要识来生起与持续。两者如捆束的芦苇，互相扶持。' },
+    { label:'唯识学的深化', text:'唯识学在缘起论的基础上建立了<em>阿赖耶识</em>（ālaya-vijñāna）作为业种的储藏库和生命流转的基础。前六识（眼耳鼻舌身意识）加第七末那识（执取阿赖耶识为「我」）和第八阿赖耶识，构成完整的识论体系。' },
+    { label:'龙树的批判', text:'中观学批评将识实体化的倾向：识若有自性，便不能随缘变化。识的「无我」正在于它是<em>缘生的过程</em>而非实体。《心经》「照见五蕴皆空」正是对识（及其他四蕴）无自性的直接照见。' },
+  ],
+  paliDef:'Viññāṇaṃ paccayā nāmarūpaṃ — 以识为缘，名色生起。Nāmarūpaṃ paccayā viññāṇaṃ — 以名色为缘，识生起。',
+  paliTrans:'识与名色的相互缘依——《大缘经》（DN 15）',
+  quote:'「阿难，识与名色互为缘依。识缘名色，名色缘识。在这个双向依存中，此识不更他往，此生、老、死、忧、悲、苦恼便在这里生起聚集。」',
+  quoteSource:'——《长部·大缘经》（DN 15）',
+  scenarioLabel:'情境：看到前任的照片',
+  scenario:`<strong>场景：</strong>手机相册里偶然划到一张旧照片，认出了那个人，心里瞬间出现了一些东西——说不清是什么，但识已经起了作用。
+<span class="moment ignorant"><span class="moment-tag">识在无明中运作 ↓</span>眼识接触到照片的色法，意识立即调取记忆、情感标签、自我叙事——这一切发生在意识介入之前不到半秒。<em>「我」和「他/她」的概念框架自动叠加在感知上，产生出一个带有情绪重量的「意义」。</span>
+<span class="moment aware"><span class="moment-tag">观识生灭 ↓</span>修行者注意到：<em>「眼识接触了色境，意识随之生起，情绪感受伴随出现。」</em>这一切是过程，没有一个固定的「我」在感受。看见「这是识的运作」，而非「这是我的感受」，是识念处的核心。</span>`,
+  practice:'心念处中的<strong>识念处</strong>：如实觉知当下心识的状态——是有贪的心还是无贪的心？是有嗔的心还是无嗔的心？是散乱的心还是专注的心？不认同，不压制，如实知见识的当下性质。',
+  modern:[
+    { icon:'🌊', label:'全局工作空间理论（GWT）', text:'Bernard Baars 提出：意识是一个<strong>全局广播系统</strong>，将局部神经处理的结果广播到全脑，使之成为「意识内容」。这与佛教「识」作为认知整合点的描述高度吻合。识不是「在哪里」，而是整合过程本身。' },
+    { icon:'🔬', label:'无意识优先性', text:'Libet 实验（及其后续研究）显示：大脑的<strong>准备电位</strong>（readiness potential）在被试「有意识地决定」行动之前约 500ms 已经出现。这支持了佛教的描述：识的大部分工作在我们意识到之前已经完成，「我在做决定」的感觉是后来加上的叙事。' },
+    { icon:'🔗', label:'体化认知（Embodied Cognition）', text:'现代认知科学越来越承认：认知不是发生在大脑中的抽象过程，而是<strong>身体-环境-神经系统</strong>的整合运作——这正是「识缘名色，名色缘识」的现代表述：认知（识）与身心（名色）相互构成。' },
+  ],
+  compareDims: ['本质','范围','修行意涵'],
+  compareA: ['缘生的认知过程，非固定实体','六识乃至阿赖耶识的整体运作','观识无我，不将认知过程执为「我」'],
+  compareB: ['神经信息整合的涌现属性','从无意识处理到意识全局广播','元认知训练，增强对认知过程的觉察'],
+},
+{
+  zh:'名色', pali:'Nāmarūpa', num:'④', idx:4,
+  phase:'现在果', phaseColor:'#1e5aa0',
+  color:'#165a48', light:'#b0eedd', mid:'#209878',
+  desc:'名（nāma）指精神性的要素：受（vedanā）、想（saññā）、思（cetanā）、触（phassa）、作意（manasikāra）；色（rūpa）指物质性的要素：地（坚固性）、水（凝聚性）、火（温热性）、风（流动性）四大及其所造诸色。名色是有情身心存在的完整描述，也是佛教对「人是什么」的基本回答——既非仅仅物质，也非仅仅精神，而是两者相互依存的动态结合体。',
+  tags:['五蕴分析的基础','身心相互依存','四大种与所造色','非灵魂论的人格描述'],
+  classical:[
+    { label:'名的五支', text:'受：对感官接触的情绪-感受性反应。想：对对象的感知与概念化。思：指向性的意志活动（即行的核心成分）。触：根境识三事和合。<em>作意</em>：使心转向特定对象的心理功能。这五支构成「精神性」存在的基本结构。' },
+    { label:'色的分析', text:'《法聚论》将色法分为28种：四大种（地水火风）+ 24种所造色（包括五根五境、命根、心所依处等）。色法的基本特征是<em>变坏性</em>（ruppana-lakkhaṇa）——受到物理条件影响而变化的性质。' },
+    { label:'名色论的哲学意涵', text:'佛教名色论既反对灵魂论（atman）——否认一个超越名色的永恒精神实体，也反对纯粹唯物论——承认精神性功能的实在性与其对身体的依存关系。这是一种<em>中道的人格论</em>，以缘起替代实体。' },
+    { label:'《论事》的争议', text:'关于意识与身体的关系，上座部内部曾有「心是否依赖于脑」的讨论。《论事》（Kathāvatthu）记录了不同部派关于识所依处的争议，显示早期佛教已认识到意识的物理基础问题，但以缘起而非实体化方式处理。' },
+  ],
+  paliDef:'Katamañca, bhikkhave, nāmarūpaṃ? Vedanā, saññā, cetanā, phasso, manasikāro — idaṃ vuccati nāmaṃ. Cattāro ca mahābhūtā, catunnañca mahābhūtānaṃ upādāyarūpaṃ — idaṃ vuccati rūpaṃ.',
+  paliTrans:'「什么是名色？受、想、思、触、作意——这称为名。四大种以及依四大种所生之色——这称为色。」——《相应部》',
+  quote:'「犹如一座房子，由木头、砖块、泥土、草等材料聚合而成，空间在其中，人们称之为『房子』。同样，色、受、想、行、识聚合，空间在其中——人们将这个聚合称为『我』、称为『人』、称为『众生』。」',
+  quoteSource:'——《弥兰陀王问经》（Milindapañha）',
+  scenarioLabel:'情境：身体疼痛时的观察',
+  scenario:`<strong>场景：</strong>头痛袭来——一阵持续的、沉闷的压迫感从额头蔓延至太阳穴。
+<span class="moment ignorant"><span class="moment-tag">名色混合运作（无明中） ↓</span>色（神经系统的物理疼痛信号）与名（「我在痛」「这太糟糕了」「什么时候才能停」的想法与受）几乎同时出现，被无明黏合为<em>「我在受苦」</em>这一整体叙事。分离是不可能的，苦在这种混合中被放大。</span>
+<span class="moment aware"><span class="moment-tag">名色分离观察 ↓</span>修行者可以尝试：<em>把「头部的物理感觉」（色）和「对感觉的心理反应」（名）分开观察。</em>纯粹的色层面：脉动的、压迫的、温热的感觉。名层面：抗拒感在哪里？想法是什么形状？当名与色不再黏合，苦的强度会自然降低。</span>`,
+  practice:'<strong>名色分析观</strong>是上座部禅修的重要技法：通过系统观察每一刹那经验中的色（物理感觉）与名（心理反应），直接体验身心的无我性。《清净道论》的色业处（rūpa-kammaṭṭhāna）专门处理这一观察训练。',
+  modern:[
+    { icon:'🧬', label:'身心医学（Psychosomatic Medicine）', text:'现代医学已确认：心理状态（名）影响免疫、内分泌、神经系统（色），反之亦然。<strong>心身双向影响</strong>的证据来自安慰剂效应、慢性压力导致的免疫抑制、正念减压对炎症因子的影响等多个领域。' },
+    { icon:'🌿', label:'具身认知（Embodied Cognition）', text:'Francisco Varela 等人的<strong>生成主义</strong>（Enactivism）认为：认知是身体与环境的动态耦合，不能脱离身体来理解心智。这与名色相互依存的描述高度一致，也是当代认知科学最前沿的立场之一。' },
+    { icon:'⚗️', label:'还原论的局限', text:'神经科学可以解释大量的认知功能，但<strong>意识的难问题</strong>（Hard Problem of Consciousness，David Chalmers 提出）至今未解：为什么物理过程会产生主观体验？佛教名色论提供了另一种框架——不是还原，而是<em>缘起关系</em>。' },
+  ],
+  compareDims: ['存在结构','分析方法','哲学立场'],
+  compareA: ['名（精神五支）+ 色（物质四大）的缘起结合','解析经验为可观察的心理与物理成分','中道：非灵魂论，非纯粹唯物论'],
+  compareB: ['脑-身-环境的动态系统','认知神经科学的多层次分析','具身认知：认知不可脱离身体与环境'],
+},
+{
+  zh:'六入', pali:'Saḷāyatana', num:'⑤', idx:5,
+  phase:'现在果', phaseColor:'#1e5aa0',
+  color:'#135048', light:'#a0e8d0', mid:'#1a8868',
+  desc:'六入（saḷāyatana），又称六处，是六种感官根门：眼（cakkhu）、耳（sota）、鼻（ghāna）、舌（jivhā）、身（kāya）、意（mano）。它们是外界信息进入内心世界的六个通道，也是内心与外境相接触的「门户」。意根（mano-āyatana）在佛教中特指处理概念、记忆、抽象思维的认知功能，与前五种感官根不同，它没有对应的物理器官，却是人类认知中最活跃的来源之一。',
+  tags:['六根与六境','内六处与外六处','意根的特殊性','根的清净与修行'],
+  classical:[
+    { label:'内六处与外六处', text:'内六处（indriya āyatana）：眼耳鼻舌身意六根。外六处（bāhira āyatana）：色声香味触法六境。合称十二处（dvādasa āyatanāni）。《法集论》指出，一切有为法都可以被归入十二处的框架——这是佛教认识论的完整分类体系。' },
+    { label:'意处的独特性', text:'意处（mano-āyatana）是前七刹那的心识（依上座部分析），是以过去心为所缘而生起意识的基础。唯识学进一步区分了<em>末那识</em>（第七识，以阿赖耶识为所缘，执之为「我」）与前六识的意识，深化了对意根的分析。' },
+    { label:'根的力量与清净', text:'《清净道论》（Visuddhimagga）讨论了信、精进、念、定、慧五根（pañca indriya）如何构成解脱道的核心能力。感官根的「清净」（indriya-saṃvara）——不追逐可意境，不逃避不可意境——是戒律中最基础的训练。' },
+    { label:'无常的门户', text:'六处本身是无常的：眼根受损则眼识失去基础；意根的活跃程度随着年龄、健康状态而变化。通过观察六处的无常，可以直接体验「没有一个固定的知觉者」。' },
+  ],
+  paliDef:'Chayime, bhikkhave, ajjhattikāni āyatanāni: cakkhu, sotaṃ, ghānaṃ, jivhā, kāyo, mano.',
+  paliTrans:'「比丘们，有这六种内处：眼、耳、鼻、舌、身、意。」——《相应部·六处相应》（SN 35.1）',
+  quote:'「比丘们，一切皆燃！何谓一切？眼在燃烧，色在燃烧，眼识在燃烧，眼触在燃烧，眼触所生的受在燃烧——以贪火燃，以嗔火燃，以痴火燃。」',
+  quoteSource:'——《燃烧经》（Āditta-pariyāya Sutta, SN 35.28），佛陀对迦叶弟子的第三次法讲',
+  scenarioLabel:'情境：被通知刷屏的手机',
+  scenario:`<strong>场景：</strong>工作时手机不停震动——每一次震动，眼睛就会不由自主地瞥向手机。
+<span class="moment ignorant"><span class="moment-tag">六处在无明中 ↓</span>每一次「眼处」接触屏幕的光与形（色处），意处就开始解读：是重要消息吗？需要立刻回复吗？<em>六处成了不间断的刺激接收器</em>，注意力被分割成无数碎片，而我们完全没有意识到这个过程——这就是六处在无明中的自动运作。</span>
+<span class="moment aware"><span class="moment-tag">守护根门 ↓</span>「守护根门」（indriya-saṃvara）的修行：看见手机震动——<em>注意到「想看」的冲动生起</em>——有意识地选择不立刻反应。这个「在接触与反应之间插入一个觉知的空间」，就是对六处的修行。</span>`,
+  practice:'<strong>守护根门</strong>是八正道中正念（sammā-sati）在感知层面的直接应用：在六根接触六境时，不追逐可意境中的美，不逃避不可意境中的丑，而是如实看见「接触正在发生」，在这个接触中不生执取。《中部·根律仪经》（MN 39）对此有详细描述。',
+  modern:[
+    { icon:'📱', label:'注意力经济（Attention Economy）', text:'现代科技产品的设计核心是<strong>劫持六处</strong>——通过视觉刺激（界面设计）、听觉刺激（通知音）、触觉刺激（震动）持续占据感官资源。这与「六处是信息进入心识之门」的描述完全吻合，也解释了为何数字干扰如此难以抵抗。' },
+    { icon:'🎯', label:'感觉门控（Sensory Gating）', text:'神经科学的感觉门控机制：大脑在接收感觉输入时会主动过滤——不是所有感觉信号都能到达意识层面。<strong>注意力的定向</strong>决定了哪些信号被放大、哪些被抑制。禅修中对六处的训练，本质上是在重塑这一门控机制。' },
+    { icon:'🧩', label:'多感觉整合', text:'神经科学研究显示，不同感觉模态（视觉、听觉、触觉）在大脑中进行<strong>多感觉整合</strong>，产生统一的感知体验。佛教的六处分析超越了单纯的感觉分类，指向意根对前五根信息的<em>整合与解读功能</em>。' },
+  ],
+  compareDims: ['分类系统','关键功能','修行意涵'],
+  compareA: ['六根（感官器官）对应六境（感官对象）','意根作为第六感官处理抽象认知','守护根门：在接触时不生执取'],
+  compareB: ['多感觉模态 + 高级认知（前额叶）','执行控制网络整合感觉与认知信息','注意力训练重塑感觉门控'],
+},
+{
+  zh:'触', pali:'Phassa', num:'⑥', idx:6,
+  phase:'现在因', phaseColor:'#2e7a1e',
+  color:'#1e5810', light:'#c0f0b8', mid:'#358820',
+  desc:'触（phassa）是根（感官）、境（对象）、识（认知）三事和合而产生的认知接触。它不是物理意义上的「碰触」，而是一种认知事件——当感官、对象、意识三者同时具足时，触便生起。触是极其短暂的，但它是体验世界的基础：没有触，便没有感受；没有感受，便没有后续的一切心理活动。触是认知过程的第一个「有内容的刹那」。',
+  tags:['三事和合','心所法之一','触与受不可分','六种触'],
+  classical:[
+    { label:'三事和合的精密分析', text:'《法聚论》分析触的生起：必须同时具足（1）对应的根门（如眼根），（2）进入范围内的境（如颜色），（3）相应的识（如眼识）。缺少任一条件，触便不生起——这解释了为何「心不在焉」时视而不见、听而不闻。' },
+    { label:'触的六种', text:'对应六根六境，有六种触：眼触、耳触、鼻触、舌触、身触、意触。意触（mano-samphassa）是对记忆、想象、概念等「法境」的认知接触，是日常大量心理活动的基础——我们大部分时候的苦，都来自意触，而非前五种感官触。' },
+    { label:'触作为心所', text:'在阿毗达磨的心所法（cetasika）分类中，触是七种「遍行心所」之一——即出现在每一刹那心识中的基本心理功能。它如此基础，以至于任何有内容的心理状态都必然包含触。' },
+    { label:'触与受的必然联系', text:'《法句义注》：「以触为缘，受必然生。」这个关系是必然的而非偶然的：有触必有受，受的性质（苦、乐、舍）由触的性质决定，触的性质又由根、境、识的状态决定。修行的空间在于：感受生起时如何回应，而不是阻止感受生起。' },
+  ],
+  paliDef:'Phasso ca vedanā ca — 触与受。Phassapaccayā vedanā — 以触为缘，受生起。',
+  paliTrans:'触与受是不可分割的——《相应部·六处相应》',
+  quote:'「如果有人说：『除了触之外，我将体验苦受、乐受或舍受』——这是不可能的。只有在触的条件下，才有苦受、乐受、舍受。」',
+  quoteSource:'——《中部·蜜丸喻经》（Madhupiṇḍika Sutta, MN 18）',
+  scenarioLabel:'情境：街上偶遇故人',
+  scenario:`<strong>场景：</strong>在超市的走廊里，迎面走来一个曾经很熟悉、后来关系破裂的旧友。
+<span class="moment ignorant"><span class="moment-tag">触与自动反应 ↓</span>眼根接触到对方的面孔（色境），眼识生起，触发生——这一切在半秒内完成。接着，不经过意识审查：<em>身体的收紧，想转身的冲动，或者想打招呼的犹豫</em>——已经全部涌现。在无明中，触与后续反应之间没有空隙。</span>
+<span class="moment aware"><span class="moment-tag">在触处停留 ↓</span>有修行基础的人可以注意到触本身：<em>「眼识接触到了什么。」</em>在这个识别之后，有意识地停顿——受还没有完全成形，反应还没有固化——在这个极短的窗口里，有选择的可能性。</span>`,
+  practice:'禅修中对触的训练，最直接的是<strong>身念处</strong>中的「知痒而不立刻抓」：观察触（痒的感觉到达皮肤）和受（不舒适的感受）以及冲动（想抓的意志）的顺序生起，不立刻随之行动，在这个过程中看见三者的依次生起与差别。',
+  modern:[
+    { icon:'⏱️', label:'感知-行动的时间结构', text:'神经科学研究显示，从感觉输入到行为输出之间有约 <strong>200-500ms 的时间窗口</strong>。在这个窗口内，前额叶可以介入调节杏仁核的自动反应。触作为认知事件的「第一刹那」，对应的正是感觉皮层接收输入的最初处理阶段。' },
+    { icon:'🤝', label:'接触理论（Contact Theory）', text:'戈登·奥尔波特的群际接触理论（Intergroup Contact Theory）揭示：<strong>适当条件下的直接接触</strong>是改变偏见最有效的方式。这与佛教「触的性质影响受」的描述一致：重新建立触的情境，可以改变后续的情感反应。' },
+    { icon:'🧘', label:'身体扫描与触觉意识', text:'MBSR（正念减压）中的身体扫描（Body Scan）练习，本质上是系统性地提升<strong>对身体各部位触觉信号的觉察</strong>，增强内感知（interoception），打断「接触→自动反应」的习惯链。' },
+  ],
+  compareDims: ['事件本质','时间特征','干预点'],
+  compareA: ['根境识三事和合的认知事件','极短暂（一刹那），但后续反应可延续很久','在触与受之间建立觉知的空隙'],
+  compareB: ['感觉皮层的输入处理','200-500ms 的感知-行动窗口','正念训练增强前额叶的调节介入'],
+},
+{
+  zh:'受', pali:'Vedanā', num:'⑦', idx:7,
+  phase:'现在因', phaseColor:'#2e7a1e',
+  color:'#886010', light:'#ffe8b0', mid:'#c09020',
+  desc:'受（vedanā）是触所引起的三种基本情感色调：乐受（sukha-vedanā）——令人愉悦的感受；苦受（dukkha-vedanā）——令人不悦的感受；不苦不乐受（adukkha-m-asukha-vedanā）——中性的感受，也称舍受（upekkhā-vedanā）。受是缘起链上最关键的转折点：在无明中，乐受必然引起贪爱，苦受必然引起嗔恨，舍受因无聊而引起更微细的执取。修行者的任务是在受生起时保持觉知，打断「受→爱」的自动连接。',
+  tags:['三受','缘起链的关键转折','受念处','受与爱之间的觉知空间'],
+  classical:[
+    { label:'五种受的细分', text:'苦受（身心的不愉快感）、乐受（身心的愉快感）、忧（意识层面的不愉快，domanassa）、喜（意识层面的愉快，somanassa）、舍（中性，upekkhā）。阿毗达磨进一步区分身受（身体层面）与心受（意识层面），合称五种受。' },
+    { label:'受是修行的关键所在', text:'《中部·蜜丸喻经》（MN 18）描述了贪爱的生起：「以触为缘，受生起；以受为缘，贪爱生起。」但《中部·正见经》指出：若在受生起时如实观察受的性质而不执取，贪爱便不生起。<em>受与爱之间，是修行道的最后关卡。</em>' },
+    { label:'受的无常性', text:'每一种受都是无常的：乐受会消逝（因此以苦为本质），苦受会减弱（因此不必绝对化），舍受会转变。《相应部·受相应》（SN 36）中有大量对受的细密分析。观察受的生灭，是直接体验苦谛最有效的方式。' },
+    { label:'舍受的陷阱', text:'舍受（中性感受）常被忽视，但佛教分析指出：<em>对舍受的无明（不注意它的无常性）会导致一种更细微的执取</em>——对平静状态本身的执著。这解释了为何禅定中的「平静」也不是终点——仍需要以智慧观察其无常性。' },
+  ],
+  paliDef:'Tisso imā, bhikkhave, vedanā: sukhā vedanā, dukkhā vedanā, adukkhamasukhā vedanā.',
+  paliTrans:'「比丘们，有这三种受：乐受、苦受、不苦不乐受。」——《相应部·受相应》（SN 36.1）',
+  quote:'「比丘们，受到乐受时，若不了知它、不离贪、不断它——就无法灭苦。受到苦受时，若不了知它、不离嗔、不断它——就无法灭苦。受到舍受时，若不了知它、不离痴、不断它——就无法灭苦。」',
+  quoteSource:'——《相应部·受相应》（SN 36.3）',
+  scenarioLabel:'情境：收到批评邮件',
+  scenario:`<strong>场景：</strong>打开邮件，看到上司对你工作的批评——言辞虽然客观，但苦受在读到第一行时已经生起。
+<span class="moment ignorant"><span class="moment-tag">受直接连接到爱（嗔） ↓</span>苦受生起的瞬间，防御性的「贪爱」（这里表现为对批评的排斥，即嗔）已经自动启动：<em>「他说得不对」「他针对我」「我做得明明很好」</em>。受与嗔之间没有间隙，两者黏合为一个心理事件。</span>
+<span class="moment aware"><span class="moment-tag">在受处如实知见 ↓</span>修行者首先注意到：<em>「苦受生起了——胸口有收紧的感觉，有一种不舒适。」</em>然后停留在受本身，不立刻进入解释与辩护的叙事。观察：这个苦受是固定不变的吗？它的强度在变化吗？它有形状、位置、温度吗？在这个观察中，受与爱之间出现了空间。</span>`,
+  practice:'<strong>受念处</strong>（vedanānupassanā）：对一切苦受，知「我体验苦受」；对一切乐受，知「我体验乐受」；对一切舍受，知「我体验舍受」。这种「知道自己正在体验什么感受」的元觉知，是内观修行最直接的入口，也是《念处经》（MN 10）的核心训练之一。',
+  modern:[
+    { icon:'💭', label:'情感效价（Affective Valence）', text:'现代情感神经科学将情感分解为<strong>效价</strong>（正/负/中性）和<strong>唤醒度</strong>（高/低）两个维度。这与佛教的三受（乐/苦/舍）高度对应。效价评估主要由杏仁核和腹侧纹状体参与，在感觉信息到达前额叶之前就已完成——这支持了「受先于思维」的描述。' },
+    { icon:'🔥', label:'内感知（Interoception）与情绪调节', text:'Anthony Craig 和 Lisa Feldman Barrett 的研究表明：情绪很大程度上是大脑对<strong>内感知信号</strong>（心跳、呼吸、肠道感觉等）的预测性建构。受念处训练增强了对内感知信号的觉察，从而改变情绪的建构过程——这是正念疗法对抑郁和焦虑有效的核心机制之一。' },
+    { icon:'🌡️', label:'情绪粒度（Emotional Granularity）', text:'Lisa Feldman Barrett 研究发现：能够<strong>精细区分自己情绪状态</strong>的人（高情绪粒度），在情绪调节上显著更为灵活，心理健康状态更好。受念处训练正是系统性地培养对内在情感色调的精细区分能力。' },
+  ],
+  compareDims: ['分类结构','生理基础','修行/临床意涵'],
+  compareA: ['三受（乐/苦/舍），可细分为五受','触后立即生起，无法被阻止但可被观察','受念处：如实知见受的性质而不执取'],
+  compareB: ['效价（正/负/中）× 唤醒度的二维模型','杏仁核 + 内感知皮层 + 岛叶的快速评估','情绪粒度训练 + 内感知增强'],
+},
+{
+  zh:'爱', pali:'Taṇhā', num:'⑧', idx:8,
+  phase:'现在因', phaseColor:'#2e7a1e',
+  color:'#7a4008', light:'#ffd898', mid:'#b06020',
+  desc:'爱（taṇhā，字面义为「渴」）是苦的直接根源，也是第二圣谛（集谛）的核心指向。佛教将爱分为三种：欲爱（kāma-taṇhā）——对感官享乐的渴求；有爱（bhava-taṇhā）——对持续存在、对成为某种状态的渴求；无有爱（vibhava-taṇhā）——对断灭、对摆脱某种存在状态的渴求（包括对死亡的渴求）。爱的本质不是「想要好东西」，而是一种建立在无明基础上的、执著于「获得可以解决根本问题」的错误假设。',
+  tags:['三爱','集谛','渴爱之根','与取不同'],
+  classical:[
+    { label:'爱作为集谛的核心', text:'第二圣谛：「苦之集，就是这种引向再生的渴爱，伴随着欲贪，在这里那里寻求乐趣——即欲爱、有爱、无有爱。」（DN 22）爱是集谛的核心内容，不是「喜欢」或「爱护」的普通意义，而是一种<em>执着性的、以获得为指向的渴求</em>。' },
+    { label:'有爱的深度', text:'有爱（bhava-taṇhā）是三种爱中最难察觉的：它包括对「成为更好的人」的渴求、对「让自我继续存在」的渴求、对「永远处于禅定状态」的渴求。即便在修行中，也可能将「成就某种境界」作为欲爱的替代品。<em>有爱是精神物质主义的根源。</em>' },
+    { label:'爱与取的区别', text:'爱（taṇhā）是渴求的冲动，取（upādāna）是对对象的执取与固化。爱是流动的，取是凝固的。爱可以在无取的情况下生灭（未经巩固的冲动），但在无明的背景下，爱很快就会转化为取。' },
+    { label:'爱的消灭路径', text:'《相应部·谛相应》：「以无余离贪、灭尽、舍弃、放弃、解脱、无执著的方式消灭此爱——这是苦灭谛。」爱的消灭不是通过压制，而是通过<em>如实知见</em>——看清爱建立在错误的假设上（「获得可以解决根本不满足」），让它自然失去根基。' },
+  ],
+  paliDef:'Katamā ca, bhikkhave, tanhā? Yāyaṃ taṇhā ponobbhavikā nandīrāgasahagatā tatra tatrābhinandinī, seyyathidaṃ — kāmataṇhā, bhavataṇhā, vibhavataṇhā.',
+  paliTrans:'「什么是爱？就是这引向再生的、伴随欣悦与贪的、在这里那里寻求乐趣的渴爱——欲爱、有爱、无有爱。」——《大念处经》（DN 22）',
+  quote:'「从爱生忧，从爱生怖；离爱无忧，何处有怖？」',
+  quoteSource:'——《法句经》第 214 偈（Dhammapada v.214）',
+  scenarioLabel:'情境：社交媒体上的点赞',
+  scenario:`<strong>场景：</strong>发布了一条你认为很好的内容，然后开始等待「点赞」——每隔几分钟就刷新一次，看看数字有没有增加。
+<span class="moment ignorant"><span class="moment-tag">三种爱的运作 ↓</span><em>欲爱</em>：对认可、赞美这种「感官」满足的渴求。<em>有爱</em>：对「成为一个被认可的人」这种自我状态的渴求。<em>无有爱</em>：对焦虑感（「没人点赞」）的逃离欲望。三种爱同时运作，驱动着每一次刷新。数字增加时，乐受→更多爱；数字没增加，苦受→无有爱（想逃离这种状态）。</span>
+<span class="moment aware"><span class="moment-tag">看见爱的本质 ↓</span>内观视角：<em>注意到「想刷新」的冲动生起</em>——在刷新之前停顿。这个冲动背后是什么？期待什么？如果得到了，会完全满足吗？如果没得到，然后呢？在这个审视中，爱的「错误假设」开始显露：<em>点赞数无法解决根本的不安全感。</em></span>`,
+  practice:'对治爱的修行，在《念处经》的框架内有两个方向：（1）受念处——在受（乐受）生起时，如实观察而不立即生爱；（2）正思维——以出离思维（nekkhamma-saṅkappa）直接对治欲爱，以慈心（mettā）对治对「获得认可」的依赖，以无常观对治有爱（「这个状态也会改变」）。',
+  modern:[
+    { icon:'🎰', label:'多巴胺的渴求回路（Wanting System）', text:'Kent Berridge 的区分：多巴胺不直接产生「喜欢」（liking），而是产生<strong>渴求（wanting）</strong>——驱动去寻找奖励的冲动。这正是 taṇhā 的神经基础：爱是渴求，而非满足本身。社交媒体的「可变奖励」机制正是利用了这一回路。' },
+    { icon:'🧩', label:'渴爱与成瘾的连续性', text:'从物质成瘾到行为成瘾（赌博、社交媒体、购物），都共享同一套<strong>渴求-期待-奖励-渴求</strong>的神经回路。佛教将三毒（贪嗔痴）视为所有苦的根源，现代临床心理学则在成瘾领域发现了类似的<em>渴求的普遍性</em>。' },
+    { icon:'🌱', label:'渴求与存在主义', text:'欧文·亚隆（Irvin Yalom）的存在主义心理治疗识别了<strong>四个终极关切</strong>：死亡、自由、孤独、无意义。「有爱」（bhava-taṇhā）可被视为对这四个终极关切的系统性回避策略——通过持续的「成为」来逃避面对「存在的根本性」。' },
+  ],
+  compareDims: ['结构','神经机制','对治方向'],
+  compareA: ['三爱：欲爱（感官）、有爱（存在）、无有爱（断灭）','建立在无明（错误假设）上的渴求冲动','如实知见受，以无常观、慈悲观断爱的根基'],
+  compareB: ['渴求（wanting）vs 喜欢（liking）的神经区分','多巴胺渴求回路（纹状体-前额叶轴）','动机访谈（MI）+ 正念的渴求解构'],
+},
+{
+  zh:'取', pali:'Upādāna', num:'⑨', idx:9,
+  phase:'现在因', phaseColor:'#2e7a1e',
+  color:'#8a2818', light:'#ffd0c0', mid:'#c04830',
+  desc:'取（upādāna）是爱的强化与固化——从流动的渴求冲动变成对对象的坚固执持。佛教识别四种取：欲取（kāmupādāna）——执取感官欲乐；见取（diṭṭhupādāna）——执取见解、意识形态、世界观；戒禁取（sīlabbatupādāna）——执取仪式、方法本身为目的；我语取（attavādupādāna）——执取各种形式的自我概念。取比爱更危险，因为它已经建立了「这是我的」「这就是真理」「这是我」的认同结构。',
+  tags:['四种取','见取最难破除','我语取与自我认同','取是业有的直接条件'],
+  classical:[
+    { label:'四取的结构分析', text:'欲取：最明显的执着，对感官享受的占有欲。见取：对任何见解（包括虚无主义和常见论）的执取。<em>戒禁取</em>：把方法误认为目的——把禁欲苦行、繁文缛节误认为解脱本身。我语取：对「我是这样的人」「这是我的」「有一个我在经历」等自我描述的执取。四种中，后三种属于「见」的范畴，是邪见的来源。' },
+    { label:'《梵网经》的见取分类', text:'《梵网经》（DN 1）列举了62种邪见，这些邪见都可以被归入「见取」的范畴。其中包括常见论（相信有一个永恒的自我）、断见论（相信死后一切归无）、不死矫乱（逃避直接回答）等。<em>见取是轮回中最难突破的执着之一。</em>' },
+    { label:'我语取与身见', text:'我语取（attavāda-upādāna）在更深层次上等同于「身见」（sakkāya-diṭṭhi）——把五蕴和合的相续过程视为一个固定的「我」。这是须陀洹（初果）所断除的第一个结（saṃyojana），也是进入不退转修行的关键突破。' },
+    { label:'取作为有的条件', text:'以取为缘，有生起。这个缘起关系意味着：<em>正是执取的行为，在识的相续中建立了「业有」</em>——投生下一期生命的业力条件。没有取，便没有能够产生未来投生的业力种子。' },
+  ],
+  paliDef:'Cattārimāni, bhikkhave, upādānāni: kāmupādānaṃ, diṭṭhupādānaṃ, sīlabbatupādānaṃ, attavādupādānaṃ.',
+  paliTrans:'「比丘们，有这四种取：欲取、见取、戒禁取、我语取。」——《中部·正见经》（MN 9）',
+  quote:'「比丘们，我教导你们以如筏喻——法尚应舍，何况非法。」',
+  quoteSource:'——《中部·蛇喻经》（Alagaddūpama Sutta, MN 22），佛陀警告不要执取佛法本身（戒禁取）',
+  scenarioLabel:'情境：「我就是这样的人」',
+  scenario:`<strong>场景：</strong>朋友说你「太情绪化了」，你立刻感到不适——不是因为要改变，而是因为这个描述与你对自己的认识不符。
+<span class="moment ignorant"><span class="moment-tag">我语取在运作 ↓</span>「我不是情绪化的人」——这是一种<em>我语取</em>：对自我形象的执取。当这个形象受到威胁，防御反应立即启动，不是真正审视这个描述是否准确，而是保护「我是这样的人」这个固化的自我叙事。</span>
+<span class="moment aware"><span class="moment-tag">看见取的结构 ↓</span>内观视角：<em>「有一种想要捍卫某个关于自我的描述的冲动。」</em>然后进一步：这个「我」是什么？是情绪化的感受（受）？是一系列过去的行为（行）？还是一个贴在识流上的标签？当取松动，有空间重新评估朋友的话。</span>`,
+  practice:'对「见取」和「我语取」的直接对治是<strong>无我观</strong>（anatta-bhāvanā）：系统观察五蕴，问「这是我吗？这属于我吗？这是我的自我吗？」通过如实回答，动摇错误认同的基础。这是《无我相经》（Anattalakkhaṇa Sutta）的核心修行。',
+  modern:[
+    { icon:'🔒', label:'认知融合（Cognitive Fusion）', text:'ACT（接纳承诺疗法）中的「认知融合」：与念头融为一体，把念头等同于现实，等同于「我」。<strong>去融合技术</strong>（Defusion）是 ACT 的核心方法之一——从「我很没用」到「我有一个念头说我很没用」——这与「见取」的松动高度对应。' },
+    { icon:'🪴', label:'身份认同的建构性', text:'社会心理学和叙事心理学的研究表明：<strong>自我认同是被持续建构的</strong>，而非固定实体。Dan McAdams 的叙事身份理论显示，「我是谁」是一个不断被讲述和修订的故事——这与「我语取」是对「识流」的虚假固化的佛教分析一致。' },
+    { icon:'⚠️', label:'确认偏见与见取', text:'心理学中的确认偏见（Confirmation Bias）：<strong>我们倾向于寻找、解释、记忆与既有信念相符的信息</strong>。这是见取在认知层面的直接表现——一旦形成见解，就开始保护它、强化它，而不是检验它。' },
+  ],
+  compareDims: ['四种取','执取的核心问题','松动路径'],
+  compareA: ['欲取（感官）、见取（意识形态）、戒禁取（方法）、我语取（自我）','把流动的渴求固化为「我的」「真实的」「正确的」','无我观：系统检验「这是我吗？」'],
+  compareB: ['物质成瘾、意识形态固化、仪式化行为、身份过度认同','认知融合：把念头等同于现实和自我','去融合技术：「我有一个念头……」'],
+},
+{
+  zh:'有', pali:'Bhava', num:'⑩', idx:10,
+  phase:'现在因', phaseColor:'#2e7a1e',
+  color:'#7a2010', light:'#ffc8b0', mid:'#b03828',
+  desc:'有（bhava），字面义为「存在」或「变成」，在十二缘起中指由取所推动而形成的「业有」（kamma-bhava）——积累在识相续中、能够产生未来投生的业力势能。有分为三种：欲界有（kāma-bhava）、色界有（rūpa-bhava）、无色界有（arūpa-bhava），分别对应三界众生的存在形态。有是未来生（jāti）的直接近因，也是为什么说「取→有→生」是苦之集起的最后三个环节。',
+  tags:['业有（kamma-bhava）','三界有','有分识（bhavaṅga）','此生的业力总结'],
+  classical:[
+    { label:'业有与生有', text:'有分为两个层面：<em>业有</em>（kamma-bhava）：由意志造作（行）和执取（取）积累的业力种子，储存在识的相续中，等待条件成熟而现行。<em>生有</em>（upapatti-bhava）：实际投生的过程与存在状态。业有是因，生有是果。' },
+    { label:'有分识（bhavaṅga-citta）', text:'上座部阿毗达磨引入「有分识」概念：在没有主动认知活动时持续流转的基础意识流。有分识联系着过去的业力种子（有）和当下的认知活动，是生命流相续的基础机制。它的「打断」（bhavaṅga-calana）标志着每一次主动认知的开始。' },
+    { label:'三界有的差别', text:'欲界有：在欲界（包括人间、六欲天、四恶趣）的存在，以感官欲乐的追求为主要心理特征。色界有：经由禅定脱离粗重欲乐，在色界天的存在，以喜悦和定力为特征。无色界有：超越物质形式，在无色界天的存在，以极度精微的精神状态为特征。' },
+    { label:'有的断除', text:'「有」的断除不是通过「变成更好的存在」，而是通过<em>看穿「想要成为某种状态」本身就是苦的结构</em>。阿罗汉的证悟包括对「有爱」和「有取」的彻底断除——这使得死后不再产生新的业有，从而不再投生（不受后有）。' },
+  ],
+  paliDef:'Katamo ca, bhikkhave, bhavo? Tayo me, bhikkhave, bhavā: kāmabhavo, rūpabhavo, arūpabhavo.',
+  paliTrans:'「什么是有？有三种有：欲界有、色界有、无色界有。」——《中部·正见经》（MN 9）',
+  quote:'「比丘们，以取为缘，有生起；以有为缘，生生起。阿罗汉漏尽，不受后有——此乃我之最后生，今无再生。」',
+  quoteSource:'——《增支部》（AN 3.76）及《自说经》（Udāna 1.3）阿罗汉证悟的宣言',
+  scenarioLabel:'情境：职业规划中的焦虑',
+  scenario:`<strong>场景：</strong>深夜，你在思考职业方向——感到一种模糊的焦虑，觉得「自己必须成为某种人」，但又不清楚是什么。
+<span class="moment ignorant"><span class="moment-tag">有爱与业有的运作 ↓</span>「我必须成功」「我需要证明自己」——这些不是具体的欲望，而是一种<em>对存在状态的渴求</em>（有爱），加上每一次为了「成为那种人」而做出的选择（取），共同在识的相续中积累出一个关于「未来的我应该是什么」的业有结构。焦虑是这个结构的情感回声。</span>
+<span class="moment aware"><span class="moment-tag">观有的无常与无我 ↓</span>内观视角：<em>「这个『必须成为某种人』的感觉——它是什么？它在哪里？」</em>当你停止思考内容，转而观察这种渴求本身，你可能发现：它是一种身体上的紧绷，一种悬而未决的张力。它本身是无常的，它背后没有一个固定的「需要成为某种人」的实体。</span>`,
+  practice:'对「有」的修行，根本上是发起<strong>出离心</strong>（nekkhamma-chanda）：不是对存在的绝望，而是对「在任何界的存在都是苦的」的如实知见，从而减弱「变成更好的存在」的驱动力。《出离功德经》（AN 8.53）中有详细描述。',
+  modern:[
+    { icon:'🌐', label:'存在主义与「成为」的焦虑', text:'萨特的「存在先于本质」（Existence precedes essence）与「有」的分析有奇妙的呼应：人没有固定的本质，必须通过选择来「成为」——但这种必须不断「成为」的结构，正是佛教所指出的<strong>有爱之苦</strong>的根源。' },
+    { icon:'🧠', label:'默认模式网络与自我叙事', text:'当大脑处于静息状态时，<strong>默认模式网络（DMN）</strong>持续产生关于「过去的我」和「未来的我」的叙事——这与「有分识」在没有主动认知时持续流转的描述功能上相似。两者都是生命连续感和自我感的基础机制。' },
+    { icon:'📊', label:'成就动机（Achievement Motivation）', text:'心理学中的成就动机（David McClelland）和自我决定理论（Deci & Ryan）分析了「想要成为有能力/有成就的人」的驱动力。佛教的分析更为根本：指出这种驱动力本身（有爱）建立在对无我的无明上，<em>无论实现与否，都无法终结根本的不满足感</em>。' },
+  ],
+  compareDims: ['存在形态','延续机制','根本问题'],
+  compareA: ['欲界有、色界有、无色界有（三界轮转）','业有种子在识相续中积累，条件成熟则现行','「想要成为某种状态」的渴求本身就是苦'],
+  compareB: ['当下的身份状态 + 对未来身份的期望','神经回路的长期增强 + DMN 自我叙事','存在主义焦虑：无法通过「成为」来解决「存在」'],
+},
+{
+  zh:'生', pali:'Jāti', num:'⑪', idx:11,
+  phase:'未来果', phaseColor:'#8a2550',
+  color:'#7a2048', light:'#ffcce0', mid:'#b03870',
+  desc:'生（jāti）是依业有条件而在三界六道中投生的过程，包括「诞生、出生、降下、产生、众生的出现、诸蕴的获得、诸处的习得、生命诸蕴的现起」（DN 22的定义）。生不仅仅指一次物理意义上的出生事件，而是一整个生命流的开始与展开。「有生则必有老死」——生本身并不是问题，但生是老死苦的结构性前提，在三法印的视角下，每一次生都包含了后续一切苦的可能性。',
+  tags:['投生的机制','三界六道','生与老死的必然联系','无始轮回'],
+  classical:[
+    { label:'投生的精密分析', text:'上座部阿毗达磨详细描述投生机制：临死心（maraṇāsanna-citta）中出现的「业」「业相」或「趣相」，决定下一生的投生处。结生识在新的名色中生起，一个新的生命流开始。这个过程不需要一个「灵魂」在中间传递——<em>只有业的相续</em>。' },
+    { label:'六道轮回的佛教描述', text:'三界六道：欲界（地狱道、饿鬼道、畜生道、人道、修罗道、六欲天）、色界（四禅天等）、无色界（四无色天）。各道众生的差别由业有决定。在佛教的修行目标中，超越三界（出世间道）比升天更根本，因为天道也在轮回结构中。' },
+    { label:'生的刹那义', text:'在更细密的分析中，「生」不仅指一期生命的开始，也指每一刹那心识的「生起」（uppāda）。每一刹那都有生-住-灭的三相，一刹那心识的生起就是一次微观意义上的「生」。这使得生的观察成为禅修中直接可体验的内容。' },
+    { label:'生与苦的必然联系', text:'《梵志火鬘经》：佛陀说「生是苦」，这不是悲观主义，而是对存在结构的如实描述：任何在三界中的生，都带有无常性、苦性、无我性——因此都包含了苦的可能性。出离心（nekkhamma）正是建立在这个如实知见上。' },
+  ],
+  paliDef:'Katamā ca, bhikkhave, jāti? Yā tesaṃ tesaṃ sattānaṃ tamhi tamhi sattanikāye jāti sañjāti okkanti abhinibbatti khandhānaṃ pātubhāvo āyatanānaṃ paṭilābho.',
+  paliTrans:'「什么是生？就是诸众生在各自的众生类中：诞生、出生、降下、产生、众生的出现、诸蕴的现起、诸处的获得。」——《大念处经》（DN 22）',
+  quote:'「比丘们，无始以来的轮回中，起点是不可知的。被无明所覆、被渴爱所缚的众生，在轮回中流浪，起点不可得。」',
+  quoteSource:'——《相应部·无始相应》（SN 15.1）',
+  scenarioLabel:'情境：新项目开始时的心理状态',
+  scenario:`<strong>场景：</strong>开始一个新的工作项目——满怀期待，同时也有一丝未察觉的焦虑。
+<span class="moment ignorant"><span class="moment-tag">每一「生」都携带业有的惯性 ↓</span>这个新项目的「开始」，不是一个空白的起点。过去所有项目中积累的习气——<em>对完美的追求、对失败的恐惧、对认可的需求</em>——作为业有的印痕，在新项目开始的瞬间已经悄悄进入了这个新的「生」中。那丝未察觉的焦虑，正是这些业有种子的最初萌动。</span>
+<span class="moment aware"><span class="moment-tag">在每一「生」的起点观察 ↓</span>修行者可以在任何新的开始（一次对话、一项任务、一段关系的新阶段）注意到：<em>「什么样的习气正在进入这个新的开始？」</em>这种观察让每一个「生」成为检视业有的机会，而不是让旧有模式自动延续。</span>`,
+  practice:'「生」的修行意涵在于<strong>发出离心</strong>——不是对生命的绝望，而是对「在三界中的任何存在都无法彻底解决苦」的清醒认识，从而在修行上发起向出世间道的真诚转向。这是四圣谛中苦谛的完整消化。',
+  modern:[
+    { icon:'🌱', label:'发展心理学的起点问题', text:'现代发展心理学研究表明：<strong>早期经验（包括子宫内的胎儿期）塑造神经结构</strong>。这与「生携带业有」的描述有结构性的相似：每一个新生命带来的不仅是一个空白石板，而是特定的神经倾向和早期环境塑造的心理模式。' },
+    { icon:'🔄', label:'依恋理论与轮回模式', text:'Bowlby 的依恋理论显示：<strong>早期依恋模式成为内部工作模型</strong>，影响终生的关系模式。这与「业有在生中延续」有类比关系——不是字面意义的轮回，而是心理模式的代际传递与个人重复。' },
+    { icon:'🌍', label:'存在主义：被抛的处境', text:'海德格尔的「被抛性」（Thrownness, Geworfenheit）：我们不选择在什么样的历史、文化、家庭中出生——这个<strong>无法选择的起点</strong>构成了存在的基本条件。佛教则将这种「被抛」追溯到更根本的层次：无明与业有。' },
+  ],
+  compareDims: ['范围','延续机制','修行意涵'],
+  compareA: ['一期生命的开始，乃至每一刹那心识的生起','业有种子在结生识中现行，开启新的名色相续','见苦谛：「生是苦」——发出离心'],
+  compareB: ['从受孕到出生的神经发展起点','早期经验塑造神经结构，建立内部工作模型','存在主义：正视「被抛」，在给定条件中做出真实选择'],
+},
+{
+  zh:'老死', pali:'Jarāmaraṇa', num:'⑫', idx:12,
+  phase:'未来果', phaseColor:'#8a2550',
+  color:'#6a1010', light:'#ffcccc', mid:'#a02828',
+  desc:'老死（jarā-maraṇa）是十二缘起的最终环节，代表有情众生在三界中存在的完整苦谛图景。老（jarā）：感官能力的衰退、身体的变化、白发、皱纹、记忆的消退、活力的减损——无常性在时间轴上的显现。死（maraṇa）：诸蕴的坏灭、寿命的终结、识的离去——无常性的终极表达。经文在此之后还补充：忧、悲、苦、恼、绝望（soka, parideva, dukkha, domanassa, upāyāsa）——死亡阴影下的情绪苦是老死的延伸。老死是苦谛的完整呈现，也是修行最根本的动力来源——见老死而发道心。',
+  tags:['苦谛的完整呈现','无常性的终极显现','老死是修行的动力','忧悲苦恼绝望'],
+  classical:[
+    { label:'老的定义', text:'《大念处经》（DN 22）对老的定义：「对于各类众生，各自的老化、衰老、牙齿脱落、白发显现、皮肤松弛、寿命减短、感官器官的成熟——这称为老。」老不是某一时刻的事件，而是一个持续的过程——<em>我们每一刹那都在老</em>，只是程度太细微而难以察觉。' },
+    { label:'死的定义', text:'《大念处经》对死的定义：「对于各类众生，各自的死去、死亡、坏灭、消逝、寿命的终结、诸蕴的坏灭、身体的放弃、识的离去——这称为死。」佛教的死亡分析包含了「认知过程的彻底终结」和「业有种子的转移」两个层面。' },
+    { label:'死随念（Maraṇasati）', text:'《清净道论》将「死随念」作为40种业处之一：每天多次提醒自己「我将会死去」，不是为了引起恐惧，而是为了<em>让对死亡的清醒认识成为修行的持续动力</em>，并在临终时能够保持正念。斯多葛哲学的 Memento mori 与此相似。' },
+    { label:'苦谛的完整表述', text:'第一圣谛的完整表述：「生是苦，老是苦，死是苦，忧、悲、苦、恼、绝望是苦，与所爱别离是苦，与所恶和合是苦，求不得是苦——总之，五取蕴是苦。」老死是这个完整苦图景的象征性总结，也是修行者每天应与之正视的现实。' },
+  ],
+  paliDef:'Katamañca, bhikkhave, jarāmaraṇaṃ? Yā tesaṃ tesaṃ sattānaṃ tamhi tamhi sattanikāye jarā jīraṇatā khaṇḍiccaṃ pāliccaṃ valittacatā āyuno saṃhāni indriyānaṃ paripāko — ayaṃ vuccati jarā. Yo tesaṃ tesaṃ sattānaṃ tamhā tamhā sattanikāyā cuti cavanatā bhedo antaradhānaṃ maccu maraṇaṃ kālaṃkiriyā khandhānaṃ bhedo kaḷevarassa nikkhepo — idaṃ vuccati maraṇaṃ.',
+  paliTrans:'老与死的巴利定义——《大念处经》（Mahāsatipaṭṭhāna Sutta, DN 22）',
+  quote:'「比丘们，从前的我和现在的我，只说一件事：苦与苦的息灭。」',
+  quoteSource:'——《中部·虫蚁喻经》（Alagaddūpama Sutta, MN 22），也见于《相应部》多处',
+  scenarioLabel:'情境：凌晨三点的失眠',
+  scenario:`<strong>场景：</strong>凌晨三点，无法入睡。身边一片黑暗，开始想到父母在老去，想到自己也会老去、会死，这种想法带来了一种难以名状的沉重。
+<span class="moment ignorant"><span class="moment-tag">老死带来的无明反应 ↓</span>这种沉重感在无明中通常有两种走向：<em>要么逃避</em>（转移注意力、刷手机、强迫自己「不要想」）；<em>要么灾难化</em>（进入无止境的焦虑性反刍）。两种都是对老死的不如实回应，都在加深苦。</span>
+<span class="moment aware"><span class="moment-tag">与老死正视 ↓</span>修行的方向：<em>不逃避，不灾难化，而是如实地坐在这个事实面前。</em>「是的，我会死。父母会死。所有人会死。」——在如实承认这个事实的那一刻，可能有一种奇异的清醒与解脱：如果这是真的，此刻什么才是真正重要的？死随念可以成为让生命更清醒、更真实的修行。</span>`,
+  practice:'<strong>死随念</strong>（maraṇasati）：「愿死亡在我一次呼吸之间到来」「愿死亡在我一口饭之间到来」——通过如实面对死亡的必然性，让每一刻都有它真实的重量。这不是绝望，而是清醒。阿罗汉在证悟时宣言「不受后有」，正是对老死的彻底解脱——通过消灭苦的根源（无明与爱取）而非逃避老死本身。',
+  modern:[
+    { icon:'🕯️', label:'恐惧管理理论（Terror Management Theory）', text:'Jeff Greenberg 等人的恐惧管理理论：对死亡的意识（mortality salience）是人类心理防御机制的根本驱动力。<strong>文化世界观、自尊、爱国主义、宗教信仰等</strong>都部分地作为抵御死亡恐惧的心理缓冲器运作。佛教的「老死」分析从另一方向揭示：这些防御机制本身都是取（执取）的表现。' },
+    { icon:'🧬', label:'死亡科学的现代发现', text:'端粒缩短机制（Telomere shortening）、细胞凋亡（Apoptosis）是老化的细胞基础。有意思的是：<strong>压力（来自贪爱与执取）加速端粒缩短</strong>——这是「苦→老死」在生物层面的直接链条。正念干预对端粒酶活性的积极影响已有多项研究证实。' },
+    { icon:'🌿', label:'好死学（Thanatology）与善终', text:'现代安宁疗护（Palliative Care）和临终关怀的核心洞见：<strong>面对死亡的能力决定了活着的质量</strong>。Elisabeth Kübler-Ross 的临终阶段模型（否认→愤怒→讨价还价→抑郁→接受）所描述的「接受」，与佛教「如实知见老死」的修行方向有相似的终点——尽管路径不同。' },
+  ],
+  compareDims: ['老的分析','死的分析','修行/临床意涵'],
+  compareA: ['感官衰退、身体变化、活力减损——无常在时间轴上的持续显现','诸蕴坏灭、识的离去——无常性的终极表达','死随念：如实面对死亡，让生命清醒；断苦根以不受后有'],
+  compareB: ['端粒缩短、细胞凋亡——氧化应激与慢性炎症加速老化','大脑临终状态：意识活动的逐步终止','好死学：面对死亡提升生命质量；压力管理延缓老化'],
+},
+];
+
+/* ═══════════════════════════════════════════════════════
+   SVG WHEEL
+═══════════════════════════════════════════════════════ */
+const CX = 300, CY = 300, R = 170, NR = 36;
+const PI2 = Math.PI * 2, SLICE = PI2 / 12;
+const NS = 'http://www.w3.org/2000/svg';
+
+function svg(tag, a) {
+  const el = document.createElementNS(NS, tag);
+  for (const [k,v] of Object.entries(a)) el.setAttribute(k, v);
+  return el;
+}
+
+const sectorsG = document.getElementById('sectors');
+const spokesG  = document.getElementById('spokes');
+const nodesG   = document.getElementById('nodes');
+const dotsG    = document.getElementById('seqdots');
+
+// Sectors
+nidanas.forEach((n, i) => {
+  const a1 = -Math.PI/2 + i*SLICE, a2 = -Math.PI/2 + (i+1)*SLICE;
+  const r1=84, r2=228;
+  const d = `M${CX+r1*Math.cos(a1)},${CY+r1*Math.sin(a1)} L${CX+r2*Math.cos(a1)},${CY+r2*Math.sin(a1)} A${r2},${r2} 0 0 1 ${CX+r2*Math.cos(a2)},${CY+r2*Math.sin(a2)} L${CX+r1*Math.cos(a2)},${CY+r1*Math.sin(a2)} A${r1},${r1} 0 0 0 ${CX+r1*Math.cos(a1)},${CY+r1*Math.sin(a1)} Z`;
+  sectorsG.appendChild(svg('path', { d, fill:n.color, opacity:'0.14', stroke:n.mid, 'stroke-width':'0.4', 'stroke-opacity':'0.35' }));
+  const ta = -Math.PI/2 + i*SLICE;
+  sectorsG.appendChild(svg('line', {
+    x1:CX+84*Math.cos(ta), y1:CY+84*Math.sin(ta),
+    x2:CX+92*Math.cos(ta), y2:CY+92*Math.sin(ta),
+    stroke:'#9d88f0', 'stroke-width':'1.1', opacity:'0.45'
+  }));
+});
+
+// Spokes + nodes
+nidanas.forEach((n, i) => {
+  const angle = -Math.PI/2 + (i+0.5)*SLICE;
+  const px = CX + R*Math.cos(angle), py = CY + R*Math.sin(angle);
+
+  // Spoke
+  spokesG.appendChild(svg('line', {
+    x1:CX+86*Math.cos(angle), y1:CY+86*Math.sin(angle),
+    x2:CX+(R-NR-5)*Math.cos(angle), y2:CY+(R-NR-5)*Math.sin(angle),
+    stroke:n.mid, 'stroke-width':'1', opacity:'0.32', id:`sp-${i}`
+  }));
+
+  const g = svg('g', { class:'nidana-node', id:`nd-${i}` });
+
+  // Glow ring
+  g.appendChild(svg('circle', { cx:px, cy:py, r:NR+7, fill:'none', stroke:n.mid, 'stroke-width':'2', opacity:'0', id:`rg-${i}`, filter:'url(#glow)' }));
+
+  // Main circle
+  g.appendChild(svg('circle', { cx:px, cy:py, r:NR, fill:n.color, stroke:n.mid, 'stroke-width':'1.5', id:`ci-${i}` }));
+  g.appendChild(svg('circle', { cx:px, cy:py, r:NR-6, fill:'none', stroke:n.light, 'stroke-width':'0.4', opacity:'0.25' }));
+
+  // Texts
+  const nt = svg('text', { x:px, y:py-10, 'text-anchor':'middle', 'dominant-baseline':'central', 'font-size':'10', fill:n.light, opacity:'0.65', 'font-family':"'EB Garamond',serif", 'font-style':'italic' });
+  nt.textContent = n.num; g.appendChild(nt);
+
+  const lt = svg('text', { x:px, y:py+5, 'text-anchor':'middle', 'dominant-baseline':'central', 'font-size':n.zh.length>2?'11.5':'15', 'font-weight':'400', fill:n.light, 'font-family':"'Noto Serif SC',serif" });
+  lt.textContent = n.zh; g.appendChild(lt);
+
+  const abbr = n.pali.length>9 ? n.pali.slice(0,8)+'…' : n.pali;
+  const pt = svg('text', { x:px, y:py+23, 'text-anchor':'middle', 'dominant-baseline':'central', 'font-size':'8', fill:n.light, opacity:'0.5', 'font-family':"'EB Garamond',serif", 'font-style':'italic' });
+  pt.textContent = abbr; g.appendChild(pt);
+
+  g.addEventListener('click', () => selectNode(i));
+  nodesG.appendChild(g);
+});
+
+// Seq dots
+nidanas.forEach((n, i) => {
+  if (i===11) return;
+  const amid = -Math.PI/2 + (i+1)*SLICE;
+  const dr = R+NR+18;
+  dotsG.appendChild(svg('circle', { cx:CX+dr*Math.cos(amid), cy:CY+dr*Math.sin(amid), r:'2', fill:n.mid, opacity:'0.45' }));
+});
+
+// Loop arrow
+const a11 = -Math.PI/2 + 11.5*SLICE, a0 = -Math.PI/2 + 0.5*SLICE;
+const lr = R+NR+22;
+document.getElementById('loop-path').setAttribute('d',
+  `M${CX+lr*Math.cos(a11+0.1)},${CY+lr*Math.sin(a11+0.1)} A${lr},${lr} 0 0 0 ${CX+lr*Math.cos(a0-0.1)},${CY+lr*Math.sin(a0-0.1)}`);
+
+/* ═══════════════════════════════════════════════════════
+   CHAIN NAV
+═══════════════════════════════════════════════════════ */
+const cf = document.getElementById('chain-flow');
+nidanas.forEach((n, i) => {
+  if (i>0) { const a=document.createElement('span'); a.className='cn-arr'; a.textContent='→'; cf.appendChild(a); }
+  const nd=document.createElement('div');
+  nd.className='cn-node'; nd.id=`cn-${i}`;
+  nd.innerHTML=`<span class="cn-zh">${n.zh}</span><span class="cn-num">${n.num}</span>`;
+  nd.addEventListener('click', ()=>selectNode(i));
+  cf.appendChild(nd);
+});
+
+/* ═══════════════════════════════════════════════════════
+   SELECT NODE — render all content
+═══════════════════════════════════════════════════════ */
+let cur = 0;
+
+function selectNode(i) {
+  const n = nidanas[i];
+  cur = i;
+
+  // SVG state
+  nidanas.forEach((_,j) => {
+    document.getElementById(`rg-${j}`)?.setAttribute('opacity','0');
+    document.getElementById(`ci-${j}`)?.setAttribute('stroke-width','1.5');
+    document.getElementById(`sp-${j}`)?.setAttribute('opacity','0.32');
+    document.getElementById(`sp-${j}`)?.setAttribute('stroke-width','1');
+    document.getElementById(`cn-${j}`)?.classList.remove('active');
+  });
+  document.getElementById(`rg-${i}`)?.setAttribute('opacity','0.75');
+  document.getElementById(`ci-${i}`)?.setAttribute('stroke-width','2.5');
+  document.getElementById(`sp-${i}`)?.setAttribute('opacity','0.85');
+  document.getElementById(`sp-${i}`)?.setAttribute('stroke-width','2');
+  const cnEl = document.getElementById(`cn-${i}`);
+  cnEl?.classList.add('active');
+  cnEl?.scrollIntoView({behavior:'smooth', block:'nearest', inline:'center'});
+
+  // ── A: Identity ──
+  document.getElementById('card-identity').style.borderColor = n.mid;
+  const badge = document.getElementById('ci-badge');
+  badge.textContent = n.num;
+  badge.style.color = n.mid;
+  badge.style.borderColor = n.mid;
+  const zh = document.getElementById('ci-zh');
+  zh.textContent = n.zh;
+  zh.style.color = n.light;
+  document.getElementById('ci-pali').textContent = n.pali;
+  document.getElementById('ci-meta').textContent = `第 ${n.idx} 支 · ${n.phase} · 点击节点/键盘←→切换`;
+  const bar = document.getElementById('ci-phasebar');
+  bar.style.background = `linear-gradient(90deg, ${n.phaseColor}, ${n.mid})`;
+  document.getElementById('ci-desc').textContent = n.desc;
+  document.getElementById('ci-tags').innerHTML = n.tags.map(t=>`<span class="ci-tag">${t}</span>`).join('');
+
+  // ── B: Classical ──
+  document.getElementById('classical-grid').innerHTML = n.classical.map(c=>`
+    <div class="cg-item">
+      <div class="cg-label">${c.label}</div>
+      <div class="cg-value">${c.text}</div>
+    </div>`).join('');
+  document.getElementById('pf-text').textContent = n.paliDef;
+  document.getElementById('pf-trans').textContent = n.paliTrans;
+  document.getElementById('cq-text').textContent = n.quote;
+  document.getElementById('cq-source').textContent = n.quoteSource;
+
+  // ── C: Lived ──
+  document.getElementById('sb-scene-label').textContent = n.scenarioLabel;
+  document.getElementById('sb-body').innerHTML = n.scenario;
+  document.getElementById('pt-text').innerHTML = n.practice;
+
+  // ── D: Modern ──
+  document.getElementById('modern-rows').innerHTML = n.modern.map(m=>`
+    <div class="mr-row">
+      <div class="mr-icon">${m.icon}</div>
+      <div class="mr-content">
+        <div class="mr-label">${m.label}</div>
+        <div class="mr-text">${m.text}</div>
+      </div>
+    </div>`).join('');
+
+  // Compare table
+  document.getElementById('compare-table').innerHTML = `
+    <div class="ct-row ct-head">
+      <div class="ct-cell">维度</div>
+      <div class="ct-cell">佛教分析</div>
+      <div class="ct-cell">现代科学</div>
+    </div>` + n.compareDims.map((d,k)=>`
+    <div class="ct-row">
+      <div class="ct-cell">${d}</div>
+      <div class="ct-cell">${n.compareA[k]}</div>
+      <div class="ct-cell">${n.compareB[k]}</div>
+    </div>`).join('');
+
+  // Re-animate cards
+  ['card-identity','card-classical','card-lived','card-modern'].forEach((id,k)=>{
+    const el = document.getElementById(id);
+    el.style.animation='none'; el.offsetHeight;
+    el.style.animation=`fadeUp 0.3s ease ${k*0.04}s both`;
+  });
+
+  // Scroll page to top of detail area
+  document.querySelector('.detail-panel').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (e.key==='ArrowRight'||e.key==='ArrowDown') selectNode((cur+1)%12);
+  else if (e.key==='ArrowLeft'||e.key==='ArrowUp') selectNode((cur+11)%12);
+});
+
+selectNode(0);
+</script>
+</body>
+</html>
