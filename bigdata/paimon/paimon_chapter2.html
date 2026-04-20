@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apache Paimon 深度学习 · 第二章</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0d0e;
+    --surface: #111517;
+    --surface2: #161b1e;
+    --surface3: #1c2327;
+    --border: rgba(6, 214, 160, 0.10);
+    --border2: rgba(6, 214, 160, 0.28);
+    --accent: #06d6a0;
+    --accent2: #00b4d8;
+    --accent3: #f72585;
+    --accent4: #ffd166;
+    --text: #ddeee8;
+    --text2: #7fa99a;
+    --text3: #3d6659;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Noto Sans SC', sans-serif;
+    --display: 'Syne', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 68px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 0;
+    position: fixed;
+    top: 0; bottom: 0;
+    z-index: 100;
+  }
+  .sidebar-logo {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.22em;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    margin-bottom: auto;
+    padding-top: 20px;
+  }
+  .sidebar-chapter {
+    font-family: var(--mono);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text3);
+    padding-bottom: 6px;
+  }
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-bottom: 28px;
+  }
+  .snav {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--text3);
+    transition: background 0.25s, transform 0.25s;
+    cursor: pointer;
+  }
+  .snav.act { background: var(--accent); transform: scale(1.5); }
+
+  .main { margin-left: 68px; }
+
+  /* ── Hero ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 80px 64px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* animated scan-line bg */
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 47px,
+        rgba(6,214,160,0.04) 47px,
+        rgba(6,214,160,0.04) 48px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 47px,
+        rgba(6,214,160,0.04) 47px,
+        rgba(6,214,160,0.04) 48px
+      );
+  }
+
+  .hero-glow {
+    position: absolute;
+    width: 700px; height: 700px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(6,214,160,0.10) 0%, rgba(0,180,216,0.04) 45%, transparent 70%);
+    bottom: -200px; right: -150px;
+    animation: glow-pulse 7s ease-in-out infinite;
+  }
+  @keyframes glow-pulse {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
+
+  .hero-streak {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, var(--accent) 40%, var(--accent2) 60%, transparent 100%);
+    animation: streak 4s linear infinite;
+    opacity: 0.6;
+  }
+  @keyframes streak {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  .chapter-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--border2);
+    background: rgba(6,214,160,0.07);
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    padding: 7px 18px;
+    border-radius: 2px;
+    margin-bottom: 36px;
+    width: fit-content;
+  }
+  .badge-dot {
+    width: 7px; height: 7px;
+    background: var(--accent3);
+    border-radius: 50%;
+    animation: blink 1.8s infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  .hero h1 {
+    font-family: var(--display);
+    font-size: clamp(40px, 5.5vw, 76px);
+    font-weight: 800;
+    line-height: 1.06;
+    letter-spacing: -0.025em;
+    max-width: 820px;
+    margin-bottom: 28px;
+  }
+  .grad-teal {
+    background: linear-gradient(120deg, #06d6a0, #00b4d8, #06d6a0);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 4s linear infinite;
+  }
+  @keyframes shimmer { to { background-position: 200% center; } }
+
+  .hero-desc {
+    font-size: 17px;
+    color: var(--text2);
+    max-width: 580px;
+    line-height: 1.85;
+    margin-bottom: 52px;
+  }
+
+  .hero-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 52px;
+  }
+  .pill {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 5px 14px;
+    border-radius: 100px;
+    border: 1px solid var(--border2);
+    color: var(--accent);
+    background: rgba(6,214,160,0.07);
+    letter-spacing: 0.06em;
+  }
+  .pill.pink { border-color: rgba(247,37,133,0.3); color: #f472b6; background: rgba(247,37,133,0.07); }
+  .pill.blue { border-color: rgba(0,180,216,0.3); color: #67e8f9; background: rgba(0,180,216,0.07); }
+  .pill.yellow { border-color: rgba(255,209,102,0.3); color: #fcd34d; background: rgba(255,209,102,0.07); }
+
+  .hero-meta {
+    display: flex;
+    gap: 44px;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  .meta-item { display: flex; flex-direction: column; gap: 5px; }
+  .meta-label { color: var(--text3); font-size: 10px; letter-spacing: 0.12em; }
+  .meta-val { color: var(--accent); }
+
+  /* ── Section ── */
+  .section {
+    padding: 96px 64px;
+    max-width: 1160px;
+    margin: 0 auto;
+  }
+  .section-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    color: var(--accent);
+    margin-bottom: 14px;
+    text-transform: uppercase;
+  }
+  .section-title {
+    font-family: var(--display);
+    font-size: clamp(26px, 3.2vw, 42px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.14;
+    margin-bottom: 14px;
+  }
+  .section-sub {
+    font-size: 15px;
+    color: var(--text2);
+    max-width: 640px;
+    line-height: 1.85;
+    margin-bottom: 56px;
+  }
+
+  /* ── Changelog Row Types ── */
+  .cl-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+  }
+  .cl-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px 24px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.28s, transform 0.28s;
+  }
+  .cl-card:hover { border-color: var(--border2); transform: translateY(-3px); }
+
+  .cl-type {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    letter-spacing: -0.01em;
+  }
+  .cl-name { font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text); }
+  .cl-desc { font-size: 13px; color: var(--text2); line-height: 1.75; }
+
+  .cl-insert .cl-type { color: #34d399; }
+  .cl-delete .cl-type { color: #f87171; }
+  .cl-before .cl-type { color: #fb923c; }
+  .cl-after .cl-type { color: #60a5fa; }
+
+  .cl-insert { border-top: 2px solid #34d399; }
+  .cl-delete { border-top: 2px solid #f87171; }
+  .cl-before { border-top: 2px solid #fb923c; }
+  .cl-after { border-top: 2px solid #60a5fa; }
+
+  /* ── Code ── */
+  .code-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 40px;
+  }
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 22px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+  .dots { display: flex; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dr { background: #ff5f57; } .dy { background: #febc2e; } .dg { background: #28c840; }
+  .ctitle { font-family: var(--mono); font-size: 11px; color: var(--text3); letter-spacing: 0.1em; }
+  .code-body {
+    padding: 28px 30px;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 2;
+    overflow-x: auto;
+  }
+  .kw { color: #c792ea; }
+  .str { color: #c3e88d; }
+  .cm { color: #4a6a5e; }
+  .num { color: #f78c6c; }
+  .fn { color: #82aaff; }
+  .vr { color: #eeffff; }
+  .op { color: #89ddff; }
+  .hl { color: var(--accent); }
+  .pink { color: #f472b6; }
+  .yel { color: #fcd34d; }
+
+  /* ── Flow Diagram ── */
+  .flow-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .flow-wrap::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent);
+  }
+
+  .flow-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .flow-node {
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .fn-green { background: rgba(6,214,160,0.12); border: 1px solid rgba(6,214,160,0.35); color: #6ee7b7; }
+  .fn-blue { background: rgba(0,180,216,0.12); border: 1px solid rgba(0,180,216,0.35); color: #67e8f9; }
+  .fn-pink { background: rgba(247,37,133,0.1); border: 1px solid rgba(247,37,133,0.3); color: #f9a8d4; }
+  .fn-yellow { background: rgba(255,209,102,0.1); border: 1px solid rgba(255,209,102,0.25); color: #fde68a; }
+  .fn-gray { background: rgba(100,120,110,0.12); border: 1px solid rgba(100,120,110,0.25); color: #94a3b8; }
+
+  .flow-arr {
+    font-size: 16px;
+    color: var(--text3);
+    padding: 0 10px;
+    flex-shrink: 0;
+  }
+  .flow-arr-down {
+    display: flex;
+    justify-content: center;
+    font-size: 18px;
+    color: var(--text3);
+    margin: 6px 0;
+  }
+
+  .flow-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--text3);
+    margin-bottom: 10px;
+    padding-left: 2px;
+  }
+
+  /* ── CDC Source Cards ── */
+  .source-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 48px;
+  }
+  .source-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px 26px;
+    position: relative;
+    transition: border-color 0.28s, transform 0.28s;
+    overflow: hidden;
+  }
+  .source-card:hover { border-color: var(--border2); transform: translateY(-3px); }
+  .source-logo {
+    font-family: var(--display);
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 14px;
+    letter-spacing: -0.03em;
+  }
+  .source-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 10px; color: var(--text); }
+  .source-card p { font-size: 13px; color: var(--text2); line-height: 1.78; }
+  .source-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+  .stag {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 9px;
+    border-radius: 2px;
+    letter-spacing: 0.08em;
+  }
+  .stag-g { background: rgba(6,214,160,0.1); color: #6ee7b7; border: 1px solid rgba(6,214,160,0.18); }
+  .stag-b { background: rgba(0,180,216,0.1); color: #67e8f9; border: 1px solid rgba(0,180,216,0.18); }
+  .stag-p { background: rgba(247,37,133,0.08); color: #f9a8d4; border: 1px solid rgba(247,37,133,0.18); }
+  .stag-y { background: rgba(255,209,102,0.08); color: #fde68a; border: 1px solid rgba(255,209,102,0.18); }
+
+  .src-mysql .source-logo { color: #f97316; }
+  .src-pg .source-logo { color: #60a5fa; }
+  .src-mongo .source-logo { color: #4ade80; }
+  .src-kafka .source-logo { color: #fbbf24; }
+
+  /* ── Info Box ── */
+  .info-box {
+    border-radius: 8px;
+    padding: 20px 24px;
+    font-size: 14px;
+    line-height: 1.85;
+    margin: 28px 0;
+  }
+  .info-box.tip { background: rgba(6,214,160,0.07); border-left: 3px solid var(--accent); color: var(--text2); }
+  .info-box.warn { background: rgba(247,37,133,0.07); border-left: 3px solid var(--accent3); color: var(--text2); }
+  .info-box.note { background: rgba(0,180,216,0.07); border-left: 3px solid var(--accent2); color: var(--text2); }
+  .info-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; margin-bottom: 8px; font-weight: 600; }
+  .tip .info-label { color: var(--accent); }
+  .warn .info-label { color: var(--accent3); }
+  .note .info-label { color: var(--accent2); }
+
+  /* ── Consumer Modes Table ── */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 40px;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    background: var(--surface2);
+    padding: 12px 20px;
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 13px 20px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text2);
+    line-height: 1.6;
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.012); }
+
+  .badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 9px;
+    border-radius: 2px;
+    letter-spacing: 0.07em;
+  }
+  .bd-g { background: rgba(6,214,160,0.12); color: #6ee7b7; border: 1px solid rgba(6,214,160,0.22); }
+  .bd-b { background: rgba(0,180,216,0.12); color: #67e8f9; border: 1px solid rgba(0,180,216,0.22); }
+  .bd-p { background: rgba(247,37,133,0.1); color: #f9a8d4; border: 1px solid rgba(247,37,133,0.2); }
+  .bd-y { background: rgba(255,209,102,0.1); color: #fde68a; border: 1px solid rgba(255,209,102,0.2); }
+
+  /* ── Timeline ── */
+  .tl { position: relative; margin-top: 48px; padding-left: 48px; }
+  .tl::before {
+    content: '';
+    position: absolute;
+    left: 16px; top: 0; bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--accent), var(--accent2), var(--accent3));
+  }
+  .tl-item { position: relative; margin-bottom: 36px; }
+  .tl-dot {
+    position: absolute;
+    left: -40px; top: 4px;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 2px solid var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    color: var(--accent);
+  }
+  .tl-content {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px 26px;
+    transition: border-color 0.25s;
+  }
+  .tl-content:hover { border-color: var(--border2); }
+  .tl-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    padding: 2px 10px;
+    border-radius: 2px;
+    background: rgba(6,214,160,0.1);
+    color: var(--accent);
+    border: 1px solid rgba(6,214,160,0.2);
+    display: inline-block;
+    margin-bottom: 10px;
+  }
+  .tl-content h4 { font-family: var(--display); font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+  .tl-content p { font-size: 13px; color: var(--text2); line-height: 1.8; }
+
+  /* ── Pitfall Cards ── */
+  .pitfall-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 14px;
+    margin-top: 48px;
+  }
+  .pitfall {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+    transition: border-color 0.25s;
+  }
+  .pitfall:hover { border-color: rgba(247,37,133,0.3); }
+  .pitfall-icon {
+    font-size: 22px;
+    min-width: 32px;
+    padding-top: 2px;
+    text-align: center;
+  }
+  .pitfall h5 { font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text); }
+  .pitfall p { font-size: 13px; color: var(--text2); line-height: 1.75; }
+
+  /* ── Footer ── */
+  .footer-nav {
+    padding: 56px 64px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 24px;
+    max-width: 1160px;
+    margin: 0 auto;
+  }
+  .toc { display: flex; flex-direction: column; gap: 8px; }
+  .toc-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--text2);
+    cursor: default;
+  }
+  .toc-item.done { color: var(--text3); text-decoration: line-through; text-decoration-color: var(--text3); }
+  .toc-item.active { color: var(--accent); }
+  .toc-num { font-family: var(--mono); font-size: 10px; color: var(--text3); min-width: 22px; }
+  .nav-next { text-align: right; }
+  .nav-label { font-family: var(--mono); font-size: 11px; color: var(--text3); margin-bottom: 10px; letter-spacing: 0.1em; }
+  .nav-title { font-family: var(--display); font-size: 20px; font-weight: 700; color: var(--text2); line-height: 1.3; }
+
+  /* ── Reveal ── */
+  .reveal { opacity: 0; transform: translateY(22px); transition: opacity 0.65s ease, transform 0.65s ease; }
+  .reveal.visible { opacity: 1; transform: none; }
+
+  /* ── Divider ── */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border2), transparent);
+    margin: 0 64px;
+    max-width: 1160px;
+  }
+
+  @media (max-width: 768px) {
+    .hero, .section { padding: 60px 24px; }
+    .sidebar { display: none; }
+    .main { margin-left: 0; }
+    .footer-nav { padding: 40px 24px; }
+    .divider { margin: 0 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav class="sidebar">
+  <span class="sidebar-logo">PAIMON</span>
+  <span class="sidebar-chapter">02</span>
+  <div class="sidebar-nav">
+    <div class="snav act"></div>
+    <div class="snav"></div>
+    <div class="snav"></div>
+    <div class="snav"></div>
+    <div class="snav"></div>
+    <div class="snav"></div>
+  </div>
+</nav>
+
+<main class="main">
+
+  <!-- ── Hero ── -->
+  <section class="hero" id="s0">
+    <div class="hero-bg"></div>
+    <div class="hero-glow"></div>
+    <div class="hero-streak"></div>
+
+    <div class="chapter-badge">
+      <span class="badge-dot"></span>
+      CHAPTER 02 · CDC & CHANGELOG
+    </div>
+
+    <h1>
+      <span class="grad-teal">Changelog</span> 与<br>
+      CDC 数据摄取<br>
+      机制
+    </h1>
+
+    <p class="hero-desc">
+      深入理解 Paimon 的变更数据捕获体系 —— 从 Binlog 解析到 Changelog 类型设计，从消费位移管理到多源 CDC 接入，掌握构建实时数仓的核心链路。
+    </p>
+
+    <div class="hero-pills">
+      <span class="pill">+I / -D / +U / -U</span>
+      <span class="pill blue">Flink CDC 2.x / 3.x</span>
+      <span class="pill pink">MySQL · PostgreSQL · MongoDB</span>
+      <span class="pill yellow">Consumer Position</span>
+    </div>
+
+    <div class="hero-meta">
+      <div class="meta-item">
+        <span class="meta-label">DIFFICULTY</span>
+        <span class="meta-val">Advanced</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">READING TIME</span>
+        <span class="meta-val">~50 min</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">PREV CHAPTER</span>
+        <span class="meta-val">存储架构</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">VERSION</span>
+        <span class="meta-val">Paimon 0.8+</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ── Section 1: Changelog 行类型 ── -->
+  <section class="section reveal" id="s1">
+    <div class="section-tag">01 / CHANGELOG ROW TYPES</div>
+    <h2 class="section-title">Changelog 四种行类型</h2>
+    <p class="section-sub">
+      Paimon 用四个行类型标记（RowKind）表达数据库的所有变更语义，这是实现流式精确语义处理的基石。
+    </p>
+
+    <div class="cl-grid reveal">
+      <div class="cl-card cl-insert">
+        <div class="cl-type">+I</div>
+        <div class="cl-name">INSERT（插入）</div>
+        <div class="cl-desc">全新记录插入。对应数据库 INSERT 操作，或 UPDATE 之后的新值（配合 -U 使用）。Append-Only 表仅支持此类型。</div>
+      </div>
+      <div class="cl-card cl-delete">
+        <div class="cl-type">-D</div>
+        <div class="cl-name">DELETE（删除）</div>
+        <div class="cl-desc">记录删除。对应数据库 DELETE 操作。下游算子需要根据主键找到该记录并撤销，是实现精确聚合的关键。</div>
+      </div>
+      <div class="cl-card cl-before">
+        <div class="cl-type">-U</div>
+        <div class="cl-name">UPDATE_BEFORE（更新前值）</div>
+        <div class="cl-desc">UPDATE 操作中被修改前的旧值。与 +U 配对出现，用于下游撤回旧聚合结果，常见于 CDC 摄取完整 UPDATE 事件。</div>
+      </div>
+      <div class="cl-card cl-after">
+        <div class="cl-type">+U</div>
+        <div class="cl-name">UPDATE_AFTER（更新后值）</div>
+        <div class="cl-desc">UPDATE 操作中修改后的新值，替换旧记录。Primary Key Table 写入时以主键为准 Upsert，无需 -U 即可正确更新。</div>
+      </div>
+    </div>
+
+    <div class="code-wrap reveal">
+      <div class="code-header">
+        <div class="dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div>
+        <span class="ctitle">CHANGELOG EVENTS — MySQL UPDATE 示例</span>
+        <span></span>
+      </div>
+      <div class="code-body"><pre><span class="cm">-- MySQL 执行: UPDATE orders SET amount=200 WHERE id=1001</span>
+<span class="cm">-- Flink CDC 解析后生成如下两条 Changelog 记录:</span>
+
+<span class="cm">┌─────────────────────────────────────────────────────────┐</span>
+<span class="cm">│  RowKind │   id   │  amount  │  status   │  updated_at  │</span>
+<span class="cm">├─────────────────────────────────────────────────────────┤</span>
+<span class="pink">│    -U    │  1001  │   100    │  PENDING  │  2024-01-01  │</span>  <span class="cm">◄ 旧值（撤回）</span>
+<span class="hl">│    +U    │  1001  │   200    │  PENDING  │  2024-01-01  │</span>  <span class="cm">◄ 新值（写入）</span>
+<span class="cm">└─────────────────────────────────────────────────────────┘</span>
+
+<span class="cm">-- Paimon Primary Key Table 仅需 +U，内部按主键 Upsert:</span>
+<span class="cm">-- 写入时自动合并（Merge Engine: deduplicate），保留最新值</span>
+<span class="cm">-- 若 changelog-producer = 'full-compaction'，则同时生成 -U/+U 供下游流读</span></pre>
+      </div>
+    </div>
+
+    <div class="info-box tip reveal">
+      <div class="info-label">DESIGN INSIGHT</div>
+      Paimon 的 Primary Key Table 写入时只需 <code style="font-family: var(--mono); font-size: 12px; color: var(--accent);">+I</code> 和 <code style="font-family: var(--mono); font-size: 12px; color: var(--accent);">+U</code>，但<strong>读取时</strong>（流式消费）可以产出完整的四种 RowKind，这是通过 Compaction 过程中对比相邻版本实现的。写入语义与读取语义分离是 Paimon 的核心设计之一。
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ── Section 2: Changelog Producer ── -->
+  <section class="section reveal" id="s2">
+    <div class="section-tag">02 / CHANGELOG PRODUCER</div>
+    <h2 class="section-title">Changelog 产出模式</h2>
+    <p class="section-sub">
+      Paimon 提供三种 changelog-producer 策略，决定下游流式消费者能读到什么粒度的变更事件。
+    </p>
+
+    <div class="flow-wrap reveal">
+      <div class="flow-label">── none（默认）── 仅写入，不产出 Changelog</div>
+      <div class="flow-row">
+        <div class="flow-node fn-gray">Writer</div>
+        <div class="flow-arr">→</div>
+        <div class="flow-node fn-green">Paimon Table</div>
+        <div class="flow-arr">→</div>
+        <div class="flow-node fn-gray">下游只能全量读（Batch）</div>
+      </div>
+
+      <div style="margin: 28px 0; height: 1px; background: var(--border);"></div>
+
+      <div class="flow-label">── input ── 透传上游 Changelog（适合 CDC 链路）</div>
+      <div class="flow-row">
+        <div class="flow-node fn-pink">CDC Source (+I/-D/+U/-U)</div>
+        <div class="flow-arr">→</div>
+        <div class="flow-node fn-green">Paimon Table</div>
+        <div class="flow-arr">→</div>
+        <div class="flow-node fn-blue">下游读到完整 4 种 RowKind</div>
+      </div>
+
+      <div style="margin: 28px 0; height: 1px; background: var(--border);"></div>
+
+      <div class="flow-label">── full-compaction ── Compaction 时对比版本产出 Changelog（延迟较高）</div>
+      <div class="flow-row">
+        <div class="flow-node fn-yellow">任意 Writer</div>
+        <div class="flow-arr">→</div>
+        <div class="flow-node fn-green">Paimon Table</div>
+        <div class="flow-arr">→</div>
+        <div class="flow-node fn-green">Compaction 比对</div>
+        <div class="flow-arr">→</div>
+        <div class="flow-node fn-blue">完整 Changelog 输出</div>
+      </div>
+
+      <div style="margin: 28px 0; height: 1px; background: var(--border);"></div>
+
+      <div class="flow-label">── lookup ── 写入时查 RocksDB 旧值，实时产出（低延迟，高成本）</div>
+      <div class="flow-row">
+        <div class="flow-node fn-yellow">Writer</div>
+        <div class="flow-arr">→</div>
+        <div class="flow-node fn-pink">Lookup 本地 RocksDB</div>
+        <div class="flow-arr">→</div>
+        <div class="flow-node fn-green">Paimon Table</div>
+        <div class="flow-arr">→</div>
+        <div class="flow-node fn-blue">实时 Changelog</div>
+      </div>
+    </div>
+
+    <div class="code-wrap reveal" style="margin-top: 36px;">
+      <div class="code-header">
+        <div class="dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div>
+        <span class="ctitle">DDL — 配置 changelog-producer</span>
+        <span></span>
+      </div>
+      <div class="code-body"><pre><span class="fn">CREATE TABLE</span> <span class="vr">orders</span> (
+  <span class="vr">order_id</span>   <span class="kw">BIGINT</span>,
+  <span class="vr">user_id</span>    <span class="kw">BIGINT</span>,
+  <span class="vr">amount</span>     <span class="kw">DECIMAL</span>(<span class="num">12</span>, <span class="num">2</span>),
+  <span class="vr">status</span>     <span class="kw">STRING</span>,
+  <span class="kw">PRIMARY KEY</span> (<span class="vr">order_id</span>) <span class="fn">NOT ENFORCED</span>
+) <span class="fn">WITH</span> (
+  <span class="str">'connector'</span>             = <span class="str">'paimon'</span>,
+  <span class="str">'changelog-producer'</span>    = <span class="str">'input'</span>,         <span class="cm">-- 透传上游 CDC 事件</span>
+  <span class="str">'merge-engine'</span>          = <span class="str">'deduplicate'</span>,   <span class="cm">-- 主键去重，保留最新</span>
+  <span class="str">'write-buffer-size'</span>     = <span class="str">'256 mb'</span>,
+  <span class="str">'num-sorted-run.compaction-trigger'</span> = <span class="str">'5'</span>
+);</pre>
+      </div>
+    </div>
+
+    <div class="info-box warn reveal">
+      <div class="info-label">IMPORTANT</div>
+      <code style="font-family: var(--mono); font-size: 12px; color: var(--accent3);">lookup</code> 模式会在每个 TM 本地维护 RocksDB 状态，写入延迟最低但磁盘和内存开销最高。<code style="font-family: var(--mono); font-size: 12px; color: var(--accent3);">full-compaction</code> 模式无额外开销但存在分钟级延迟，适合离线+准实时混合场景。
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ── Section 3: CDC Source 接入 ── -->
+  <section class="section reveal" id="s3">
+    <div class="section-tag">03 / CDC SOURCE INGESTION</div>
+    <h2 class="section-title">多源 CDC 接入架构</h2>
+    <p class="section-sub">
+      Paimon 原生支持通过 Flink CDC 接入多种数据库，无需中间 Kafka 即可实现数据库变更到湖仓的直接同步。
+    </p>
+
+    <div class="source-grid reveal">
+      <div class="source-card src-mysql">
+        <div class="source-logo">MySQL</div>
+        <h3>MySQL / MariaDB</h3>
+        <p>基于 Debezium 解析 Binlog，支持全量初始化 + 增量 CDC 无缝衔接。支持多表同步、整库同步，可自动建表到 Paimon Catalog。</p>
+        <div class="source-tags">
+          <span class="stag stag-g">Binlog</span>
+          <span class="stag stag-b">全量+增量</span>
+          <span class="stag stag-p">整库同步</span>
+          <span class="stag stag-y">Schema Change</span>
+        </div>
+      </div>
+
+      <div class="source-card src-pg">
+        <div class="source-logo">Postgres</div>
+        <h3>PostgreSQL</h3>
+        <p>基于 WAL（Write-Ahead Log）解析，需开启 <code style="font-family: var(--mono); font-size: 12px; color: var(--accent2);">wal_level = logical</code>。支持 pgoutput / decoderbufs 插件，表级别精确订阅。</p>
+        <div class="source-tags">
+          <span class="stag stag-g">WAL Logical</span>
+          <span class="stag stag-b">pgoutput</span>
+          <span class="stag stag-p">decoderbufs</span>
+        </div>
+      </div>
+
+      <div class="source-card src-mongo">
+        <div class="source-logo">Mongo</div>
+        <h3>MongoDB</h3>
+        <p>基于 Change Streams 实现，支持 Oplog 全量读取，文档级别变更捕获。嵌套 JSON 结构自动展平或保留为 MAP 类型写入 Paimon。</p>
+        <div class="source-tags">
+          <span class="stag stag-g">Change Streams</span>
+          <span class="stag stag-b">Oplog</span>
+          <span class="stag stag-y">JSON Flatten</span>
+        </div>
+      </div>
+
+      <div class="source-card src-kafka">
+        <div class="source-logo">Kafka</div>
+        <h3>Kafka (Debezium / Canal)</h3>
+        <p>消费 Kafka 中已经由 Debezium 或 Canal 产出的 CDC 消息，通过 Flink Kafka Source 解析后写入 Paimon，适合已有 Kafka 中间层的企业架构。</p>
+        <div class="source-tags">
+          <span class="stag stag-g">Debezium JSON</span>
+          <span class="stag stag-b">Canal JSON</span>
+          <span class="stag stag-p">Ogg JSON</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="code-wrap reveal" style="margin-top: 36px;">
+      <div class="code-header">
+        <div class="dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div>
+        <span class="ctitle">Flink CDC — MySQL 整库同步到 Paimon（Action Jar 方式）</span>
+        <span></span>
+      </div>
+      <div class="code-body"><pre><span class="cm">## 推荐方式：使用 Paimon Action Jar，无需写 Flink SQL</span>
+<span class="fn">bin/flink</span> run \
+  <span class="op">-c</span> <span class="vr">org.apache.paimon.flink.action.FlinkActions</span> \
+  <span class="vr">paimon-flink-action-*.jar</span> \
+  <span class="vr">mysql_sync_database</span> \
+  <span class="op">--warehouse</span> <span class="str">hdfs:///warehouse/paimon</span> \
+  <span class="op">--database</span>  <span class="str">ods_mysql</span> \
+  <span class="op">--mysql-conf</span> <span class="str">hostname=mysql-host</span> \
+  <span class="op">--mysql-conf</span> <span class="str">port=3306</span> \
+  <span class="op">--mysql-conf</span> <span class="str">username=root</span> \
+  <span class="op">--mysql-conf</span> <span class="str">password=secret</span> \
+  <span class="op">--mysql-conf</span> <span class="str">database-name=source_db</span> \
+  <span class="op">--catalog-conf</span> <span class="str">metastore=hive</span> \
+  <span class="op">--catalog-conf</span> <span class="str">uri=thrift://hive-metastore:9083</span> \
+  <span class="op">--table-conf</span>   <span class="str">changelog-producer=input</span> \
+  <span class="op">--table-conf</span>   <span class="str">merge-engine=deduplicate</span> \
+  <span class="op">--including-tables</span> <span class="str">'orders|users|products'</span>  <span class="cm">-- 正则过滤</span></pre>
+      </div>
+    </div>
+
+    <div class="info-box note reveal">
+      <div class="info-label">SCHEMA EVOLUTION</div>
+      Paimon 的 MySQL CDC 整库同步支持自动感知上游 DDL 变更（加列、改类型），通过 <code style="font-family: var(--mono); font-size: 12px; color: var(--accent2);">--mysql-conf scan.incremental.snapshot.chunk.size</code> 控制全量阶段的并行切片大小。DDL 变更事件会先暂停 DML 消费，等待 Schema 变更完成后恢复，保证数据一致性。
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ── Section 4: 消费位移管理 ── -->
+  <section class="section reveal" id="s4">
+    <div class="section-tag">04 / CONSUMER POSITION</div>
+    <h2 class="section-title">消费位移与读取模式</h2>
+    <p class="section-sub">
+      Paimon 流式读取的起点由 scan 相关参数精确控制，理解不同模式的语义差异是构建可靠数据链路的关键。
+    </p>
+
+    <div class="table-wrap reveal">
+      <table>
+        <thead>
+          <tr>
+            <th>scan.mode</th>
+            <th>语义</th>
+            <th>适用场景</th>
+            <th>时效性</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge bd-g">default</span></td>
+            <td>首次全量扫描，之后增量消费新 Snapshot</td>
+            <td>初始化数仓，全量+增量一体</td>
+            <td>取决于 Compaction</td>
+          </tr>
+          <tr>
+            <td><span class="badge bd-b">latest</span></td>
+            <td>跳过历史，从当前最新 Snapshot 开始读</td>
+            <td>只关心新增变更，不需历史数据</td>
+            <td>实时</td>
+          </tr>
+          <tr>
+            <td><span class="badge bd-b">latest-full</span></td>
+            <td>先读一次完整快照，再持续增量消费</td>
+            <td>下游需要完整状态初始化</td>
+            <td>初始化后实时</td>
+          </tr>
+          <tr>
+            <td><span class="badge bd-p">from-snapshot</span></td>
+            <td>从指定 snapshot-id 开始增量消费</td>
+            <td>精确断点续传、回溯特定版本</td>
+            <td>由 snapshot 决定</td>
+          </tr>
+          <tr>
+            <td><span class="badge bd-p">from-timestamp</span></td>
+            <td>从指定时间戳对应的 Snapshot 开始消费</td>
+            <td>按时间回溯、故障恢复</td>
+            <td>由时间点决定</td>
+          </tr>
+          <tr>
+            <td><span class="badge bd-y">compacted-full</span></td>
+            <td>等待下一次 Full Compaction 完成后再全量读</td>
+            <td>需要干净、无重叠的数据快照</td>
+            <td>Compaction 完成后</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="code-wrap reveal" style="margin-top: 36px;">
+      <div class="code-header">
+        <div class="dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div>
+        <span class="ctitle">Consumer ID — 持久化消费位移</span>
+        <span></span>
+      </div>
+      <div class="code-body"><pre><span class="cm">-- 使用 consumer-id 将消费进度持久化到 Paimon 元数据</span>
+<span class="cm">-- 即使 Flink Job 重启，也能从上次消费的 Snapshot 继续</span>
+
+<span class="fn">SELECT</span> <span class="op">*</span> <span class="fn">FROM</span> <span class="vr">orders</span>
+<span class="cm">/*+ OPTIONS(</span>
+<span class="cm">  'scan.mode'      = 'latest-full',</span>
+<span class="cm">  'consumer-id'    = 'dwd_orders_consumer_001',   -- 唯一消费者 ID</span>
+<span class="cm">  'consumer.expiration-time' = '7 d'              -- 位移保留 7 天</span>
+<span class="cm">) */</span><span class="op">;</span>
+
+<span class="cm">-- 查看消费位移状态（存储在 table 目录下 consumer/ 子目录）</span>
+<span class="cm">-- consumer/consumer-dwd_orders_consumer_001</span>
+<span class="cm">-- 内容: {"nextSnapshotId": 42, "consumerId": "dwd_orders_consumer_001"}</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ── Section 5: 完整链路 ── -->
+  <section class="section reveal" id="s5">
+    <div class="section-tag">05 / END-TO-END PIPELINE</div>
+    <h2 class="section-title">端到端 CDC 同步链路</h2>
+    <p class="section-sub">
+      以 MySQL → Paimon ODS → DWD 实时处理为例，梳理完整的数据流转过程与关键配置节点。
+    </p>
+
+    <div class="tl reveal">
+
+      <div class="tl-item">
+        <div class="tl-dot">①</div>
+        <div class="tl-content">
+          <div class="tl-tag">SOURCE</div>
+          <h4>MySQL Binlog 采集</h4>
+          <p>开启 MySQL <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">binlog_format=ROW</code> 和 <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">binlog_row_image=FULL</code>，确保捕获完整的行级别前后镜像。Flink CDC Source 并行度建议设为 1（全量阶段），增量阶段可适当提高。</p>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot">②</div>
+        <div class="tl-content">
+          <div class="tl-tag">ODS LAYER</div>
+          <h4>写入 Paimon ODS 层</h4>
+          <p>使用 <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">changelog-producer=input</code>，原样保存上游 CDC 事件（含 RowKind）。开启 <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">sequence.field</code> 或 <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">rowtime</code> 保证乱序事件的正确合并顺序。</p>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot">③</div>
+        <div class="tl-content">
+          <div class="tl-tag">DWD LAYER</div>
+          <h4>流式读取 ODS 写入 DWD</h4>
+          <p>从 ODS 表以流模式消费，指定 <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">consumer-id</code> 持久化位移。在 Flink 作业中进行清洗、字段标准化，产出宽表写入 DWD 层 Paimon 表（可选 <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">partial-update</code> 合并多流）。</p>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot">④</div>
+        <div class="tl-content">
+          <div class="tl-tag">ADS LAYER</div>
+          <h4>实时 OLAP 查询</h4>
+          <p>DWD 层数据通过 StarRocks / Doris 外表或 Trino 直接查询，利用 Paimon 的 Primary Index 和 Bloom Filter 实现高效 point lookup。Compaction 后数据可达到分钟级的查询新鲜度。</p>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot">⑤</div>
+        <div class="tl-content">
+          <div class="tl-tag">MONITORING</div>
+          <h4>监控与断点续传</h4>
+          <p>通过 Flink Web UI 监控 Changelog 消费延迟（source.records.lag 指标）。利用 Paimon consumer-id 机制，Job 异常重启后自动从最后消费的 snapshot-id 继续，无需人工干预。</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ── Section 6: 常见陷阱 ── -->
+  <section class="section reveal" id="s6">
+    <div class="section-tag">06 / COMMON PITFALLS</div>
+    <h2 class="section-title">CDC 接入常见问题</h2>
+    <p class="section-sub">
+      生产环境中 CDC 链路最容易踩的几个坑，提前了解可以节省大量排查时间。
+    </p>
+
+    <div class="pitfall-grid reveal">
+
+      <div class="pitfall">
+        <div class="pitfall-icon">⚡</div>
+        <div>
+          <h5>Binlog 过期导致全量重读</h5>
+          <p>MySQL Binlog 默认保留 7 天，若 Flink Job 停止超过该时长，增量位置失效，需重新全量初始化。建议延长 <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">expire_logs_days</code> 或使用 GTID 模式提升稳定性。</p>
+        </div>
+      </div>
+
+      <div class="pitfall">
+        <div class="pitfall-icon">🔄</div>
+        <div>
+          <h5>sequence.field 设置不当</h5>
+          <p>网络抖动或并行写入可能导致事件乱序。若不配置 <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">sequence.field</code>，旧版本数据可能覆盖新版本，造成数据回退。建议使用 <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">update_time</code> 或 Binlog Position 作为序列字段。</p>
+        </div>
+      </div>
+
+      <div class="pitfall">
+        <div class="pitfall-icon">📦</div>
+        <div>
+          <h5>全量初始化期间 Binlog 积压</h5>
+          <p>大表全量阶段耗时长（数小时），期间 Binlog 持续产生。Flink CDC 会缓存这段 Binlog，全量完成后追齐增量。若 Binlog 量太大，需评估 TM 磁盘容量，或考虑分批初始化策略。</p>
+        </div>
+      </div>
+
+      <div class="pitfall">
+        <div class="pitfall-icon">🗂️</div>
+        <div>
+          <h5>缺少主键或主键不稳定</h5>
+          <p>Paimon Primary Key Table 要求写入数据有确定的主键。若上游表主键包含 UUID、随机字段，会导致 LSM-Tree 文件数暴增、Compaction 效率低下，应在接入层做主键清洗或改用 Append-Only Table。</p>
+        </div>
+      </div>
+
+      <div class="pitfall">
+        <div class="pitfall-icon">⏱️</div>
+        <div>
+          <h5>full-compaction 延迟误判</h5>
+          <p><code style="font-family:var(--mono);font-size:12px;color:var(--accent)">full-compaction</code> 模式的 Changelog 延迟等于 Compaction 触发间隔，默认可达数分钟，不适合秒级延迟要求的场景，应改用 <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">lookup</code> 或 <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">input</code> 模式。</p>
+        </div>
+      </div>
+
+      <div class="pitfall">
+        <div class="pitfall-icon">🧹</div>
+        <div>
+          <h5>consumer-id 泄漏</h5>
+          <p>废弃的消费者 ID 会一直阻止对应 Snapshot 被 GC，导致旧文件无法清理，存储持续膨胀。定期检查 <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">consumer/</code> 目录，清理无用的 consumer-id，或设置 <code style="font-family:var(--mono);font-size:12px;color:var(--accent)">consumer.expiration-time</code> 自动过期。</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="info-box tip reveal" style="margin-top: 40px;">
+      <div class="info-label">PRODUCTION CHECKLIST</div>
+      生产部署 CDC 链路前，务必确认：① MySQL binlog_row_image=FULL ② 网络带宽评估（全量阶段） ③ Paimon 表配置 sequence.field ④ 设置合理的 snapshot 保留策略 ⑤ 配置 consumer-id 并设置过期时间 ⑥ 监控 Flink Checkpoint 耗时（反映写入压力）
+    </div>
+  </section>
+
+  <!-- ── Footer ── -->
+  <div class="footer-nav">
+    <div>
+      <div class="toc">
+        <div class="toc-item done"><span class="toc-num">01</span><span>存储架构与文件格式深度解析</span></div>
+        <div class="toc-item active"><span class="toc-num">02</span><span>Changelog 与 CDC 数据摄取机制</span></div>
+        <div class="toc-item" style="opacity:0.45;"><span class="toc-num">03</span><span>流批一体写入与读取原理</span></div>
+        <div class="toc-item" style="opacity:0.45;"><span class="toc-num">04</span><span>Schema Evolution 与 DDL 变更</span></div>
+        <div class="toc-item" style="opacity:0.45;"><span class="toc-num">05</span><span>性能调优与生产运维最佳实践</span></div>
+        <div class="toc-item" style="opacity:0.45;"><span class="toc-num">06</span><span>与 Flink/Spark 集成深度实战</span></div>
+      </div>
+    </div>
+    <div class="nav-next">
+      <div class="nav-label">NEXT CHAPTER →</div>
+      <div class="nav-title">流批一体<br>写入与读取原理</div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  const reveals = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) setTimeout(() => e.target.classList.add('visible'), i * 55);
+    });
+  }, { threshold: 0.07 });
+  reveals.forEach(r => io.observe(r));
+
+  const sections = document.querySelectorAll('section[id]');
+  const navDots = document.querySelectorAll('.snav');
+  const sio = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const idx = Array.from(sections).indexOf(e.target);
+        navDots.forEach(d => d.classList.remove('act'));
+        if (navDots[idx]) navDots[idx].classList.add('act');
+      }
+    });
+  }, { threshold: 0.38 });
+  sections.forEach(s => sio.observe(s));
+</script>
+
+</body>
+</html>

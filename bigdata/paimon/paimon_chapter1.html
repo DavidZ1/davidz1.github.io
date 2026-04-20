@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apache Paimon 深度学习 · 第一章</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #080c14;
+    --surface: #0d1520;
+    --surface2: #111d2e;
+    --border: rgba(56, 139, 255, 0.12);
+    --border2: rgba(56, 139, 255, 0.25);
+    --accent: #2563eb;
+    --accent2: #38bdf8;
+    --accent3: #06d6a0;
+    --accent4: #ff6b35;
+    --text: #e2eaf5;
+    --text2: #8ba3c4;
+    --text3: #4d6a8a;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Noto Sans SC', sans-serif;
+    --display: 'Syne', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 80px 60px;
+    overflow: hidden;
+  }
+
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(37,99,235,0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(37,99,235,0.07) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, black 30%, transparent 100%);
+  }
+
+  .hero-orb {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(37,99,235,0.15) 0%, rgba(6,214,160,0.05) 50%, transparent 70%);
+    top: -100px;
+    right: -100px;
+    animation: pulse 8s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.7; }
+    50% { transform: scale(1.1); opacity: 1; }
+  }
+
+  .chapter-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(37,99,235,0.12);
+    border: 1px solid rgba(37,99,235,0.3);
+    color: var(--accent2);
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    padding: 6px 16px;
+    border-radius: 2px;
+    margin-bottom: 32px;
+    width: fit-content;
+  }
+
+  .chapter-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--accent3);
+    border-radius: 50%;
+    animation: blink 2s infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .hero h1 {
+    font-family: var(--display);
+    font-size: clamp(42px, 6vw, 80px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    max-width: 800px;
+    margin-bottom: 24px;
+  }
+
+  .hero h1 span.grad {
+    background: linear-gradient(135deg, #2563eb, #38bdf8, #06d6a0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-desc {
+    font-size: 18px;
+    color: var(--text2);
+    max-width: 560px;
+    margin-bottom: 48px;
+    line-height: 1.8;
+  }
+
+  .hero-meta {
+    display: flex;
+    gap: 40px;
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+
+  .meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .meta-label { color: var(--text3); font-size: 11px; letter-spacing: 0.1em; }
+  .meta-val { color: var(--accent2); }
+
+  .scroll-cue {
+    position: absolute;
+    bottom: 40px;
+    left: 60px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 0.15em;
+  }
+
+  .scroll-line {
+    width: 40px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--text3));
+    animation: scrollin 2s ease-in-out infinite;
+  }
+
+  @keyframes scrollin {
+    0% { width: 0; opacity: 0; }
+    50% { width: 40px; opacity: 1; }
+    100% { width: 40px; opacity: 0; }
+  }
+
+  /* ── Sections ── */
+  .section {
+    padding: 100px 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--accent3);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+
+  .section-title {
+    font-family: var(--display);
+    font-size: clamp(28px, 3.5vw, 44px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+    line-height: 1.15;
+  }
+
+  .section-sub {
+    font-size: 16px;
+    color: var(--text2);
+    max-width: 620px;
+    margin-bottom: 64px;
+    line-height: 1.8;
+  }
+
+  /* ── Architecture Diagram ── */
+  .arch-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 48px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .arch-wrap::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), var(--accent3), transparent);
+  }
+
+  .arch-layer {
+    margin-bottom: 24px;
+  }
+
+  .layer-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--text3);
+    margin-bottom: 12px;
+    padding-left: 4px;
+  }
+
+  .layer-boxes {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .box {
+    border-radius: 6px;
+    padding: 14px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    position: relative;
+    cursor: default;
+    transition: transform 0.2s, box-shadow 0.2s;
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
+  }
+
+  .box:hover {
+    transform: translateY(-2px);
+  }
+
+  .box-blue {
+    background: rgba(37,99,235,0.15);
+    border: 1px solid rgba(37,99,235,0.4);
+    color: #93c5fd;
+  }
+
+  .box-teal {
+    background: rgba(6,214,160,0.1);
+    border: 1px solid rgba(6,214,160,0.35);
+    color: #5eead4;
+  }
+
+  .box-orange {
+    background: rgba(255,107,53,0.12);
+    border: 1px solid rgba(255,107,53,0.35);
+    color: #fdba74;
+  }
+
+  .box-purple {
+    background: rgba(139,92,246,0.12);
+    border: 1px solid rgba(139,92,246,0.35);
+    color: #c4b5fd;
+  }
+
+  .box-gray {
+    background: rgba(100,116,139,0.1);
+    border: 1px solid rgba(100,116,139,0.25);
+    color: #94a3b8;
+  }
+
+  .arch-arrow {
+    display: flex;
+    justify-content: center;
+    margin: 4px 0;
+    color: var(--text3);
+    font-size: 18px;
+  }
+
+  /* ── Cards Grid ── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 48px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s, transform 0.3s;
+    cursor: default;
+  }
+
+  .card:hover {
+    border-color: var(--border2);
+    transform: translateY(-4px);
+  }
+
+  .card-icon {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
+
+  .card-icon-blue { background: rgba(37,99,235,0.15); }
+  .card-icon-teal { background: rgba(6,214,160,0.12); }
+  .card-icon-orange { background: rgba(255,107,53,0.12); }
+  .card-icon-purple { background: rgba(139,92,246,0.12); }
+
+  .card h3 {
+    font-family: var(--display);
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: -0.01em;
+  }
+
+  .card p {
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.8;
+  }
+
+  .card-accent {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .card:hover .card-accent { opacity: 1; }
+  .accent-blue { background: linear-gradient(90deg, transparent, #2563eb, transparent); }
+  .accent-teal { background: linear-gradient(90deg, transparent, #06d6a0, transparent); }
+  .accent-orange { background: linear-gradient(90deg, transparent, #ff6b35, transparent); }
+  .accent-purple { background: linear-gradient(90deg, transparent, #8b5cf6, transparent); }
+
+  /* ── Code Block ── */
+  .code-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 48px;
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  .code-dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+
+  .code-title {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text3);
+    letter-spacing: 0.1em;
+  }
+
+  .code-body {
+    padding: 28px 28px;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.9;
+    overflow-x: auto;
+  }
+
+  .code-body .kw { color: #c792ea; }
+  .code-body .str { color: #c3e88d; }
+  .code-body .cm { color: #546e7a; }
+  .code-body .num { color: #f78c6c; }
+  .code-body .fn { color: #82aaff; }
+  .code-body .var { color: #eeffff; }
+  .code-body .op { color: #89ddff; }
+
+  /* ── Timeline / Process ── */
+  .timeline {
+    position: relative;
+    margin-top: 48px;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 0; bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--accent), var(--accent2), var(--accent3));
+  }
+
+  .tl-item {
+    display: flex;
+    gap: 32px;
+    margin-bottom: 40px;
+    position: relative;
+  }
+
+  .tl-dot {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent2);
+    position: relative;
+    z-index: 1;
+  }
+
+  .tl-content {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px 28px;
+    flex: 1;
+    transition: border-color 0.3s;
+  }
+
+  .tl-content:hover { border-color: var(--border2); }
+
+  .tl-content h4 {
+    font-family: var(--display);
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .tl-content p {
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.8;
+  }
+
+  .tl-tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    padding: 3px 10px;
+    border-radius: 2px;
+    margin-bottom: 10px;
+    background: rgba(37,99,235,0.15);
+    color: var(--accent2);
+    border: 1px solid rgba(37,99,235,0.2);
+  }
+
+  /* ── Key Points ── */
+  .kp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-top: 48px;
+  }
+
+  .kp-item {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 22px;
+  }
+
+  .kp-num {
+    font-family: var(--mono);
+    font-size: 24px;
+    font-weight: 700;
+    color: rgba(37,99,235,0.25);
+    line-height: 1;
+    min-width: 32px;
+    padding-top: 2px;
+  }
+
+  .kp-text h5 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+
+  .kp-text p {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.7;
+  }
+
+  /* ── Footer Nav ── */
+  .chapter-nav {
+    padding: 60px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .nav-info { font-family: var(--mono); font-size: 12px; color: var(--text3); }
+
+  .toc {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .toc-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--text2);
+    text-decoration: none;
+    transition: color 0.2s;
+    cursor: pointer;
+  }
+
+  .toc-item:hover { color: var(--text); }
+  .toc-item.active { color: var(--accent2); }
+
+  .toc-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    min-width: 24px;
+  }
+
+  /* ── Sidebar ── */
+  .layout {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    width: 72px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 0;
+    position: fixed;
+    top: 0; bottom: 0;
+    z-index: 100;
+  }
+
+  .sidebar-logo {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent2);
+    letter-spacing: 0.2em;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    margin-bottom: auto;
+    padding-top: 20px;
+  }
+
+  .sidebar-dots {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 24px;
+  }
+
+  .sdot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--text3);
+    transition: background 0.2s, transform 0.2s;
+    cursor: pointer;
+  }
+
+  .sdot.act { background: var(--accent2); transform: scale(1.4); }
+
+  .main {
+    margin-left: 72px;
+    flex: 1;
+  }
+
+  /* ── Info Boxes ── */
+  .info-box {
+    border-radius: 8px;
+    padding: 20px 24px;
+    font-size: 14px;
+    line-height: 1.8;
+    margin: 24px 0;
+  }
+
+  .info-box.tip {
+    background: rgba(6,214,160,0.08);
+    border-left: 3px solid var(--accent3);
+    color: var(--text2);
+  }
+
+  .info-box.warn {
+    background: rgba(255,107,53,0.08);
+    border-left: 3px solid var(--accent4);
+    color: var(--text2);
+  }
+
+  .info-box.note {
+    background: rgba(37,99,235,0.08);
+    border-left: 3px solid var(--accent);
+    color: var(--text2);
+  }
+
+  .info-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  .tip .info-label { color: var(--accent3); }
+  .warn .info-label { color: var(--accent4); }
+  .note .info-label { color: var(--accent2); }
+
+  /* ── Table ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-top: 32px;
+  }
+
+  th {
+    background: var(--surface2);
+    padding: 12px 20px;
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text2);
+    line-height: 1.6;
+  }
+
+  tr:hover td { background: rgba(255,255,255,0.015); }
+
+  .tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 2px;
+  }
+
+  .tag-blue { background: rgba(37,99,235,0.15); color: #93c5fd; border: 1px solid rgba(37,99,235,0.25); }
+  .tag-teal { background: rgba(6,214,160,0.1); color: #5eead4; border: 1px solid rgba(6,214,160,0.2); }
+  .tag-orange { background: rgba(255,107,53,0.1); color: #fdba74; border: 1px solid rgba(255,107,53,0.2); }
+
+  /* animate in */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (max-width: 768px) {
+    .hero, .section { padding: 60px 24px; }
+    .sidebar { display: none; }
+    .main { margin-left: 0; }
+    .chapter-nav { padding: 40px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <span class="sidebar-logo">PAIMON</span>
+    <div class="sidebar-dots">
+      <div class="sdot act" title="存储架构"></div>
+      <div class="sdot" title="文件格式"></div>
+      <div class="sdot" title="LSM-Tree"></div>
+      <div class="sdot" title="快照机制"></div>
+      <div class="sdot" title="实践"></div>
+    </div>
+  </nav>
+
+  <main class="main">
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-grid"></div>
+      <div class="hero-orb"></div>
+
+      <div class="chapter-badge">CHAPTER 01 · DEEP DIVE</div>
+
+      <h1>
+        存储架构<br>
+        与<span class="grad">文件格式</span><br>
+        深度解析
+      </h1>
+
+      <p class="hero-desc">
+        深入 Apache Paimon 的存储引擎内核 —— 理解 LSM-Tree 架构、Parquet/ORC 文件组织方式、Snapshot 快照机制，掌握数据从写入到持久化的完整链路。
+      </p>
+
+      <div class="hero-meta">
+        <div class="meta-item">
+          <span class="meta-label">DIFFICULTY</span>
+          <span class="meta-val">Advanced</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">READING TIME</span>
+          <span class="meta-val">~45 min</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">PREREQUISITES</span>
+          <span class="meta-val">Paimon 基础使用</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">VERSION</span>
+          <span class="meta-val">Paimon 0.8+</span>
+        </div>
+      </div>
+
+      <div class="scroll-cue">
+        <div class="scroll-line"></div>
+        SCROLL TO EXPLORE
+      </div>
+    </section>
+
+    <!-- Section 1: 整体架构 -->
+    <section class="section reveal">
+      <div class="section-tag">01 / ARCHITECTURE OVERVIEW</div>
+      <h2 class="section-title">Paimon 存储分层架构</h2>
+      <p class="section-sub">Paimon 的存储系统分为逻辑层、存储层与底层文件系统三个维度，每层职责清晰，相互协作完成 Lakehouse 的核心能力。</p>
+
+      <div class="arch-wrap reveal">
+        <div class="arch-layer">
+          <div class="layer-label">── COMPUTE LAYER · 计算层</div>
+          <div class="layer-boxes">
+            <div class="box box-purple">Flink Streaming</div>
+            <div class="box box-purple">Flink Batch</div>
+            <div class="box box-purple">Spark</div>
+            <div class="box box-purple">Hive / Trino</div>
+            <div class="box box-purple">StarRocks</div>
+          </div>
+        </div>
+
+        <div class="arch-arrow">↓</div>
+
+        <div class="arch-layer">
+          <div class="layer-label">── CATALOG LAYER · 元数据层</div>
+          <div class="layer-boxes">
+            <div class="box box-blue">Paimon Catalog (FilesystemCatalog / HiveCatalog)</div>
+            <div class="box box-blue">Schema Evolution Manager</div>
+          </div>
+        </div>
+
+        <div class="arch-arrow">↓</div>
+
+        <div class="arch-layer">
+          <div class="layer-label">── TABLE STORE LAYER · 表存储核心</div>
+          <div class="layer-boxes">
+            <div class="box box-teal">Primary Key Table (MergeTree)</div>
+            <div class="box box-teal">Append-Only Table</div>
+            <div class="box box-teal">Snapshot Manager</div>
+            <div class="box box-teal">Compaction Manager</div>
+          </div>
+        </div>
+
+        <div class="arch-arrow">↓</div>
+
+        <div class="arch-layer">
+          <div class="layer-label">── FILE FORMAT LAYER · 文件格式层</div>
+          <div class="layer-boxes">
+            <div class="box box-orange">Parquet</div>
+            <div class="box box-orange">ORC</div>
+            <div class="box box-orange">Avro</div>
+            <div class="box box-orange">Manifest Files</div>
+            <div class="box box-orange">Schema Files</div>
+          </div>
+        </div>
+
+        <div class="arch-arrow">↓</div>
+
+        <div class="arch-layer">
+          <div class="layer-label">── STORAGE LAYER · 底层存储</div>
+          <div class="layer-boxes">
+            <div class="box box-gray">HDFS</div>
+            <div class="box box-gray">S3 / OSS / COS</div>
+            <div class="box box-gray">Local Filesystem</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box note reveal" style="margin-top: 32px;">
+        <div class="info-label">NOTE</div>
+        Paimon 的核心创新在于 Table Store Layer —— 它实现了类似 LSM-Tree 的存储结构，使得流批写入、OLAP 查询、CDC 摄取都能在同一套存储引擎上高效工作。
+      </div>
+    </section>
+
+    <!-- Section 2: 目录结构 -->
+    <section class="section reveal">
+      <div class="section-tag">02 / FILE ORGANIZATION</div>
+      <h2 class="section-title">磁盘目录结构详解</h2>
+      <p class="section-sub">理解 Paimon 如何在文件系统上组织数据，是优化查询性能和运维管理的基础。</p>
+
+      <div class="code-section reveal">
+        <div class="code-header">
+          <div class="code-dots">
+            <div class="dot dot-r"></div>
+            <div class="dot dot-y"></div>
+            <div class="dot dot-g"></div>
+          </div>
+          <span class="code-title">PAIMON TABLE DIRECTORY STRUCTURE</span>
+          <span></span>
+        </div>
+        <div class="code-body">
+<pre><span class="cm">── my_database/my_table/</span>
+   ├── <span class="fn">schema/</span>                         <span class="cm"># 表结构定义</span>
+   │   └── <span class="str">schema-0</span>                    <span class="cm"># JSON 格式，含字段、分区、主键信息</span>
+   │
+   ├── <span class="fn">snapshot/</span>                       <span class="cm"># 快照管理</span>
+   │   ├── <span class="str">LATEST</span>                      <span class="cm"># 指向最新快照 ID 的文件</span>
+   │   ├── <span class="str">EARLIEST</span>                    <span class="cm"># 最早保留的快照 ID</span>
+   │   ├── <span class="str">snapshot-1</span>                  <span class="cm"># 快照元数据 JSON</span>
+   │   └── <span class="str">snapshot-N</span>
+   │
+   ├── <span class="fn">manifest/</span>                       <span class="cm"># Manifest 文件索引</span>
+   │   ├── <span class="str">manifest-list-{uuid}-0</span>      <span class="cm"># Manifest List，引用多个 Manifest</span>
+   │   └── <span class="str">manifest-{uuid}</span>             <span class="cm"># 记录 DataFile 的增删操作</span>
+   │
+   └── <span class="fn">bucket-0/</span>                       <span class="cm"># 按 Bucket 分布的数据目录</span>
+       ├── <span class="str">data-{uuid}-0.parquet</span>       <span class="cm"># Level-0 数据文件（增量写入）</span>
+       ├── <span class="str">data-{uuid}-1.parquet</span>       <span class="cm"># Level-1 数据文件（Compaction 后）</span>
+       └── <span class="str">index/</span>                      <span class="cm"># 可选：二级索引、Bloom Filter</span></pre>
+        </div>
+      </div>
+
+      <div class="info-box tip reveal">
+        <div class="info-label">KEY INSIGHT</div>
+        Manifest 文件是 Paimon 实现 <strong>ACID 事务</strong>的核心 —— 每次 Commit 生成一个新 Snapshot，Snapshot 指向 Manifest List，Manifest List 记录本次写入新增/删除了哪些 DataFile，形成完整的事务日志链。
+      </div>
+    </section>
+
+    <!-- Section 3: LSM Tree -->
+    <section class="section reveal">
+      <div class="section-tag">03 / LSM-TREE INTERNALS</div>
+      <h2 class="section-title">LSM-Tree 存储结构</h2>
+      <p class="section-sub">Primary Key Table 基于 LSM-Tree（Log-Structured Merge Tree）实现，这是 Paimon 支持高吞吐写入与实时更新的关键所在。</p>
+
+      <div class="timeline reveal">
+
+        <div class="tl-item">
+          <div class="tl-dot">L0</div>
+          <div class="tl-content">
+            <div class="tl-tag">WRITE BUFFER → FLUSH</div>
+            <h4>Level 0 — 增量数据文件</h4>
+            <p>Writer 直接将数据写入内存 MemTable，达到阈值后 Flush 为 Level-0 的 .parquet 文件。L0 文件之间键范围可能重叠，写入速度最快但查询需要扫描多个文件。每个 Checkpoint 触发一次 Flush。</p>
+          </div>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-dot">L1</div>
+          <div class="tl-content">
+            <div class="tl-tag">MINOR COMPACTION</div>
+            <h4>Level 1 — 首次合并</h4>
+            <p>当 L0 文件数量超过阈值（默认 num-sorted-run.compaction-trigger = 5），触发 Minor Compaction，将多个 L0 文件合并、排序、去重后写入 L1。L1 文件内键有序，无重叠。</p>
+          </div>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-dot">LN</div>
+          <div class="tl-content">
+            <div class="tl-tag">MAJOR COMPACTION</div>
+            <h4>Level N — 分层合并</h4>
+            <p>数据逐层向下 Compaction，每层容量是上层的 10 倍。最终在高 Level 的文件数量少、键范围大、无重叠，查询时只需读取少量文件，point lookup 性能极优。</p>
+          </div>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-dot">⊕</div>
+          <div class="tl-content">
+            <div class="tl-tag">MERGE ENGINE</div>
+            <h4>Merge Engine — 多版本合并策略</h4>
+            <p>Paimon 支持三种合并引擎：<br>
+            • <code style="color: var(--accent2); font-family: var(--mono); font-size: 12px;">deduplicate</code>（默认）保留最新版本<br>
+            • <code style="color: var(--accent2); font-family: var(--mono); font-size: 12px;">partial-update</code> 按列合并更新<br>
+            • <code style="color: var(--accent2); font-family: var(--mono); font-size: 12px;">aggregation</code> 聚合累加（SUM/MAX/MIN）</p>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="info-box warn reveal">
+        <div class="info-label">PERFORMANCE TRAP</div>
+        L0 文件数量过多会导致读放大（Read Amplification）严重。生产环境中需监控 <code style="font-family: var(--mono); font-size: 12px; color: var(--accent4);">num-sorted-run.stop-trigger</code> 指标，必要时调大 write buffer size 或开启异步 Compaction。
+      </div>
+    </section>
+
+    <!-- Section 4: 文件格式对比 -->
+    <section class="section reveal">
+      <div class="section-tag">04 / FILE FORMATS</div>
+      <h2 class="section-title">文件格式选型指南</h2>
+      <p class="section-sub">Paimon 支持多种列存格式，选择合适的格式对查询性能和存储效率有决定性影响。</p>
+
+      <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;" class="reveal">
+        <table>
+          <thead>
+            <tr>
+              <th>格式</th>
+              <th>压缩比</th>
+              <th>读性能</th>
+              <th>写性能</th>
+              <th>嵌套结构</th>
+              <th>适用场景</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="tag tag-blue">Parquet</span></td>
+              <td>★★★★☆</td>
+              <td>★★★★★</td>
+              <td>★★★★☆</td>
+              <td>完整支持</td>
+              <td>OLAP 查询，Spark 生态</td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-teal">ORC</span></td>
+              <td>★★★★★</td>
+              <td>★★★★☆</td>
+              <td>★★★☆☆</td>
+              <td>完整支持</td>
+              <td>Hive 生态，高压缩比</td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-orange">Avro</span></td>
+              <td>★★★☆☆</td>
+              <td>★★★☆☆</td>
+              <td>★★★★★</td>
+              <td>完整支持</td>
+              <td>流式写入，Schema Evolution</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="code-section reveal" style="margin-top: 32px;">
+        <div class="code-header">
+          <div class="code-dots">
+            <div class="dot dot-r"></div>
+            <div class="dot dot-y"></div>
+            <div class="dot dot-g"></div>
+          </div>
+          <span class="code-title">Parquet 内部结构（Row Group → Column Chunk → Page）</span>
+          <span></span>
+        </div>
+        <div class="code-body">
+<pre><span class="cm">┌─────────────────────────────────────────────────────────┐</span>
+<span class="cm">│                    Parquet File                          │</span>
+<span class="cm">├──────────────────────────────────────────────────────── │</span>
+<span class="cm">│  Row Group 1  (默认 128MB，对应一批数据)                   │</span>
+<span class="cm">│  ┌──────────────┬──────────────┬──────────────┐          │</span>
+<span class="cm">│  │ Col: user_id │ Col: amount  │ Col: event   │          │</span>
+<span class="cm">│  │ ──────────── │ ──────────── │ ──────────── │          │</span>
+<span class="cm">│  │  Page(8KB)  │  Page(8KB)  │  Page(8KB)   │          │</span>
+<span class="cm">│  │  Page(8KB)  │  Page(8KB)  │  Page(8KB)   │          │</span>
+<span class="cm">│  │  Statistics │  Statistics │  Statistics  │  ◄─ 跳过读 │</span>
+<span class="cm">│  └──────────────┴──────────────┴──────────────┘          │</span>
+<span class="cm">│  Row Group 2  ...                                        │</span>
+<span class="cm">├──────────────────────────────────────────────────────── │</span>
+<span class="cm">│  Footer: Schema + Row Group Metadata + Column Statistics │</span>
+<span class="cm">└─────────────────────────────────────────────────────────┘</span>
+
+<span class="kw">-- 利用 Column Pruning + Predicate Pushdown</span>
+<span class="cm">-- Paimon 读取时只扫描必要列，并用 Statistics 跳过不满足条件的 Row Group</span>
+<span class="fn">SELECT</span> <span class="var">user_id</span>, <span class="fn">SUM</span>(<span class="var">amount</span>) <span class="fn">FROM</span> <span class="var">orders</span>
+<span class="fn">WHERE</span> <span class="var">event_date</span> <span class="op">=</span> <span class="str">'2024-01-01'</span>
+<span class="fn">GROUP BY</span> <span class="var">user_id</span><span class="op">;</span>
+<span class="cm">-- ↑ 只读 user_id + amount 两列，其余列完全跳过</span></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 5: Snapshot 机制 -->
+    <section class="section reveal">
+      <div class="section-tag">05 / SNAPSHOT MECHANISM</div>
+      <h2 class="section-title">Snapshot 快照机制</h2>
+      <p class="section-sub">Snapshot 是 Paimon ACID 事务和时间旅行查询的基础，理解其生命周期是进行精确数据管理的关键。</p>
+
+      <div class="cards-grid reveal">
+
+        <div class="card">
+          <div class="card-accent accent-blue"></div>
+          <div class="card-icon card-icon-blue">📸</div>
+          <h3>Snapshot 结构</h3>
+          <p>每个 Snapshot JSON 包含：快照 ID、提交时间戳、操作类型（APPEND/OVERWRITE/COMPACT）、Manifest List 路径、统计信息（rowCount, fileCount）、Schema ID 引用。</p>
+        </div>
+
+        <div class="card">
+          <div class="card-accent accent-teal"></div>
+          <div class="card-icon card-icon-teal">⏱️</div>
+          <h3>时间旅行查询</h3>
+          <p>通过快照 ID 或时间戳回溯历史数据。Flink/Spark 均支持 <code style="font-family: var(--mono); font-size: 12px; color: var(--accent2);">scan.snapshot-id</code> 和 <code style="font-family: var(--mono); font-size: 12px; color: var(--accent2);">scan.timestamp-millis</code> 参数实现精确的历史版本查询。</p>
+        </div>
+
+        <div class="card">
+          <div class="card-accent accent-orange"></div>
+          <div class="card-icon card-icon-orange">🔄</div>
+          <h3>快照过期策略</h3>
+          <p>通过 <code style="font-family: var(--mono); font-size: 12px; color: var(--accent2);">snapshot.num-retained.min/max</code> 和 <code style="font-family: var(--mono); font-size: 12px; color: var(--accent2);">snapshot.time-retained</code> 控制保留数量和时长。过期 Snapshot 引用的 DataFile 会被 GC 清理。</p>
+        </div>
+
+        <div class="card">
+          <div class="card-accent accent-purple"></div>
+          <div class="card-icon card-icon-purple">🔀</div>
+          <h3>增量读取模式</h3>
+          <p>流式消费者可以基于 Snapshot 增量读取变更数据，支持 <code style="font-family: var(--mono); font-size: 12px; color: var(--accent2);">latest</code>、<code style="font-family: var(--mono); font-size: 12px; color: var(--accent2);">earliest</code>、<code style="font-family: var(--mono); font-size: 12px; color: var(--accent2);">from-snapshot</code> 等多种起始位置策略，类似 Kafka 的 offset 管理。</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Section 6: 实践要点 -->
+    <section class="section reveal">
+      <div class="section-tag">06 / BEST PRACTICES</div>
+      <h2 class="section-title">关键调优要点</h2>
+      <p class="section-sub">基于存储架构理解，这些配置参数对生产环境性能有决定性影响。</p>
+
+      <div class="kp-grid reveal">
+        <div class="kp-item">
+          <div class="kp-num">01</div>
+          <div class="kp-text">
+            <h5>Bucket 数量设计</h5>
+            <p>按主键哈希分桶，建议 Bucket 数 = 总数据量(GB) / 单文件目标大小(128MB)，避免小文件问题</p>
+          </div>
+        </div>
+
+        <div class="kp-item">
+          <div class="kp-num">02</div>
+          <div class="kp-text">
+            <h5>Compaction 策略</h5>
+            <p>批量导入场景关闭自动 Compaction，写完后手动触发 <code style="font-family: var(--mono); font-size: 12px; color: var(--accent2);">ALTER TABLE COMPACT</code> 一次性整理</p>
+          </div>
+        </div>
+
+        <div class="kp-item">
+          <div class="kp-num">03</div>
+          <div class="kp-text">
+            <h5>分区裁剪利用</h5>
+            <p>查询 WHERE 条件尽量包含分区列，Paimon 可直接跳过无关分区目录，避免全表扫描</p>
+          </div>
+        </div>
+
+        <div class="kp-item">
+          <div class="kp-num">04</div>
+          <div class="kp-text">
+            <h5>写入缓冲调优</h5>
+            <p><code style="font-family: var(--mono); font-size: 12px; color: var(--accent2);">write-buffer-size</code> 增大减少 Flush 频率，但会增加内存占用，需结合 TM 内存综合考量</p>
+          </div>
+        </div>
+
+        <div class="kp-item">
+          <div class="kp-num">05</div>
+          <div class="kp-text">
+            <h5>Lookup Join 优化</h5>
+            <p>维表场景使用 Paimon Lookup Join，利用本地 RocksDB 缓存，避免频繁远程读取</p>
+          </div>
+        </div>
+
+        <div class="kp-item">
+          <div class="kp-num">06</div>
+          <div class="kp-text">
+            <h5>快照 GC 监控</h5>
+            <p>定期检查 <code style="font-family: var(--mono); font-size: 12px; color: var(--accent2);">snapshot/</code> 目录文件数量，过多未清理的快照会导致 Manifest 链过长，影响 Commit 性能</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Chapter Nav -->
+    <div class="chapter-nav">
+      <div>
+        <div class="nav-info" style="font-size: 14px; color: var(--text2); margin-bottom: 16px; font-family: var(--sans);">本课程共 6 章，建议按序学习</div>
+        <div class="toc">
+          <div class="toc-item active">
+            <span class="toc-num">01</span>
+            <span>存储架构与文件格式深度解析</span>
+          </div>
+          <div class="toc-item" style="opacity: 0.5;">
+            <span class="toc-num">02</span>
+            <span>Changelog 与 CDC 数据摄取机制</span>
+          </div>
+          <div class="toc-item" style="opacity: 0.5;">
+            <span class="toc-num">03</span>
+            <span>流批一体写入与读取原理</span>
+          </div>
+          <div class="toc-item" style="opacity: 0.5;">
+            <span class="toc-num">04</span>
+            <span>Schema Evolution 与 DDL 变更</span>
+          </div>
+          <div class="toc-item" style="opacity: 0.5;">
+            <span class="toc-num">05</span>
+            <span>性能调优与生产运维最佳实践</span>
+          </div>
+          <div class="toc-item" style="opacity: 0.5;">
+            <span class="toc-num">06</span>
+            <span>与 Flink/Spark 集成深度实战</span>
+          </div>
+        </div>
+      </div>
+      <div style="text-align: right;">
+        <div class="nav-info" style="margin-bottom: 12px;">NEXT CHAPTER →</div>
+        <div style="font-family: var(--display); font-size: 20px; font-weight: 700; color: var(--text2);">Changelog 与 CDC<br>数据摄取机制</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  const reveals = document.querySelectorAll('.reveal');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 60);
+      }
+    });
+  }, { threshold: 0.08 });
+  reveals.forEach(r => obs.observe(r));
+
+  // Sidebar dots scroll sync
+  const sections = document.querySelectorAll('section');
+  const dots = document.querySelectorAll('.sdot');
+  const sectionObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const idx = Array.from(sections).indexOf(e.target);
+        dots.forEach(d => d.classList.remove('act'));
+        if (dots[idx]) dots[idx].classList.add('act');
+      }
+    });
+  }, { threshold: 0.4 });
+  sections.forEach(s => sectionObs.observe(s));
+</script>
+
+</body>
+</html>

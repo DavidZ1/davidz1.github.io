@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apache Paimon 深度学习 · 第五章</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#09080f;--surface:#100f1a;--surface2:#171624;--surface3:#1f1e30;
+  --border:rgba(251,191,36,0.11);--border2:rgba(251,191,36,0.28);
+  --a1:#fbbf24;--a2:#fb923c;--a3:#34d399;--a4:#818cf8;
+  --text:#fef9ee;--text2:#a08c5a;--text3:#4a3f1e;
+  --mono:'JetBrains Mono',monospace;--sans:'Noto Sans SC',sans-serif;--display:'Syne',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.7;overflow-x:hidden}
+
+/* sidebar */
+.sidebar{width:68px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:24px 0;position:fixed;top:0;bottom:0;z-index:100}
+.sb-logo{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--a1);letter-spacing:.22em;writing-mode:vertical-rl;transform:rotate(180deg);margin-bottom:auto;padding-top:20px}
+.sb-num{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--text3);padding-bottom:8px}
+.sb-dots{display:flex;flex-direction:column;gap:9px;padding-bottom:28px}
+.sdot{width:5px;height:5px;border-radius:50%;background:var(--text3);transition:.25s;cursor:pointer}
+.sdot.act{background:var(--a1);transform:scale(1.6)}
+.main{margin-left:68px}
+
+/* hero */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:80px 64px;position:relative;overflow:hidden}
+.hero-noise{position:absolute;inset:0;opacity:.4;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");background-size:300px}
+.hero-rays{position:absolute;inset:0;background:conic-gradient(from 200deg at 80% 20%, rgba(251,191,36,.06) 0deg, transparent 40deg, rgba(251,146,60,.04) 80deg, transparent 120deg, rgba(52,211,153,.03) 180deg, transparent 220deg, rgba(251,191,36,.05) 280deg, transparent 360deg)}
+.hero-glow{position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(251,191,36,.12) 0%,rgba(251,146,60,.05) 40%,transparent 68%);top:-80px;right:0;animation:glow 8s ease-in-out infinite}
+@keyframes glow{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+.chip{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--border2);background:rgba(251,191,36,.08);color:var(--a1);font-family:var(--mono);font-size:11px;letter-spacing:.17em;padding:7px 18px;border-radius:2px;margin-bottom:36px;width:fit-content}
+.chip-dot{width:7px;height:7px;background:var(--a2);border-radius:50%;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+h1.hero-h{font-family:var(--display);font-size:clamp(40px,5.6vw,78px);font-weight:800;line-height:1.05;letter-spacing:-.025em;max-width:860px;margin-bottom:26px}
+.grad-amber{background:linear-gradient(130deg,#fbbf24,#fb923c,#34d399);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 5s linear infinite}
+@keyframes shimmer{to{background-position:200% center}}
+.hero-desc{font-size:17px;color:var(--text2);max-width:580px;line-height:1.88;margin-bottom:48px}
+.hero-pills{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:48px}
+.pill{font-family:var(--mono);font-size:11px;padding:5px 14px;border-radius:100px;border:1px solid var(--border2);color:var(--a1);background:rgba(251,191,36,.07);letter-spacing:.06em}
+.pill.green{border-color:rgba(52,211,153,.3);color:#6ee7b7;background:rgba(52,211,153,.07)}
+.pill.orange{border-color:rgba(251,146,60,.3);color:#fdba74;background:rgba(251,146,60,.07)}
+.pill.indigo{border-color:rgba(129,140,248,.3);color:#a5b4fc;background:rgba(129,140,248,.07)}
+.hero-meta{display:flex;gap:44px;font-family:var(--mono);font-size:12px}
+.mi{display:flex;flex-direction:column;gap:5px}
+.ml{color:var(--text3);font-size:10px;letter-spacing:.12em}.mv{color:var(--a1)}
+
+/* layout */
+.section{padding:96px 64px;max-width:1160px;margin:0 auto}
+.stag{font-family:var(--mono);font-size:10px;letter-spacing:.22em;color:var(--a1);margin-bottom:14px;text-transform:uppercase}
+.stitle{font-family:var(--display);font-size:clamp(26px,3.2vw,42px);font-weight:700;letter-spacing:-.02em;line-height:1.14;margin-bottom:14px}
+.ssub{font-size:15px;color:var(--text2);max-width:640px;line-height:1.88;margin-bottom:52px}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border2),transparent);margin:0 64px}
+
+/* code */
+.cw{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:36px}
+.ch{display:flex;align-items:center;justify-content:space-between;padding:12px 22px;background:var(--surface2);border-bottom:1px solid var(--border)}
+.dots{display:flex;gap:6px}.dot{width:10px;height:10px;border-radius:50%}
+.dr{background:#ff5f57}.dy{background:#febc2e}.dg{background:#28c840}
+.ct{font-family:var(--mono);font-size:11px;color:var(--text3);letter-spacing:.1em}
+.cb{padding:26px 28px;font-family:var(--mono);font-size:13px;line-height:2;overflow-x:auto}
+.kw{color:#c792ea}.str{color:#c3e88d}.cm{color:#4a3f1e}.fn{color:#82aaff}
+.vr{color:#eeffff}.op{color:#89ddff}.hl{color:var(--a1)}.grn{color:#6ee7b7}.og{color:#fdba74}.ind{color:#a5b4fc}
+
+/* info box */
+.ib{border-radius:8px;padding:20px 24px;font-size:14px;line-height:1.85;margin:28px 0}
+.ib.tip{background:rgba(52,211,153,.07);border-left:3px solid var(--a3);color:var(--text2)}
+.ib.warn{background:rgba(251,146,60,.07);border-left:3px solid var(--a2);color:var(--text2)}
+.ib.note{background:rgba(251,191,36,.07);border-left:3px solid var(--a1);color:var(--text2)}
+.ib.danger{background:rgba(239,68,68,.07);border-left:3px solid #ef4444;color:var(--text2)}
+.il{font-family:var(--mono);font-size:10px;letter-spacing:.16em;margin-bottom:8px;font-weight:600}
+.tip .il{color:var(--a3)}.warn .il{color:var(--a2)}.note .il{color:var(--a1)}.danger .il{color:#ef4444}
+
+/* tuning knobs — big param cards */
+.knob-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-top:48px}
+.knob{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px 26px;position:relative;overflow:hidden;transition:border-color .28s,transform .28s}
+.knob:hover{border-color:var(--border2);transform:translateY(-3px)}
+.knob-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.knob-name{font-family:var(--mono);font-size:12px;color:var(--a1);letter-spacing:.05em;line-height:1.5}
+.knob-default{font-family:var(--mono);font-size:11px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.2);color:var(--a1);padding:2px 10px;border-radius:2px;flex-shrink:0;margin-left:12px}
+.knob-range{font-family:var(--mono);font-size:12px;color:var(--a2);margin-bottom:10px}
+.knob-desc{font-size:13px;color:var(--text2);line-height:1.78}
+.knob-bar-bg{height:4px;background:var(--surface3);border-radius:2px;margin-top:14px;overflow:hidden}
+.knob-bar{height:100%;border-radius:2px;transition:width 1.2s ease}
+.knob-impact{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.kimpact{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:2px;letter-spacing:.07em;border:1px solid}
+.ki-write{background:rgba(251,191,36,.08);color:#fde68a;border-color:rgba(251,191,36,.18)}
+.ki-read{background:rgba(52,211,153,.07);color:#6ee7b7;border-color:rgba(52,211,153,.18)}
+.ki-mem{background:rgba(129,140,248,.08);color:#a5b4fc;border-color:rgba(129,140,248,.18)}
+.ki-disk{background:rgba(251,146,60,.08);color:#fdba74;border-color:rgba(251,146,60,.18)}
+.ki-cpu{background:rgba(239,68,68,.07);color:#fca5a5;border-color:rgba(239,68,68,.18)}
+
+/* compaction strategies */
+.strat-wrap{margin-top:48px;display:flex;flex-direction:column;gap:12px}
+.strat-row{display:flex;align-items:stretch;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color .28s}
+.strat-row:hover{border-color:var(--border2)}
+.strat-label{min-width:150px;padding:20px 18px;border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;flex-shrink:0}
+.sl-mode{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--text3);margin-bottom:5px}
+.sl-name{font-size:13px;font-weight:600}
+.sl-amber{color:#fde68a}.sl-green{color:#6ee7b7}.sl-indigo{color:#a5b4fc}.sl-orange{color:#fdba74}
+.strat-body{padding:18px 24px;flex:1;display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+.strat-body p{font-size:13px;color:var(--text2);line-height:1.78;flex:1;min-width:200px}
+.strat-tags{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+.stag-item{font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:2px;white-space:nowrap;border:1px solid}
+.si-a{background:rgba(251,191,36,.08);color:#fde68a;border-color:rgba(251,191,36,.18)}
+.si-g{background:rgba(52,211,153,.07);color:#6ee7b7;border-color:rgba(52,211,153,.18)}
+.si-r{background:rgba(239,68,68,.07);color:#fca5a5;border-color:rgba(239,68,68,.18)}
+.si-i{background:rgba(129,140,248,.08);color:#a5b4fc;border-color:rgba(129,140,248,.18)}
+
+/* small-files analysis */
+.small-file-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:48px}
+.sf-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:22px 24px;position:relative;transition:border-color .28s}
+.sf-card:hover{border-color:var(--border2)}
+.sf-num{font-family:var(--display);font-size:44px;font-weight:800;color:rgba(251,191,36,.12);line-height:1;margin-bottom:10px}
+.sf-card h3{font-size:15px;font-weight:600;margin-bottom:8px}
+.sf-card p{font-size:13px;color:var(--text2);line-height:1.75}
+
+/* monitoring metrics table */
+.tw{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:40px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--surface2);padding:11px 18px;text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--text3);border-bottom:1px solid var(--border)}
+td{padding:12px 18px;border-bottom:1px solid var(--border);color:var(--text2);line-height:1.6;vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.012)}
+.badge{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 9px;border-radius:2px;letter-spacing:.07em;border:1px solid}
+.bd-a{background:rgba(251,191,36,.1);color:#fde68a;border-color:rgba(251,191,36,.2)}
+.bd-g{background:rgba(52,211,153,.1);color:#6ee7b7;border-color:rgba(52,211,153,.2)}
+.bd-o{background:rgba(251,146,60,.1);color:#fdba74;border-color:rgba(251,146,60,.2)}
+.bd-r{background:rgba(239,68,68,.08);color:#fca5a5;border-color:rgba(239,68,68,.18)}
+.bd-i{background:rgba(129,140,248,.1);color:#a5b4fc;border-color:rgba(129,140,248,.2)}
+
+/* ops checklist */
+.check-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;margin-top:48px}
+.check-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:26px}
+.check-card h3{font-family:var(--display);font-size:17px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.check-list{display:flex;flex-direction:column;gap:10px}
+.check-item{display:flex;align-items:flex-start;gap:12px;font-size:13px;color:var(--text2);line-height:1.7}
+.check-box{width:18px;height:18px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;font-size:11px;color:var(--a1)}
+
+/* gc procedure */
+.gc-flow{display:flex;flex-direction:column;gap:0;margin-top:48px}
+.gc-step{display:flex;gap:0;position:relative}
+.gc-step::before{content:'';position:absolute;left:23px;top:44px;bottom:-12px;width:1px;background:linear-gradient(to bottom,var(--a1),transparent)}
+.gc-step:last-child::before{display:none}
+.gc-dot{width:46px;height:46px;border-radius:50%;background:var(--surface2);border:2px solid var(--a1);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--a1);flex-shrink:0;z-index:1}
+.gc-body{flex:1;padding:10px 0 28px 22px}
+.gc-body h4{font-family:var(--display);font-size:15px;font-weight:700;margin-bottom:7px;color:var(--text)}
+.gc-body p{font-size:13px;color:var(--text2);line-height:1.78}
+.gc-cmd{font-family:var(--mono);font-size:12px;background:var(--surface2);border:1px solid var(--border);padding:8px 14px;border-radius:6px;margin-top:10px;color:var(--a1);display:inline-block}
+
+/* bench comparison */
+.bench-wrap{margin-top:48px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.bench-col{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px}
+.bench-col h4{font-family:var(--display);font-size:15px;font-weight:700;margin-bottom:20px}
+.bench-row{margin-bottom:16px}
+.bench-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.bench-label{font-size:12px;color:var(--text2)}
+.bench-val{font-family:var(--mono);font-size:12px;color:var(--a1)}
+.bar-bg{height:6px;background:var(--surface3);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width 1.2s ease}
+
+/* pitfalls */
+.pf-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-top:48px}
+.pf{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:22px;display:flex;gap:16px;align-items:flex-start;transition:border-color .28s}
+.pf:hover{border-color:rgba(251,146,60,.3)}
+.pf-icon{font-size:20px;min-width:28px;text-align:center;padding-top:2px}
+.pf h5{font-size:14px;font-weight:600;margin-bottom:7px;color:var(--text)}
+.pf p{font-size:13px;color:var(--text2);line-height:1.75}
+
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s ease,transform .65s ease}
+.reveal.visible{opacity:1;transform:none}
+
+.footer-nav{padding:56px 64px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:24px;max-width:1160px;margin:0 auto}
+.toc{display:flex;flex-direction:column;gap:8px}
+.toc-item{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--text2);cursor:default}
+.toc-item.done{color:var(--text3);text-decoration:line-through;text-decoration-color:var(--text3)}
+.toc-item.active{color:var(--a1)}
+.toc-item.dim{opacity:.42}
+.tn{font-family:var(--mono);font-size:10px;color:var(--text3);min-width:22px}
+.nl{font-family:var(--mono);font-size:11px;color:var(--text3);margin-bottom:10px;letter-spacing:.1em}
+.nt{font-family:var(--display);font-size:20px;font-weight:700;color:var(--text2);line-height:1.3;text-align:right}
+
+@media(max-width:768px){
+  .hero,.section{padding:60px 24px}
+  .sidebar{display:none}.main{margin-left:0}
+  .footer-nav{padding:40px 24px}
+  .divider{margin:0 24px}
+  .bench-wrap{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <span class="sb-logo">PAIMON</span>
+  <span class="sb-num">05</span>
+  <div class="sb-dots">
+    <div class="sdot act"></div><div class="sdot"></div><div class="sdot"></div>
+    <div class="sdot"></div><div class="sdot"></div><div class="sdot"></div><div class="sdot"></div>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- HERO -->
+<section class="hero" id="s0">
+  <div class="hero-noise"></div><div class="hero-rays"></div><div class="hero-glow"></div>
+  <div class="chip"><span class="chip-dot"></span>CHAPTER 05 · PERFORMANCE & OPS</div>
+  <h1 class="hero-h">性能调优与<br><span class="grad-amber">生产运维</span><br>最佳实践</h1>
+  <p class="hero-desc">掌握 Paimon 在生产环境中的精细调优技巧 —— 从 Compaction 策略到小文件治理，从 GC 运维到监控告警，构建稳定高效的 Lakehouse 基础设施。</p>
+  <div class="hero-pills">
+    <span class="pill">Compaction 深度调优</span>
+    <span class="pill green">小文件治理</span>
+    <span class="pill orange">GC 与存储管理</span>
+    <span class="pill indigo">监控指标体系</span>
+  </div>
+  <div class="hero-meta">
+    <div class="mi"><span class="ml">DIFFICULTY</span><span class="mv">Expert</span></div>
+    <div class="mi"><span class="ml">READING TIME</span><span class="mv">~60 min</span></div>
+    <div class="mi"><span class="ml">PREV CHAPTER</span><span class="mv">Schema Evolution</span></div>
+    <div class="mi"><span class="ml">VERSION</span><span class="mv">Paimon 0.8+</span></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- S1: 核心调优参数 -->
+<section class="section reveal" id="s1">
+  <div class="stag">01 / CORE TUNING PARAMETERS</div>
+  <h2 class="stitle">核心调优参数详解</h2>
+  <p class="ssub">这些参数决定了 Paimon 写入吞吐、读取延迟和资源消耗的基本面貌，是调优的第一步。每个参数的调整都是一组 trade-off，需结合实际场景权衡。</p>
+
+  <div class="knob-grid reveal">
+
+    <div class="knob">
+      <div class="knob-top">
+        <div class="knob-name">write-buffer-size</div>
+        <div class="knob-default">64 mb</div>
+      </div>
+      <div class="knob-range">推荐范围：128mb ~ 512mb</div>
+      <div class="knob-desc">每个 Writer Task 的 MemTable 上限。调大可减少 Flush 频率，降低 L0 文件数，但会增加内存占用。流式场景推荐 256mb，批量写入可调至 512mb。</div>
+      <div class="knob-bar-bg"><div class="knob-bar" data-w="55%" style="width:0;background:linear-gradient(90deg,var(--a1),var(--a2))"></div></div>
+      <div class="knob-impact">
+        <span class="kimpact ki-write">写吞吐 ↑</span>
+        <span class="kimpact ki-mem">内存 ↑</span>
+        <span class="kimpact ki-read">读延迟 ↓</span>
+      </div>
+    </div>
+
+    <div class="knob">
+      <div class="knob-top">
+        <div class="knob-name">num-sorted-run.compaction-trigger</div>
+        <div class="knob-default">5</div>
+      </div>
+      <div class="knob-range">推荐范围：5 ~ 10</div>
+      <div class="knob-desc">L0 文件数超过该阈值触发 Minor Compaction。调小频繁 Compaction 有损写吞吐；调大则 L0 文件堆积，读放大严重。流式高频写入建议 5~8。</div>
+      <div class="knob-bar-bg"><div class="knob-bar" data-w="38%" style="width:0;background:linear-gradient(90deg,var(--a2),var(--a4))"></div></div>
+      <div class="knob-impact">
+        <span class="kimpact ki-write">写吞吐 ↑↓</span>
+        <span class="kimpact ki-read">读放大 ↑↓</span>
+        <span class="kimpact ki-cpu">CPU ↑↓</span>
+      </div>
+    </div>
+
+    <div class="knob">
+      <div class="knob-top">
+        <div class="knob-name">num-sorted-run.stop-trigger</div>
+        <div class="knob-default">10</div>
+      </div>
+      <div class="knob-range">推荐范围：trigger × 2</div>
+      <div class="knob-desc">L0 文件数超过该值时，Writer 暂停写入等待 Compaction 追上。这是防止读放大失控的最后防线，触发过频说明 Compaction 资源不足。</div>
+      <div class="knob-bar-bg"><div class="knob-bar" data-w="65%" style="width:0;background:linear-gradient(90deg,var(--a3),var(--a1))"></div></div>
+      <div class="knob-impact">
+        <span class="kimpact ki-write">写暂停风险</span>
+        <span class="kimpact ki-read">读质量保障</span>
+      </div>
+    </div>
+
+    <div class="knob">
+      <div class="knob-top">
+        <div class="knob-name">target-file-size</div>
+        <div class="knob-default">128 mb</div>
+      </div>
+      <div class="knob-range">推荐范围：64mb ~ 256mb</div>
+      <div class="knob-desc">Compaction 后每个 DataFile 的目标大小。批量分析场景可调至 256mb，减少文件数提升扫描效率；流式频繁写入场景保持 128mb 平衡写放大。</div>
+      <div class="knob-bar-bg"><div class="knob-bar" data-w="70%" style="width:0;background:linear-gradient(90deg,var(--a1),var(--a3))"></div></div>
+      <div class="knob-impact">
+        <span class="kimpact ki-disk">文件数 ↓</span>
+        <span class="kimpact ki-read">扫描效率 ↑</span>
+        <span class="kimpact ki-write">写放大 ↑</span>
+      </div>
+    </div>
+
+    <div class="knob">
+      <div class="knob-top">
+        <div class="knob-name">snapshot.num-retained.min/max</div>
+        <div class="knob-default">10 / 无限</div>
+      </div>
+      <div class="knob-range">推荐：min=10, max=50~100</div>
+      <div class="knob-desc">控制保留的快照数量。min 保障下游消费者有足够的追赶时间；max 防止 Manifest 链过长影响 Commit 性能。两者之间保持合理间距。</div>
+      <div class="knob-bar-bg"><div class="knob-bar" data-w="45%" style="width:0;background:linear-gradient(90deg,var(--a4),var(--a2))"></div></div>
+      <div class="knob-impact">
+        <span class="kimpact ki-disk">存储占用</span>
+        <span class="kimpact ki-read">时间旅行范围</span>
+      </div>
+    </div>
+
+    <div class="knob">
+      <div class="knob-top">
+        <div class="knob-name">snapshot.time-retained</div>
+        <div class="knob-default">1 h</div>
+      </div>
+      <div class="knob-range">推荐范围：1h ~ 24h</div>
+      <div class="knob-desc">按时间保留快照，确保在该时间窗口内的任意时刻都可以做时间旅行查询。与 num-retained 取最大值，两者共同决定 GC 边界。</div>
+      <div class="knob-bar-bg"><div class="knob-bar" data-w="30%" style="width:0;background:linear-gradient(90deg,var(--a2),var(--a3))"></div></div>
+      <div class="knob-impact">
+        <span class="kimpact ki-disk">存储占用 ↑</span>
+        <span class="kimpact ki-read">回溯能力 ↑</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="ib note reveal">
+    <div class="il">TUNING PRINCIPLE</div>
+    调优顺序建议：① 先确定业务对写入延迟的容忍度（决定 Checkpoint 间隔）→ ② 根据 TM 可用内存设定 write-buffer-size → ③ 观察 L0 文件数监控曲线，调整 compaction-trigger → ④ 最后微调 target-file-size 和 snapshot 保留策略。避免同时调整多个参数，难以归因效果。
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- S2: Compaction 策略 -->
+<section class="section reveal" id="s2">
+  <div class="stag">02 / COMPACTION STRATEGIES</div>
+  <h2 class="stitle">Compaction 策略深度解析</h2>
+  <p class="ssub">Compaction 是 Paimon 性能调优最核心的环节，不同场景需要选择不同的 Compaction 部署模式和触发策略。</p>
+
+  <div class="strat-wrap reveal">
+
+    <div class="strat-row">
+      <div class="strat-label">
+        <div class="sl-mode">MODE 01</div>
+        <div class="sl-name sl-amber">同步 Compaction</div>
+      </div>
+      <div class="strat-body">
+        <p>写入 Job 内部同步执行 Compaction，Compaction 与写入共享 TM 资源。配置简单，适合数据量小、写入 TPS 低的场景。Compaction 耗时会直接影响写入吞吐，在流量峰值时可能导致 Checkpoint 超时。</p>
+        <div class="strat-tags">
+          <span class="stag-item si-g">配置简单</span>
+          <span class="stag-item si-r">峰值抖动风险</span>
+          <span class="stag-item si-a">适合低 TPS</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="strat-row">
+      <div class="strat-label">
+        <div class="sl-mode">MODE 02</div>
+        <div class="sl-name sl-green">异步 Compaction</div>
+      </div>
+      <div class="strat-body">
+        <p>写入 Job 跳过 Compaction（设置 <code style="font-family:var(--mono);font-size:12px;color:var(--a3)">write.compaction-skip=true</code>），独立部署 Compaction Job 异步处理。写入与 Compaction 资源完全隔离，互不影响。生产高 TPS 场景的推荐方式，两个 Job 可独立扩缩容。</p>
+        <div class="strat-tags">
+          <span class="stag-item si-g">资源隔离</span>
+          <span class="stag-item si-g">高 TPS 推荐</span>
+          <span class="stag-item si-i">需维护两个 Job</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="strat-row">
+      <div class="strat-label">
+        <div class="sl-mode">MODE 03</div>
+        <div class="sl-name sl-indigo">批量后 Compact</div>
+      </div>
+      <div class="strat-body">
+        <p>批量导入完成后，手动触发 Full Compaction 一次性整理所有文件。适合 T+1 数据仓库场景：夜间批量导入，完成后执行 Compact，白天查询享受最优读性能。</p>
+        <div class="strat-tags">
+          <span class="stag-item si-a">离线批量推荐</span>
+          <span class="stag-item si-g">读性能最优</span>
+          <span class="stag-item si-i">需调度脚本</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="strat-row">
+      <div class="strat-label">
+        <div class="sl-mode">MODE 04</div>
+        <div class="sl-name sl-orange">按分区 Compact</div>
+      </div>
+      <div class="strat-body">
+        <p>只对指定分区执行 Compaction，避免全表整理的高代价。适合按天分区的数据仓库：每天对前一天分区执行一次 Full Compact，当天分区保持流式写入状态，不影响实时链路。</p>
+        <div class="strat-tags">
+          <span class="stag-item si-a">精细化控制</span>
+          <span class="stag-item si-g">减少 IO</span>
+          <span class="stag-item si-a">分区表专用</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="cw reveal">
+    <div class="ch"><div class="dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div><span class="ct">异步 Compaction Job 部署示例</span><span></span></div>
+    <div class="cb"><pre><span class="cm">── 方案一：写入 Job 跳过 Compaction</span>
+<span class="fn">INSERT INTO</span> <span class="vr">dwd_orders</span>
+<span class="fn">SELECT</span> <span class="op">*</span> <span class="fn">FROM</span> <span class="vr">ods_orders</span>
+<span class="cm">/*+ OPTIONS(
+  'write.compaction-skip' = 'true'   -- 写入 Job 不做 Compaction
+) */</span><span class="op">;</span>
+
+<span class="cm">── 方案一：独立 Compaction Job（持续运行，后台异步整理）</span>
+<span class="fn">bin/flink</span> run \
+  <span class="op">-c</span> <span class="vr">org.apache.paimon.flink.action.FlinkActions</span> \
+  <span class="vr">paimon-flink-action-*.jar</span> \
+  <span class="vr">compact</span> \
+  <span class="op">--warehouse</span>  <span class="str">hdfs:///warehouse/paimon</span> \
+  <span class="op">--database</span>   <span class="str">my_db</span> \
+  <span class="op">--table</span>      <span class="str">dwd_orders</span> \
+  <span class="op">--mode</span>       <span class="str">continuous</span>   <span class="cm">-- 持续监听，有新 L0 文件就 Compact</span>
+
+<span class="cm">── 方案二：按分区手动触发（适合批量导入后整理）</span>
+<span class="fn">CALL</span> <span class="vr">sys</span>.<span class="fn">compact</span>(
+  <span class="str">'my_catalog.my_db.dwd_orders'</span>,
+  <span class="str">'dt=2024-01-01'</span>,        <span class="cm">-- 仅整理该分区</span>
+  <span class="str">'order_id'</span>              <span class="cm">-- 指定排序键（可选，加速 point lookup）</span>
+)<span class="op">;</span>
+
+<span class="cm">── 方案三：全表 Full Compaction（将所有数据整理到最高 Level）</span>
+<span class="fn">CALL</span> <span class="vr">sys</span>.<span class="fn">compact</span>(<span class="str">'my_catalog.my_db.dwd_orders'</span>)<span class="op">;</span></pre>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- S3: 小文件治理 -->
+<section class="section reveal" id="s3">
+  <div class="stag">03 / SMALL FILE GOVERNANCE</div>
+  <h2 class="stitle">小文件问题诊断与治理</h2>
+  <p class="ssub">小文件是 Paimon 生产环境最常见的性能瓶颈之一，理解其根源并采取针对性措施，是运维工程师的必备技能。</p>
+
+  <div class="small-file-grid reveal">
+    <div class="sf-card">
+      <div class="sf-num">01</div>
+      <h3>根因：Checkpoint 过于频繁</h3>
+      <p>每次 Checkpoint 都会将 MemTable Flush 为 L0 文件。Checkpoint 间隔 30s 意味着每个 Bucket 每 30s 产生一个文件，长时间运行后 L0 文件堆积。解决：适当延长 Checkpoint 间隔至 60~120s，或增大 write-buffer-size 减少 Flush 次数。</p>
+    </div>
+    <div class="sf-card">
+      <div class="sf-num">02</div>
+      <h3>根因：Bucket 数量过多</h3>
+      <p>Bucket 数设置过大而实际写入量小，导致每个 Bucket 的文件极小。例如设了 100 个 Bucket 但每天只有 10GB 数据，平均每 Bucket 只有 100MB，远低于 target-file-size。解决：按实际数据量重新规划 Bucket 数，目标每个 Bucket 数百 MB 到数 GB。</p>
+    </div>
+    <div class="sf-card">
+      <div class="sf-num">03</div>
+      <h3>根因：Compaction 滞后</h3>
+      <p>Compaction 资源不足，L0 文件产生速度快于 Compaction 消化速度，导致文件持续积压。解决：部署独立 Compaction Job，分配足够 CPU/内存资源，或调低 compaction-trigger 更积极地触发合并。</p>
+    </div>
+    <div class="sf-card">
+      <div class="sf-num">04</div>
+      <h3>根因：动态分区写入倾斜</h3>
+      <p>按时间动态分区时，新分区刚创建只有少量数据，每次 Flush 都生成极小文件。解决：对历史分区定期执行 <code style="font-family:var(--mono);font-size:12px;color:var(--a1)">compact</code>，只让当前活跃分区保持小文件状态，历史分区应是整理好的大文件。</p>
+    </div>
+  </div>
+
+  <div class="cw reveal">
+    <div class="ch"><div class="dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div><span class="ct">小文件诊断 — 查询文件分布状态</span><span></span></div>
+    <div class="cb"><pre><span class="cm">-- 查看表的文件分布情况（按 Level 汇总）</span>
+<span class="fn">SELECT</span>
+  <span class="vr">partition</span>,
+  <span class="vr">bucket</span>,
+  <span class="vr">level</span>,
+  <span class="fn">COUNT</span>(<span class="op">*</span>) <span class="fn">AS</span> <span class="vr">file_count</span>,
+  <span class="fn">SUM</span>(<span class="vr">file_size_in_bytes</span>) <span class="op">/</span> <span class="lm">1024</span><span class="op">/</span><span class="lm">1024</span> <span class="fn">AS</span> <span class="vr">total_mb</span>,
+  <span class="fn">AVG</span>(<span class="vr">file_size_in_bytes</span>) <span class="op">/</span> <span class="lm">1024</span><span class="op">/</span><span class="lm">1024</span> <span class="fn">AS</span> <span class="vr">avg_mb</span>
+<span class="fn">FROM</span> <span class="vr">my_table</span><span class="op">$</span><span class="vr">files</span>
+<span class="fn">GROUP BY</span> <span class="vr">partition</span>, <span class="vr">bucket</span>, <span class="vr">level</span>
+<span class="fn">ORDER BY</span> <span class="vr">file_count</span> <span class="fn">DESC</span>
+<span class="fn">LIMIT</span> <span class="lm">20</span><span class="op">;</span>
+
+<span class="cm">-- 关注：file_count 高 + avg_mb 低 = 小文件问题</span>
+<span class="cm">-- 目标：level=0 的文件数 < compaction-trigger × bucket数</span>
+
+<span class="cm">-- 查看 Snapshot 数量（过多会影响 Manifest 解析性能）</span>
+<span class="fn">SELECT</span> <span class="fn">COUNT</span>(<span class="op">*</span>) <span class="fn">AS</span> <span class="vr">snapshot_count</span>
+<span class="fn">FROM</span> <span class="vr">my_table</span><span class="op">$</span><span class="vr">snapshots</span><span class="op">;</span>
+
+<span class="cm">-- 查看 Consumer 消费进度</span>
+<span class="fn">SELECT</span> <span class="op">*</span> <span class="fn">FROM</span> <span class="vr">my_table</span><span class="op">$</span><span class="vr">consumers</span><span class="op">;</span></pre>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- S4: GC 与存储管理 -->
+<section class="section reveal" id="s4">
+  <div class="stag">04 / GC & STORAGE MANAGEMENT</div>
+  <h2 class="stitle">GC 机制与存储运维</h2>
+  <p class="ssub">Paimon 的 GC（垃圾回收）依赖快照过期机制自动清理无用文件，但生产环境中各种因素可能阻止 GC 正常工作，需要主动运维。</p>
+
+  <div class="gc-flow reveal">
+
+    <div class="gc-step">
+      <div class="gc-dot">①</div>
+      <div class="gc-body">
+        <h4>触发条件：Snapshot 过期</h4>
+        <p>每次新 Snapshot Commit 时，Paimon 检查是否有 Snapshot 超过 <code style="font-family:var(--mono);font-size:12px;color:var(--a1)">num-retained.max</code> 或 <code style="font-family:var(--mono);font-size:12px;color:var(--a1)">time-retained</code> 阈值。满足条件的 Snapshot 标记为"候选删除"，但<strong>不立即删除</strong>。</p>
+        <div class="gc-cmd">snapshot.num-retained.max = 50</div>
+      </div>
+    </div>
+
+    <div class="gc-step">
+      <div class="gc-dot">②</div>
+      <div class="gc-body">
+        <h4>阻塞检查：Consumer 与 Tag</h4>
+        <p>过期 Snapshot 被删除前，会检查是否有活跃 Consumer 的消费位置指向该 Snapshot，以及是否有 Tag 引用它。任一条件满足都会阻止该 Snapshot 及其 DataFile 被 GC。这是最常见的"存储越来越大"根因。</p>
+        <div class="gc-cmd">SELECT * FROM my_table$consumers; — 检查僵尸 Consumer</div>
+      </div>
+    </div>
+
+    <div class="gc-step">
+      <div class="gc-dot">③</div>
+      <div class="gc-body">
+        <h4>引用计数归零：文件进入删除队列</h4>
+        <p>Snapshot 被所有 Consumer 越过且无 Tag 引用后，其持有的 DataFile 引用计数归零。Paimon 将这些文件路径写入 Manifest 的删除记录，等待实际文件系统删除。</p>
+      </div>
+    </div>
+
+    <div class="gc-step">
+      <div class="gc-dot">④</div>
+      <div class="gc-body">
+        <h4>孤儿文件清理：expire_snapshots</h4>
+        <p>正常 GC 流程之外，可能存在孤儿文件（Checkpoint 失败留下的未提交 DataFile）。使用 <code style="font-family:var(--mono);font-size:12px;color:var(--a1)">expire_snapshots</code> 或 <code style="font-family:var(--mono);font-size:12px;color:var(--a1)">remove_orphan_files</code> 定期清理。</p>
+        <div class="gc-cmd">CALL sys.remove_orphan_files('my_catalog.my_db.orders', '2024-01-01 00:00:00')</div>
+      </div>
+    </div>
+
+    <div class="gc-step">
+      <div class="gc-dot">⑤</div>
+      <div class="gc-body">
+        <h4>存储监控与告警</h4>
+        <p>建议对 Paimon 表目录设置存储用量告警，当增长速率异常时触发人工检查。常见原因：Consumer 消费停滞、Tag 未清理、Compaction 未执行导致 L0 文件堆积、孤儿文件积累。</p>
+        <div class="gc-cmd">hdfs dfs -du -h -s /warehouse/paimon/my_db.db/orders/</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="cw reveal">
+    <div class="ch"><div class="dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div><span class="ct">GC 运维操作手册</span><span></span></div>
+    <div class="cb"><pre><span class="cm">── 1. 手动触发快照过期清理</span>
+<span class="fn">CALL</span> <span class="vr">sys</span>.<span class="fn">expire_snapshots</span>(
+  <span class="str">'my_catalog.my_db.orders'</span>,
+  <span class="lm">30</span>,           <span class="cm">-- 保留最近 30 个快照</span>
+  <span class="str">'1 h'</span>          <span class="cm">-- 保留最近 1 小时内的快照</span>
+)<span class="op">;</span>
+
+<span class="cm">── 2. 清理孤儿文件（谨慎：仅清理超过指定时间的文件）</span>
+<span class="fn">CALL</span> <span class="vr">sys</span>.<span class="fn">remove_orphan_files</span>(
+  <span class="str">'my_catalog.my_db.orders'</span>,
+  <span class="str">'2024-01-01 00:00:00'</span>  <span class="cm">-- 清理该时间点之前创建的孤儿文件</span>
+)<span class="op">;</span>
+
+<span class="cm">── 3. 清理过期 Consumer（阻止 GC 的僵尸消费者）</span>
+<span class="fn">CALL</span> <span class="vr">sys</span>.<span class="fn">expire_consumers</span>(
+  <span class="str">'my_catalog.my_db.orders'</span>,
+  <span class="str">'3 d'</span>  <span class="cm">-- 清理 3 天未更新的 Consumer</span>
+)<span class="op">;</span>
+
+<span class="cm">── 4. 查看存储空间占用分布</span>
+<span class="fn">SELECT</span>
+  <span class="vr">partition</span>,
+  <span class="fn">SUM</span>(<span class="vr">file_size_in_bytes</span>) <span class="op">/</span> <span class="lm">1024</span><span class="op">/</span><span class="lm">1024</span><span class="op">/</span><span class="lm">1024</span> <span class="fn">AS</span> <span class="vr">size_gb</span>,
+  <span class="fn">COUNT</span>(<span class="op">*</span>) <span class="fn">AS</span> <span class="vr">file_count</span>
+<span class="fn">FROM</span> <span class="vr">orders</span><span class="op">$</span><span class="vr">files</span>
+<span class="fn">GROUP BY</span> <span class="vr">partition</span>
+<span class="fn">ORDER BY</span> <span class="vr">size_gb</span> <span class="fn">DESC</span><span class="op">;</span></pre>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- S5: 监控指标体系 -->
+<section class="section reveal" id="s5">
+  <div class="stag">05 / MONITORING METRICS</div>
+  <h2 class="stitle">生产监控指标体系</h2>
+  <p class="ssub">建立完善的监控告警体系是 Paimon 稳定运行的基础，以下是最关键的监控维度和推荐告警阈值。</p>
+
+  <div class="tw reveal">
+    <table>
+      <thead>
+        <tr><th>指标分类</th><th>指标名称</th><th>含义</th><th>告警阈值</th><th>异常原因</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td rowspan="3"><span class="badge bd-a">写入健康</span></td>
+          <td style="font-family:var(--mono);font-size:11px;color:var(--a1)">compaction.levels.num-sorted-run</td>
+          <td>当前 L0 文件数</td>
+          <td style="color:#fbbf24">&gt; stop-trigger 的 80%</td>
+          <td>Compaction 跟不上写入</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono);font-size:11px;color:var(--a1)">writer.flush-time</td>
+          <td>MemTable Flush 耗时</td>
+          <td style="color:#fbbf24">&gt; 5s</td>
+          <td>磁盘 IO 瓶颈</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono);font-size:11px;color:var(--a1)">commit.duration</td>
+          <td>Snapshot Commit 耗时</td>
+          <td style="color:#fbbf24">&gt; Checkpoint 间隔的 30%</td>
+          <td>Manifest 链过长</td>
+        </tr>
+        <tr>
+          <td rowspan="2"><span class="badge bd-g">读取健康</span></td>
+          <td style="font-family:var(--mono);font-size:11px;color:var(--a1)">scan.split-time</td>
+          <td>Split 生成耗时</td>
+          <td style="color:#fbbf24">&gt; 30s</td>
+          <td>文件数过多，Manifest 解析慢</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono);font-size:11px;color:var(--a1)">source.records.lag</td>
+          <td>流式消费延迟（条数）</td>
+          <td style="color:#fbbf24">&gt; 10 万</td>
+          <td>下游消费能力不足</td>
+        </tr>
+        <tr>
+          <td rowspan="2"><span class="badge bd-o">存储健康</span></td>
+          <td style="font-family:var(--mono);font-size:11px;color:var(--a1)">snapshot.count</td>
+          <td>当前 Snapshot 总数</td>
+          <td style="color:#fbbf24">&gt; 200</td>
+          <td>GC 被阻止，Consumer 僵尸</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono);font-size:11px;color:var(--a1)">storage.size.growth-rate</td>
+          <td>存储增长速率</td>
+          <td style="color:#fbbf24">持续 1h 超过预期 200%</td>
+          <td>孤儿文件积累或 GC 失效</td>
+        </tr>
+        <tr>
+          <td><span class="badge bd-i">Compaction</span></td>
+          <td style="font-family:var(--mono);font-size:11px;color:var(--a1)">compaction.duration</td>
+          <td>单次 Compaction 耗时</td>
+          <td style="color:#fbbf24">&gt; 10min</td>
+          <td>单文件过大或资源不足</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="ib tip reveal">
+    <div class="il">MONITORING SETUP</div>
+    Paimon 的 Flink 作业指标通过 Flink Metrics 体系暴露，可接入 Prometheus + Grafana 做可视化。建议为每张核心业务表建立独立 Dashboard，重点监控 L0 文件数曲线和 Commit 耗时趋势，这两个指标能最早预警性能劣化。
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- S6: 读性能优化 -->
+<section class="section reveal" id="s6">
+  <div class="stag">06 / READ PERFORMANCE</div>
+  <h2 class="stitle">读取性能优化策略</h2>
+  <p class="ssub">写入调优决定数据新鲜度，读取调优决定查询体验。以下策略能显著提升批量扫描和 point lookup 性能。</p>
+
+  <div class="bench-wrap reveal">
+    <div class="bench-col">
+      <h4 style="color:#fde68a">批量扫描优化</h4>
+      <div class="bench-row">
+        <div class="bench-meta"><span class="bench-label">分区裁剪效果</span><span class="bench-val">扫描量↓ 80%+</span></div>
+        <div class="bar-bg"><div class="bar-fill" data-w="85%" style="width:0;background:linear-gradient(90deg,var(--a1),var(--a3))"></div></div>
+      </div>
+      <div class="bench-row">
+        <div class="bench-meta"><span class="bench-label">列裁剪（Column Pruning）</span><span class="bench-val">IO↓ 60%+</span></div>
+        <div class="bar-bg"><div class="bar-fill" data-w="65%" style="width:0;background:linear-gradient(90deg,var(--a1),var(--a3))"></div></div>
+      </div>
+      <div class="bench-row">
+        <div class="bench-meta"><span class="bench-label">统计信息下推（Row Group Skip）</span><span class="bench-val">读行数↓ 40%+</span></div>
+        <div class="bar-bg"><div class="bar-fill" data-w="45%" style="width:0;background:linear-gradient(90deg,var(--a1),var(--a3))"></div></div>
+      </div>
+      <div class="bench-row">
+        <div class="bench-meta"><span class="bench-label">Full Compaction 后扫描</span><span class="bench-val">文件数↓ 70%</span></div>
+        <div class="bar-bg"><div class="bar-fill" data-w="72%" style="width:0;background:linear-gradient(90deg,var(--a1),var(--a3))"></div></div>
+      </div>
+    </div>
+    <div class="bench-col">
+      <h4 style="color:#6ee7b7">Point Lookup 优化</h4>
+      <div class="bench-row">
+        <div class="bench-meta"><span class="bench-label">Primary Key Index</span><span class="bench-val">O(log n) 查找</span></div>
+        <div class="bar-bg"><div class="bar-fill" data-w="90%" style="width:0;background:linear-gradient(90deg,var(--a3),var(--a2))"></div></div>
+      </div>
+      <div class="bench-row">
+        <div class="bench-meta"><span class="bench-label">Bloom Filter（主键命中）</span><span class="bench-val">False Positive &lt;1%</span></div>
+        <div class="bar-bg"><div class="bar-fill" data-w="92%" style="width:0;background:linear-gradient(90deg,var(--a3),var(--a2))"></div></div>
+      </div>
+      <div class="bench-row">
+        <div class="bench-meta"><span class="bench-label">Lookup Join 本地缓存命中</span><span class="bench-val">延迟↓ 毫秒级</span></div>
+        <div class="bar-bg"><div class="bar-fill" data-w="95%" style="width:0;background:linear-gradient(90deg,var(--a3),var(--a2))"></div></div>
+      </div>
+      <div class="bench-row">
+        <div class="bench-meta"><span class="bench-label">Sorted Run 数越少</span><span class="bench-val">合并成本 ↓ 线性</span></div>
+        <div class="bar-bg"><div class="bar-fill" data-w="80%" style="width:0;background:linear-gradient(90deg,var(--a3),var(--a2))"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cw reveal">
+    <div class="ch"><div class="dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div><span class="ct">读取优化配置 — Bloom Filter 与 Secondary Index</span><span></span></div>
+    <div class="cb"><pre><span class="cm">-- 开启 Bloom Filter（减少不必要的文件读取）</span>
+<span class="fn">CREATE TABLE</span> <span class="vr">orders</span> (
+  <span class="vr">order_id</span> <span class="kw">BIGINT</span>,
+  <span class="vr">user_id</span>  <span class="kw">BIGINT</span>,
+  <span class="vr">amount</span>   <span class="kw">DECIMAL</span>(<span class="lm">12</span>,<span class="lm">2</span>),
+  <span class="kw">PRIMARY KEY</span> (<span class="vr">order_id</span>) <span class="fn">NOT ENFORCED</span>
+) <span class="fn">WITH</span> (
+  <span class="str">'file.format'</span>              = <span class="str">'parquet'</span>,
+  <span class="str">'metadata.bloom-filter.columns'</span> = <span class="str">'order_id,user_id'</span>,  <span class="cm">-- 对这些列建 BF</span>
+  <span class="str">'metadata.bloom-filter.enabled'</span> = <span class="str">'true'</span>
+)<span class="op">;</span>
+
+<span class="cm">-- 二级索引（Paimon 0.8+，加速非主键点查）</span>
+<span class="fn">CREATE TABLE</span> <span class="vr">orders_with_index</span> (
+  <span class="vr">order_id</span> <span class="kw">BIGINT</span>,
+  <span class="vr">user_id</span>  <span class="kw">BIGINT</span>,
+  <span class="vr">status</span>   <span class="kw">STRING</span>,
+  <span class="kw">PRIMARY KEY</span> (<span class="vr">order_id</span>) <span class="fn">NOT ENFORCED</span>
+) <span class="fn">WITH</span> (
+  <span class="str">'secondary-index.columns'</span> = <span class="str">'user_id'</span>   <span class="cm">-- 对 user_id 建二级索引</span>
+)<span class="op">;</span>
+
+<span class="cm">-- 查询时自动利用二级索引</span>
+<span class="cm">-- SELECT * FROM orders_with_index WHERE user_id = 12345;</span>
+<span class="cm">-- ↑ 通过索引找到 order_id，再按主键点查，避免全表扫描</span></pre>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- S7: 生产运维检查清单 -->
+<section class="section reveal" id="s7">
+  <div class="stag">07 / OPS CHECKLIST</div>
+  <h2 class="stitle">生产运维检查清单</h2>
+  <p class="ssub">将以下检查项纳入日常巡检和发布流程，可有效预防大多数生产问题。</p>
+
+  <div class="check-grid reveal">
+
+    <div class="check-card">
+      <h3><span style="color:var(--a1)">⚡</span> 日常巡检（每日）</h3>
+      <div class="check-list">
+        <div class="check-item"><div class="check-box">✓</div><span>检查各核心表 L0 文件数，是否接近 stop-trigger 阈值</span></div>
+        <div class="check-item"><div class="check-box">✓</div><span>确认 Compaction Job 状态正常，无异常退出</span></div>
+        <div class="check-item"><div class="check-box">✓</div><span>验证各 CDC 链路的 Checkpoint 成功率 &gt; 99.9%</span></div>
+        <div class="check-item"><div class="check-box">✓</div><span>检查 Snapshot 总数是否在预期范围内</span></div>
+        <div class="check-item"><div class="check-box">✓</div><span>确认 Consumer 消费延迟在告警阈值以内</span></div>
+      </div>
+    </div>
+
+    <div class="check-card">
+      <h3><span style="color:var(--a2)">🗂️</span> 周度运维（每周）</h3>
+      <div class="check-list">
+        <div class="check-item"><div class="check-box">✓</div><span>对历史分区执行一次按分区 Compact，整理小文件</span></div>
+        <div class="check-item"><div class="check-box">✓</div><span>清理废弃 Consumer ID，解除对旧 Snapshot 的 GC 阻塞</span></div>
+        <div class="check-item"><div class="check-box">✓</div><span>检查孤儿文件，执行 remove_orphan_files 清理</span></div>
+        <div class="check-item"><div class="check-box">✓</div><span>回顾存储增长曲线，预测未来 4 周容量需求</span></div>
+        <div class="check-item"><div class="check-box">✓</div><span>验证 Tag 保留数量在 tag.num-retained-max 以内</span></div>
+      </div>
+    </div>
+
+    <div class="check-card">
+      <h3><span style="color:var(--a3)">🚀</span> 上线前检查</h3>
+      <div class="check-list">
+        <div class="check-item"><div class="check-box">✓</div><span>新表 Bucket 数量规划（数据量 / 目标文件大小）</span></div>
+        <div class="check-item"><div class="check-box">✓</div><span>确认 changelog-producer 与下游消费需求匹配</span></div>
+        <div class="check-item"><div class="check-box">✓</div><span>snapshot 保留策略满足下游最慢消费者的追赶时间</span></div>
+        <div class="check-item"><div class="check-box">✓</div><span>验证 Schema 兼容性，无不支持的类型转换</span></div>
+        <div class="check-item"><div class="check-box">✓</div><span>灰度验证：用 Tag 标记上线前版本，便于快速回滚</span></div>
+      </div>
+    </div>
+
+    <div class="check-card">
+      <h3><span style="color:var(--a4)">🛠️</span> 故障处置预案</h3>
+      <div class="check-list">
+        <div class="check-item"><div class="check-box">!</div><span>数据质量问题 → CALL sys.rollback_to_tag() 回滚</span></div>
+        <div class="check-item"><div class="check-box">!</div><span>写入暂停（stop-trigger 触发）→ 临时扩容 Compaction Job</span></div>
+        <div class="check-item"><div class="check-box">!</div><span>Checkpoint 超时 → 检查 commit.duration，调查 Manifest 链长度</span></div>
+        <div class="check-item"><div class="check-box">!</div><span>存储爆满 → 优先清理孤儿文件，再检查 Consumer 阻塞</span></div>
+        <div class="check-item"><div class="check-box">!</div><span>CDC 作业重启 → 验证 consumer-id 消费位移是否正确继承</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="ib warn reveal" style="margin-top:40px">
+    <div class="il">PRODUCTION WISDOM</div>
+    Paimon 生产运维最重要的一条原则：<strong>宁可写入暂停，不可读取错误</strong>。stop-trigger 触发的写入暂停是可恢复的；但读到错误数据（由错误合并策略或乱序写入导致）造成的业务影响往往是不可逆的。在调优时，永远将数据正确性放在吞吐性能之前。
+  </div>
+</section>
+
+<!-- footer -->
+<div class="footer-nav">
+  <div>
+    <div class="toc">
+      <div class="toc-item done"><span class="tn">01</span><span>存储架构与文件格式深度解析</span></div>
+      <div class="toc-item done"><span class="tn">02</span><span>Changelog 与 CDC 数据摄取机制</span></div>
+      <div class="toc-item done"><span class="tn">03</span><span>流批一体写入与读取原理</span></div>
+      <div class="toc-item done"><span class="tn">04</span><span>Schema Evolution 与 DDL 变更</span></div>
+      <div class="toc-item active"><span class="tn">05</span><span>性能调优与生产运维最佳实践</span></div>
+      <div class="toc-item dim"><span class="tn">06</span><span>与 Flink/Spark 集成深度实战</span></div>
+    </div>
+  </div>
+  <div>
+    <div class="nl">NEXT CHAPTER →</div>
+    <div class="nt">与 Flink/Spark<br>集成深度实战</div>
+  </div>
+</div>
+
+</main>
+
+<script>
+const reveals = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) setTimeout(() => e.target.classList.add('visible'), i * 55);
+  });
+}, { threshold: 0.07 });
+reveals.forEach(r => io.observe(r));
+
+const sections = document.querySelectorAll('section[id]');
+const dots = document.querySelectorAll('.sdot');
+const sio = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const idx = Array.from(sections).indexOf(e.target);
+      dots.forEach(d => d.classList.remove('act'));
+      if (dots[idx]) dots[idx].classList.add('act');
+    }
+  });
+}, { threshold: 0.35 });
+sections.forEach(s => sio.observe(s));
+
+// animate bars on scroll
+const allBars = document.querySelectorAll('[data-w]');
+const bio = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.style.width = e.target.dataset.w;
+      bio.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.5 });
+allBars.forEach(b => bio.observe(b));
+</script>
+</body>
+</html>

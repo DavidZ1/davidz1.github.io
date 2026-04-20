@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apache Paimon 深度学习 · 第三章</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#08080f;--surface:#0e0e1a;--surface2:#13131f;--surface3:#1a1a28;
+  --border:rgba(139,92,246,0.12);--border2:rgba(139,92,246,0.30);
+  --a1:#8b5cf6;--a2:#e879f9;--a3:#f59e0b;--a4:#34d399;
+  --text:#ede9fe;--text2:#8b7dab;--text3:#3d3460;
+  --mono:'JetBrains Mono',monospace;--sans:'Noto Sans SC',sans-serif;--display:'Syne',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.7;overflow-x:hidden}
+
+.sidebar{width:68px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:24px 0;position:fixed;top:0;bottom:0;z-index:100}
+.sb-logo{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--a1);letter-spacing:.22em;writing-mode:vertical-rl;transform:rotate(180deg);margin-bottom:auto;padding-top:20px}
+.sb-num{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--text3);padding-bottom:8px}
+.sb-dots{display:flex;flex-direction:column;gap:9px;padding-bottom:28px}
+.sdot{width:5px;height:5px;border-radius:50%;background:var(--text3);transition:.25s;cursor:pointer}
+.sdot.act{background:var(--a1);transform:scale(1.6)}
+.main{margin-left:68px}
+
+/* hero */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:80px 64px;position:relative;overflow:hidden}
+.hero-hex{position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpolygon points='28,2 54,16 54,44 28,58 2,44 2,16' fill='none' stroke='rgba(139,92,246,0.07)' stroke-width='1'/%3E%3Cpolygon points='28,52 54,66 54,94 28,108 2,94 2,66' fill='none' stroke='rgba(139,92,246,0.07)' stroke-width='1'/%3E%3C/svg%3E");background-size:56px 100px;mask-image:radial-gradient(ellipse 75% 65% at 30% 40%,black 20%,transparent 80%)}
+.hero-orb1{position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.13) 0%,rgba(232,121,249,.05) 50%,transparent 70%);top:-80px;left:-80px;animation:orb1 9s ease-in-out infinite}
+.hero-orb2{position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(245,158,11,.10) 0%,transparent 65%);bottom:-60px;right:5%;animation:orb2 11s ease-in-out infinite}
+@keyframes orb1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(30px,20px) scale(1.07)}}
+@keyframes orb2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-20px,-30px) scale(1.05)}}
+.chip{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--border2);background:rgba(139,92,246,.08);color:var(--a1);font-family:var(--mono);font-size:11px;letter-spacing:.17em;padding:7px 18px;border-radius:2px;margin-bottom:36px;width:fit-content}
+.chip-dot{width:7px;height:7px;background:var(--a3);border-radius:50%;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+h1.hero-h{font-family:var(--display);font-size:clamp(40px,5.6vw,78px);font-weight:800;line-height:1.05;letter-spacing:-.025em;max-width:860px;margin-bottom:26px}
+.grad-purple{background:linear-gradient(130deg,#8b5cf6,#e879f9,#f59e0b);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 5s linear infinite}
+@keyframes shimmer{to{background-position:200% center}}
+.hero-desc{font-size:17px;color:var(--text2);max-width:580px;line-height:1.88;margin-bottom:48px}
+.hero-pills{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:48px}
+.pill{font-family:var(--mono);font-size:11px;padding:5px 14px;border-radius:100px;border:1px solid var(--border2);color:var(--a1);background:rgba(139,92,246,.07);letter-spacing:.06em}
+.pill.amber{border-color:rgba(245,158,11,.3);color:#fcd34d;background:rgba(245,158,11,.07)}
+.pill.green{border-color:rgba(52,211,153,.3);color:#6ee7b7;background:rgba(52,211,153,.07)}
+.pill.pink{border-color:rgba(232,121,249,.3);color:#f0abfc;background:rgba(232,121,249,.07)}
+.hero-meta{display:flex;gap:44px;font-family:var(--mono);font-size:12px}
+.mi{display:flex;flex-direction:column;gap:5px}
+.ml{color:var(--text3);font-size:10px;letter-spacing:.12em}
+.mv{color:var(--a1)}
+
+/* layout */
+.section{padding:96px 64px;max-width:1160px;margin:0 auto}
+.stag{font-family:var(--mono);font-size:10px;letter-spacing:.22em;color:var(--a1);margin-bottom:14px;text-transform:uppercase}
+.stitle{font-family:var(--display);font-size:clamp(26px,3.2vw,42px);font-weight:700;letter-spacing:-.02em;line-height:1.14;margin-bottom:14px}
+.ssub{font-size:15px;color:var(--text2);max-width:640px;line-height:1.88;margin-bottom:52px}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border2),transparent);margin:0 64px}
+
+/* code */
+.cw{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:36px}
+.ch{display:flex;align-items:center;justify-content:space-between;padding:12px 22px;background:var(--surface2);border-bottom:1px solid var(--border)}
+.dots{display:flex;gap:6px}
+.dot{width:10px;height:10px;border-radius:50%}
+.dr{background:#ff5f57}.dy{background:#febc2e}.dg{background:#28c840}
+.ct{font-family:var(--mono);font-size:11px;color:var(--text3);letter-spacing:.1em}
+.cb{padding:26px 28px;font-family:var(--mono);font-size:13px;line-height:2;overflow-x:auto}
+.kw{color:#c792ea}.str{color:#c3e88d}.cm{color:#3d3460}.fn{color:#82aaff}
+.vr{color:#eeffff}.op{color:#89ddff}.hl{color:var(--a1)}.amb{color:#fcd34d}.grn{color:#6ee7b7}.pnk{color:#f0abfc}
+
+/* info box */
+.ib{border-radius:8px;padding:20px 24px;font-size:14px;line-height:1.85;margin:28px 0}
+.ib.tip{background:rgba(52,211,153,.07);border-left:3px solid var(--a4);color:var(--text2)}
+.ib.warn{background:rgba(245,158,11,.07);border-left:3px solid var(--a3);color:var(--text2)}
+.ib.note{background:rgba(139,92,246,.07);border-left:3px solid var(--a1);color:var(--text2)}
+.il{font-family:var(--mono);font-size:10px;letter-spacing:.16em;margin-bottom:8px;font-weight:600}
+.tip .il{color:var(--a4)}.warn .il{color:var(--a3)}.note .il{color:var(--a1)}
+
+/* dual col */
+.dual{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:48px}
+.dcol{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .28s}
+.dcol:hover{border-color:var(--border2)}
+.dcol-head{padding:20px 26px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.dcol-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.dh-purple{background:rgba(139,92,246,.15)}.dh-amber{background:rgba(245,158,11,.12)}
+.dcol-head h3{font-family:var(--display);font-size:17px;font-weight:700;letter-spacing:-.01em}
+.dcol-body{padding:22px 26px}
+.dcol-body ul{list-style:none;display:flex;flex-direction:column;gap:12px}
+.dcol-body li{font-size:13px;color:var(--text2);line-height:1.75;display:flex;gap:10px;align-items:flex-start}
+.dcol-body li::before{content:'›';color:var(--a1);font-size:15px;flex-shrink:0;margin-top:1px}
+.dcol-body li.amber::before{color:var(--a3)}
+
+/* pipeline */
+.pipe{display:flex;flex-direction:column;gap:12px;margin-top:48px}
+.pipe-row{display:flex;align-items:stretch;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color .28s}
+.pipe-row:hover{border-color:var(--border2)}
+.pipe-phase{min-width:130px;padding:20px 18px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;border-right:1px solid var(--border);flex-shrink:0}
+.phase-num{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--text3);margin-bottom:6px}
+.phase-name{font-size:13px;font-weight:600}
+.phase-name.purple{color:#c4b5fd}.phase-name.amber{color:#fde68a}.phase-name.green{color:#6ee7b7}
+.pipe-body{padding:20px 26px;flex:1}
+.pipe-body p{font-size:13px;color:var(--text2);line-height:1.8}
+.pipe-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.ptag{font-family:var(--mono);font-size:10px;padding:2px 9px;border-radius:2px;letter-spacing:.07em;border:1px solid}
+.ptag-p{background:rgba(139,92,246,.1);color:#c4b5fd;border-color:rgba(139,92,246,.2)}
+.ptag-a{background:rgba(245,158,11,.08);color:#fde68a;border-color:rgba(245,158,11,.18)}
+.ptag-g{background:rgba(52,211,153,.08);color:#6ee7b7;border-color:rgba(52,211,153,.18)}
+
+/* table */
+.tw{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:40px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--surface2);padding:12px 20px;text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--text3);border-bottom:1px solid var(--border)}
+td{padding:13px 20px;border-bottom:1px solid var(--border);color:var(--text2);line-height:1.6;vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.012)}
+.badge{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 9px;border-radius:2px;letter-spacing:.07em;border:1px solid}
+.bd-p{background:rgba(139,92,246,.12);color:#c4b5fd;border-color:rgba(139,92,246,.22)}
+.bd-a{background:rgba(245,158,11,.1);color:#fde68a;border-color:rgba(245,158,11,.2)}
+.bd-g{background:rgba(52,211,153,.1);color:#6ee7b7;border-color:rgba(52,211,153,.2)}
+
+/* scenario cards */
+.sc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:48px}
+.sc-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:28px 24px;position:relative;overflow:hidden;transition:border-color .28s,transform .28s}
+.sc-card:hover{border-color:var(--border2);transform:translateY(-3px)}
+.sc-num{font-family:var(--display);font-size:48px;font-weight:800;color:rgba(139,92,246,.12);line-height:1;margin-bottom:14px;letter-spacing:-.03em}
+.sc-card h3{font-family:var(--display);font-size:16px;font-weight:700;margin-bottom:10px}
+.sc-card p{font-size:13px;color:var(--text2);line-height:1.78}
+.accent-line{position:absolute;top:0;left:0;right:0;height:2px;transition:opacity .28s;opacity:0}
+.sc-card:hover .accent-line{opacity:1}
+.al-p{background:linear-gradient(90deg,transparent,var(--a1),transparent)}
+.al-a{background:linear-gradient(90deg,transparent,var(--a3),transparent)}
+.al-g{background:linear-gradient(90deg,transparent,var(--a4),transparent)}
+.al-k{background:linear-gradient(90deg,transparent,var(--a2),transparent)}
+
+/* mixed-mode */
+.mm-wrap{display:grid;grid-template-columns:1fr auto 1fr;gap:0;align-items:center;margin-top:48px}
+.mm-col{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:28px 24px}
+.mm-col h4{font-family:var(--display);font-size:15px;font-weight:700;margin-bottom:16px;letter-spacing:-.01em}
+.mm-list{display:flex;flex-direction:column;gap:9px}
+.mm-item{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2)}
+.mm-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.mdp{background:var(--a1)}.mda{background:var(--a3)}
+.mm-mid{display:flex;flex-direction:column;align-items:center;padding:0 24px;gap:12px}
+.mm-arrow{font-size:22px;color:var(--text3)}
+.mm-mid-box{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:12px 18px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--a1);letter-spacing:.08em}
+
+/* bench */
+.bench{margin-top:48px;display:flex;flex-direction:column;gap:16px}
+.bench-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 24px}
+.bench-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.bench-name{font-size:14px;font-weight:600;color:var(--text)}
+.bench-val{font-family:var(--mono);font-size:13px;color:var(--a1)}
+.bench-bar-bg{height:8px;background:var(--surface3);border-radius:4px;overflow:hidden}
+.bench-bar{height:100%;border-radius:4px;transition:width 1.2s ease}
+.bench-sub{font-size:12px;color:var(--text3);margin-top:8px;font-family:var(--mono)}
+
+/* watermark */
+.wm-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:36px 40px;margin-top:48px;position:relative;overflow:hidden}
+.wm-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--a1),var(--a2),var(--a3),transparent)}
+.wm-row{display:flex;gap:16px;flex-wrap:wrap;margin-top:32px}
+.wm-item{flex:1;min-width:200px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px 20px}
+.wm-item h5{font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text)}
+.wm-item p{font-size:12px;color:var(--text2);line-height:1.75}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s ease,transform .65s ease}
+.reveal.visible{opacity:1;transform:none}
+
+/* footer */
+.footer-nav{padding:56px 64px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:24px;max-width:1160px;margin:0 auto}
+.toc{display:flex;flex-direction:column;gap:8px}
+.toc-item{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--text2);cursor:default}
+.toc-item.done{color:var(--text3);text-decoration:line-through;text-decoration-color:var(--text3)}
+.toc-item.active{color:var(--a1)}
+.toc-item.dim{opacity:.42}
+.tn{font-family:var(--mono);font-size:10px;color:var(--text3);min-width:22px}
+.nl{font-family:var(--mono);font-size:11px;color:var(--text3);margin-bottom:10px;letter-spacing:.1em}
+.nt{font-family:var(--display);font-size:20px;font-weight:700;color:var(--text2);line-height:1.3;text-align:right}
+
+@media(max-width:768px){
+  .hero,.section{padding:60px 24px}
+  .sidebar{display:none}.main{margin-left:0}
+  .footer-nav{padding:40px 24px}
+  .divider{margin:0 24px}
+  .dual{grid-template-columns:1fr}
+  .mm-wrap{grid-template-columns:1fr;gap:16px}
+}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <span class="sb-logo">PAIMON</span>
+  <span class="sb-num">03</span>
+  <div class="sb-dots">
+    <div class="sdot act"></div>
+    <div class="sdot"></div>
+    <div class="sdot"></div>
+    <div class="sdot"></div>
+    <div class="sdot"></div>
+    <div class="sdot"></div>
+    <div class="sdot"></div>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- HERO -->
+<section class="hero" id="s0">
+  <div class="hero-hex"></div>
+  <div class="hero-orb1"></div>
+  <div class="hero-orb2"></div>
+  <div class="chip"><span class="chip-dot"></span>CHAPTER 03 · UNIFIED STREAMING &amp; BATCH</div>
+  <h1 class="hero-h">流批一体<br><span class="grad-purple">写入与读取</span><br>原理</h1>
+  <p class="hero-desc">深入 Paimon 最核心的设计哲学 —— 同一份数据、同一张表，既支撑 Flink 实时流处理的低延迟写入，又承载 Spark / Hive 大规模批量扫描，彻底打通湖仓一体的最后一公里。</p>
+  <div class="hero-pills">
+    <span class="pill">Streaming Write</span>
+    <span class="pill pink">Batch Read / Write</span>
+    <span class="pill amber">Watermark &amp; 乱序处理</span>
+    <span class="pill green">Hybrid Source</span>
+  </div>
+  <div class="hero-meta">
+    <div class="mi"><span class="ml">DIFFICULTY</span><span class="mv">Advanced</span></div>
+    <div class="mi"><span class="ml">READING TIME</span><span class="mv">~55 min</span></div>
+    <div class="mi"><span class="ml">PREV CHAPTER</span><span class="mv">CDC 摄取机制</span></div>
+    <div class="mi"><span class="ml">VERSION</span><span class="mv">Paimon 0.8+</span></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- S1: 流批一体设计哲学 -->
+<section class="section reveal" id="s1">
+  <div class="stag">01 / DESIGN PHILOSOPHY</div>
+  <h2 class="stitle">流批一体的设计哲学</h2>
+  <p class="ssub">传统湖仓方案中，流处理引擎和批处理引擎操作不同的存储，数据一致性是噩梦。Paimon 通过统一存储格式和事务语义，让流批共用同一张表成为现实。</p>
+
+  <div class="dual reveal">
+    <div class="dcol">
+      <div class="dcol-head">
+        <div class="dcol-icon dh-purple">⚡</div>
+        <h3>流处理视角（Streaming）</h3>
+      </div>
+      <div class="dcol-body">
+        <ul>
+          <li>Flink Streaming Job 持续写入，每次 Checkpoint 形成一个 Snapshot</li>
+          <li>写入路径：MemTable → Flush → Level-0 → Compaction，全程异步不阻塞主链路</li>
+          <li>下游流式消费者以 Snapshot 为单位增量读取，延迟可低至秒级</li>
+          <li>支持 Exactly-Once 语义：Checkpoint 与 Snapshot Commit 原子绑定</li>
+          <li>写入并发度与 Bucket 数量对应，天然支持水平扩展</li>
+        </ul>
+      </div>
+    </div>
+    <div class="dcol">
+      <div class="dcol-head">
+        <div class="dcol-icon dh-amber">🗂️</div>
+        <h3>批处理视角（Batch）</h3>
+      </div>
+      <div class="dcol-body">
+        <ul>
+          <li class="amber">Spark / Hive / Flink Batch 读取同一份 Parquet/ORC 文件，无需转换</li>
+          <li class="amber">批量写入走 BulkWrite 路径，绕过 MemTable 直接生成 DataFile 提升吞吐</li>
+          <li class="amber">基于 Snapshot 隔离：批量读取锁定特定快照，与流式写入互不干扰</li>
+          <li class="amber">分区裁剪、列裁剪、统计信息下推，批量扫描性能与原生列存持平</li>
+          <li class="amber">支持 OVERWRITE 覆盖写：整分区或整表替换，原子可见</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="ib note reveal" style="margin-top:32px">
+    <div class="il">CORE INSIGHT</div>
+    Paimon 的关键创新是：<strong>写入路径</strong>（流 vs 批）不同，但<strong>存储格式与读取协议</strong>完全统一。Snapshot 机制是两条路径的汇合点 —— 无论流式 Commit 还是批量 Commit，最终都产生一个不可变的 Snapshot，下游读取者无需区分数据来源。
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- S2: 流式写入路径 -->
+<section class="section reveal" id="s2">
+  <div class="stag">02 / STREAMING WRITE PATH</div>
+  <h2 class="stitle">流式写入全链路</h2>
+  <p class="ssub">从 Flink Source 到 Paimon Commit，流式写入经历多个精心设计的阶段，每个阶段都服务于低延迟与高吞吐的双重目标。</p>
+
+  <div class="pipe reveal">
+    <div class="pipe-row">
+      <div class="pipe-phase"><div class="phase-num">PHASE 01</div><div class="phase-name purple">数据接入</div></div>
+      <div class="pipe-body">
+        <p>Flink Source 算子（CDC / Kafka / 自定义）将数据发送给 Writer 算子。Writer 按<strong>主键哈希</strong>将记录路由到对应 Bucket，保证同一主键始终由同一 Writer 处理，避免并发写入冲突。</p>
+        <div class="pipe-tags"><span class="ptag ptag-p">Key Hash Routing</span><span class="ptag ptag-p">Bucket 亲和性</span></div>
+      </div>
+    </div>
+    <div class="pipe-row">
+      <div class="pipe-phase"><div class="phase-num">PHASE 02</div><div class="phase-name purple">MemTable 缓冲</div></div>
+      <div class="pipe-body">
+        <p>每个 Writer 维护一个堆内 MemTable（默认 64MB，可通过 <code style="font-family:var(--mono);font-size:12px;color:var(--a1)">write-buffer-size</code> 调整）。记录按主键在内存中排序并合并（提前去重），减少后续 Flush 的文件数量。MemTable 满或 Checkpoint 触发时执行 Flush。</p>
+        <div class="pipe-tags"><span class="ptag ptag-p">In-Memory Sort</span><span class="ptag ptag-p">Pre-Merge</span><span class="ptag ptag-a">write-buffer-size</span></div>
+      </div>
+    </div>
+    <div class="pipe-row">
+      <div class="pipe-phase"><div class="phase-num">PHASE 03</div><div class="phase-name amber">Flush to L0</div></div>
+      <div class="pipe-body">
+        <p>MemTable 异步序列化为 Level-0 DataFile（Parquet/ORC），写入对应 Bucket 目录。Flush 过程不阻塞主链路（异步线程池），但会占用磁盘 I/O。每次 Flush 生成一个或多个 DataFile，同时更新内存中的 FileStoreCommit 缓冲区。</p>
+        <div class="pipe-tags"><span class="ptag ptag-a">Async Flush</span><span class="ptag ptag-a">Level-0 File</span><span class="ptag ptag-p">非阻塞主链路</span></div>
+      </div>
+    </div>
+    <div class="pipe-row">
+      <div class="pipe-phase"><div class="phase-num">PHASE 04</div><div class="phase-name amber">Compaction</div></div>
+      <div class="pipe-body">
+        <p>独立的 Compaction 线程（或单独的 Compaction Job）将 L0 文件合并为更高 Level，减少读放大。流式场景默认使用<strong>异步 Compaction</strong>，不影响写入吞吐，但会引入一定的读延迟。可配置 <code style="font-family:var(--mono);font-size:12px;color:var(--a1)">num-sorted-run.compaction-trigger</code> 控制触发阈值。</p>
+        <div class="pipe-tags"><span class="ptag ptag-a">Async Compaction</span><span class="ptag ptag-a">Level Merge</span><span class="ptag ptag-g">读放大控制</span></div>
+      </div>
+    </div>
+    <div class="pipe-row">
+      <div class="pipe-phase"><div class="phase-num">PHASE 05</div><div class="phase-name green">Checkpoint Commit</div></div>
+      <div class="pipe-body">
+        <p>Flink Checkpoint 完成时，Committer 算子（单并发）收集所有 Writer 的 CommitMessage，原子写入新 Snapshot 文件。Snapshot 写入成功 = 数据对外可见。若 Checkpoint 失败，所有 DataFile 被视为无效，下次 Checkpoint 前的孤儿文件由 GC 清理。</p>
+        <div class="pipe-tags"><span class="ptag ptag-g">Exactly-Once</span><span class="ptag ptag-g">原子 Commit</span><span class="ptag ptag-g">Snapshot 可见性</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cw reveal">
+    <div class="ch"><div class="dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div><span class="ct">FLINK SQL — 流式写入关键配置</span><span></span></div>
+    <div class="cb"><pre><span class="cm">-- 典型流式写入作业配置</span>
+<span class="fn">INSERT INTO</span> <span class="vr">dwd_orders</span>
+<span class="fn">SELECT</span> <span class="vr">order_id</span>, <span class="vr">user_id</span>, <span class="vr">amount</span>, <span class="vr">status</span>, <span class="vr">event_time</span>
+<span class="fn">FROM</span> <span class="vr">ods_orders</span>
+<span class="cm">/*+ OPTIONS(
+  'write-buffer-size'                = '256 mb',   -- MemTable 上限
+  'num-sorted-run.compaction-trigger'= '5',        -- L0 文件数触发 Compaction
+  'num-sorted-run.stop-trigger'      = '10',       -- 超过则暂停写入等待 Compaction
+  'write-thread-num'                 = '2',        -- 异步 Flush 线程数
+  'commit.force-compact'             = 'false'     -- Checkpoint 时不强制 Compact
+) */</span><span class="op">;</span>
+
+<span class="fn">SET</span> <span class="str">'execution.checkpointing.interval'</span> <span class="op">=</span> <span class="str">'60s'</span><span class="op">;</span>
+<span class="fn">SET</span> <span class="str">'execution.checkpointing.mode'</span>     <span class="op">=</span> <span class="str">'EXACTLY_ONCE'</span><span class="op">;</span></pre>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- S3: 批量写入路径 -->
+<section class="section reveal" id="s3">
+  <div class="stag">03 / BATCH WRITE PATH</div>
+  <h2 class="stitle">批量写入路径与优化</h2>
+  <p class="ssub">批量场景（Spark 导入、Flink Batch、离线数据回填）走完全不同的写入路径，绕过流式管控机制，追求最大吞吐。</p>
+
+  <div class="dual reveal">
+    <div class="dcol">
+      <div class="dcol-head"><div class="dcol-icon dh-amber">📦</div><h3>BulkWrite 路径</h3></div>
+      <div class="dcol-body">
+        <ul>
+          <li class="amber">直接在 Task 本地排序后生成 DataFile，跳过 MemTable 的内存缓冲阶段</li>
+          <li class="amber">利用外部排序（External Sort）处理超过内存的大数据量，不受 write-buffer-size 限制</li>
+          <li class="amber">所有 Task 完成后统一 Commit，生成单个 Snapshot，不产生中间可见状态</li>
+          <li class="amber">写入完成后建议手动触发 <code style="font-family:var(--mono);font-size:12px;color:var(--a3)">ALTER TABLE COMPACT</code> 整理文件</li>
+        </ul>
+      </div>
+    </div>
+    <div class="dcol">
+      <div class="dcol-head"><div class="dcol-icon dh-purple">🔄</div><h3>OVERWRITE 语义</h3></div>
+      <div class="dcol-body">
+        <ul>
+          <li>整分区覆盖写：先标记旧分区所有 DataFile 为删除，再写入新文件，原子切换</li>
+          <li>支持 Dynamic Partition 覆盖（自动推断被影响的分区）</li>
+          <li>INSERT OVERWRITE 期间，其他读取者仍看到旧 Snapshot，写完后原子切换可见</li>
+          <li>配合 <code style="font-family:var(--mono);font-size:12px;color:var(--a1)">snapshot.num-retained.min</code> 保留足够快照供回滚</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="cw reveal">
+    <div class="ch"><div class="dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div><span class="ct">批量写入 &amp; OVERWRITE 示例</span><span></span></div>
+    <div class="cb"><pre><span class="cm">-- Flink Batch 模式全量初始化</span>
+<span class="fn">SET</span> <span class="str">'execution.runtime-mode'</span> <span class="op">=</span> <span class="str">'BATCH'</span><span class="op">;</span>
+
+<span class="fn">INSERT INTO</span> <span class="vr">dw_user_profile</span>
+<span class="fn">SELECT</span> <span class="op">*</span> <span class="fn">FROM</span> <span class="vr">source_hive_table</span> <span class="fn">WHERE</span> <span class="vr">dt</span> <span class="op">=</span> <span class="str">'2024-01-01'</span><span class="op">;</span>
+
+<span class="cm">-- 分区覆盖写（每日调度 T+1 回刷）</span>
+<span class="fn">INSERT OVERWRITE</span> <span class="vr">dw_orders</span>
+<span class="fn">PARTITION</span> (<span class="vr">dt</span> <span class="op">=</span> <span class="str">'2024-01-01'</span>)
+<span class="fn">SELECT</span> <span class="op">*</span> <span class="fn">FROM</span> <span class="vr">ods_orders</span> <span class="fn">WHERE</span> <span class="vr">dt</span> <span class="op">=</span> <span class="str">'2024-01-01'</span><span class="op">;</span>
+
+<span class="cm">-- 写完后手动触发 Compaction（降低小文件数量）</span>
+<span class="fn">CALL</span> <span class="vr">sys</span>.<span class="fn">compact</span>(
+  <span class="str">'my_catalog.my_db.dw_orders'</span>,
+  <span class="str">'dt=2024-01-01'</span>  <span class="cm">-- 只整理指定分区</span>
+)<span class="op">;</span></pre>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- S4: 读取模式 -->
+<section class="section reveal" id="s4">
+  <div class="stag">04 / READ MODES</div>
+  <h2 class="stitle">流批读取模式对比</h2>
+  <p class="ssub">同一张 Paimon 表支持五种读取模式，引擎与场景不同，读取策略也各有侧重。</p>
+
+  <div class="tw reveal">
+    <table>
+      <thead>
+        <tr><th>读取模式</th><th>引擎</th><th>读取内容</th><th>典型延迟</th><th>适用场景</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="badge bd-p">Streaming Full+Incr</span></td><td>Flink</td><td>先全量快照，再持续增量</td><td>初始化后秒级</td><td>ETL 流水线、实时宽表</td></tr>
+        <tr><td><span class="badge bd-p">Streaming Incr Only</span></td><td>Flink</td><td>仅读取新 Snapshot 的增量变更</td><td>秒级</td><td>实时监控、实时聚合</td></tr>
+        <tr><td><span class="badge bd-a">Batch Full Scan</span></td><td>Spark/Flink/Hive</td><td>最新 Snapshot 全量数据</td><td>分钟~小时</td><td>报表、数仓离线计算</td></tr>
+        <tr><td><span class="badge bd-a">Batch Time Travel</span></td><td>Spark/Flink</td><td>指定时间点或 Snapshot ID</td><td>分钟~小时</td><td>历史回溯、数据审计</td></tr>
+        <tr><td><span class="badge bd-g">Hybrid Source</span></td><td>Flink</td><td>历史批量 + 实时增量无缝衔接</td><td>历史后秒级</td><td>冷启动后直接追实时</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="cw reveal">
+    <div class="ch"><div class="dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div><span class="ct">Hybrid Source — 历史 + 实时无缝衔接</span><span></span></div>
+    <div class="cb"><pre><span class="cm">-- Hybrid Source：先读历史 Snapshot（高吞吐批量），再无缝切换到流式增量</span>
+<span class="cm">-- 适合：需要初始化历史数据，同时继续追实时的场景（如冷启动 Flink 作业）</span>
+
+<span class="fn">SELECT</span> <span class="op">*</span> <span class="fn">FROM</span> <span class="vr">orders</span>
+<span class="cm">/*+ OPTIONS(
+  'scan.mode'               = 'default',      -- 全量 + 增量
+  'source.split.target-size'= '256m',         -- 批量阶段 Split 大小
+  'source.split.open-file-cost' = '4m'        -- 小文件合并阈值
+) */</span><span class="op">;</span>
+
+<span class="cm">-- 历史阶段（Batch Split 并行读取，吞吐最大化）</span>
+<span class="cm">-- ┌─ Split 1: bucket-0 / L2 files ─ Task 1 ─┐</span>
+<span class="cm">-- ├─ Split 2: bucket-1 / L2 files ─ Task 2 ─┤ → 下游算子</span>
+<span class="cm">-- └─ Split 3: bucket-2 / L2 files ─ Task 3 ─┘</span>
+<span class="cm">--</span>
+<span class="cm">-- 实时阶段（自动切换，每个 Task 订阅对应 Bucket 的新 Snapshot）</span>
+<span class="cm">-- Task 1 → 监听 bucket-0 新增文件  ← 延迟降至秒级</span>
+<span class="cm">-- Task 2 → 监听 bucket-1 新增文件</span></pre>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- S5: Watermark -->
+<section class="section reveal" id="s5">
+  <div class="stag">05 / WATERMARK &amp; OUT-OF-ORDER</div>
+  <h2 class="stitle">Watermark 与乱序事件处理</h2>
+  <p class="ssub">流式场景中事件乱序不可避免，Paimon 通过与 Flink Watermark 机制的深度集成，在写入侧和读取侧双重保障时序正确性。</p>
+
+  <div class="wm-wrap reveal">
+    <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-bottom:28px;letter-spacing:.12em">── 时间轴事件分布与 Watermark 示意</p>
+
+    <!-- timeline visual -->
+    <div style="position:relative;height:90px;margin:0 20px 48px">
+      <div style="position:absolute;top:44px;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--a1),var(--a2));border-radius:2px"></div>
+      <!-- e1 -->
+      <div style="position:absolute;left:6%;display:flex;flex-direction:column;align-items:center;gap:5px;bottom:46px">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text2)">e1·10:00</div>
+        <div style="width:11px;height:11px;border-radius:50%;border:2px solid #8b5cf6;background:rgba(139,92,246,.35)"></div>
+      </div>
+      <!-- e2 -->
+      <div style="position:absolute;left:22%;display:flex;flex-direction:column;align-items:center;gap:5px;bottom:46px">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text2)">e2·10:02</div>
+        <div style="width:11px;height:11px;border-radius:50%;border:2px solid #8b5cf6;background:rgba(139,92,246,.35)"></div>
+      </div>
+      <!-- e3 late -->
+      <div style="position:absolute;left:40%;display:flex;flex-direction:column;align-items:center;gap:5px;bottom:46px">
+        <div style="font-family:var(--mono);font-size:10px;color:#fcd34d">e3·09:58 迟到</div>
+        <div style="width:11px;height:11px;border-radius:50%;border:2px solid #f59e0b;background:rgba(245,158,11,.35)"></div>
+      </div>
+      <!-- e4 -->
+      <div style="position:absolute;left:59%;display:flex;flex-direction:column;align-items:center;gap:5px;bottom:46px">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text2)">e4·10:05</div>
+        <div style="width:11px;height:11px;border-radius:50%;border:2px solid #8b5cf6;background:rgba(139,92,246,.35)"></div>
+      </div>
+      <!-- e5 drop -->
+      <div style="position:absolute;left:76%;display:flex;flex-direction:column;align-items:center;gap:5px;bottom:46px">
+        <div style="font-family:var(--mono);font-size:10px;color:#f87171">e5·09:50 丢弃</div>
+        <div style="width:11px;height:11px;border-radius:50%;border:2px solid #f87171;background:rgba(248,113,113,.35)"></div>
+      </div>
+      <!-- watermark -->
+      <div style="position:absolute;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:3px;top:0">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--a4);white-space:nowrap;padding-bottom:2px">WM = 10:03</div>
+        <div style="width:2px;height:48px;background:var(--a4)"></div>
+        <div style="font-size:10px;color:var(--a4)">▼</div>
+      </div>
+    </div>
+
+    <div class="wm-row">
+      <div class="wm-item">
+        <h5>正常事件（紫色）</h5>
+        <p>事件时间 &gt; Watermark，在窗口计算期限内，正常参与聚合计算，写入 Paimon 后按事件时间分区。</p>
+      </div>
+      <div class="wm-item">
+        <h5>迟到事件（橙色）</h5>
+        <p>事件时间略早于 Watermark，在允许的延迟窗口内（<code style="font-family:var(--mono);font-size:11px;color:var(--a3)">allowedLateness</code>），触发窗口修正，Paimon 通过 sequence.field 保证不被旧值覆盖。</p>
+      </div>
+      <div class="wm-item">
+        <h5>过时事件（红色）</h5>
+        <p>事件时间远早于 Watermark，超过最大允许延迟，由 Flink 直接丢弃。可通过侧输出流（Side Output）捕获并单独处理或写入异常表。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="cw reveal">
+    <div class="ch"><div class="dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div><span class="ct">sequence.field — 防止乱序写入覆盖新版本</span><span></span></div>
+    <div class="cb"><pre><span class="cm">-- 场景：Kafka 消费到的消息可能乱序，需要防止旧版本覆盖新版本</span>
+
+<span class="fn">CREATE TABLE</span> <span class="vr">user_profile</span> (
+  <span class="vr">user_id</span>     <span class="kw">BIGINT</span>,
+  <span class="vr">name</span>        <span class="kw">STRING</span>,
+  <span class="vr">level</span>       <span class="kw">INT</span>,
+  <span class="vr">update_time</span> <span class="kw">TIMESTAMP</span>(<span class="num">3</span>),
+  <span class="kw">PRIMARY KEY</span> (<span class="vr">user_id</span>) <span class="fn">NOT ENFORCED</span>
+) <span class="fn">WITH</span> (
+  <span class="str">'merge-engine'</span>   = <span class="str">'deduplicate'</span>,
+  <span class="str">'sequence.field'</span> = <span class="str">'update_time'</span>  <span class="cm">-- 以 update_time 决定版本新旧</span>
+  <span class="cm">-- 若写入记录的 update_time ≤ 已有记录，则忽略该写入</span>
+)<span class="op">;</span>
+
+<span class="cm">-- 乱序写入演示：</span>
+<span class="cm">-- 写入 user_id=1, update_time=10:05  → 生效 ✓</span>
+<span class="cm">-- 写入 user_id=1, update_time=10:02  → 忽略 ✗（旧版本）</span>
+<span class="cm">-- 写入 user_id=1, update_time=10:08  → 生效 ✓（更新版本）</span></pre>
+    </div>
+  </div>
+
+  <div class="ib warn reveal">
+    <div class="il">CAUTION</div>
+    <code style="font-family:var(--mono);font-size:12px;color:var(--a3)">sequence.field</code> 要求该字段的值必须严格单调（不能回绕）。若使用业务时间字段，需确保上游不会产生未来时间戳（如系统时钟偏移），否则会导致后续合法更新被永久忽略。
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- S6: 流批协同场景 -->
+<section class="section reveal" id="s6">
+  <div class="stag">06 / UNIFIED SCENARIOS</div>
+  <h2 class="stitle">流批协同典型场景</h2>
+  <p class="ssub">Paimon 流批一体能力在实际架构中催生了多种新型数据处理模式，打破了传统 Lambda 架构的复杂性。</p>
+
+  <div class="sc-grid reveal">
+    <div class="sc-card">
+      <div class="accent-line al-p"></div>
+      <div class="sc-num">01</div>
+      <h3>替代 Lambda 架构</h3>
+      <p>同一张 Paimon 表由 Flink 实时写入，Spark 定期修正（批量覆盖），查询层无需区分实时层和批处理层。一套存储代替传统 Speed + Batch + Serving 三层架构。</p>
+    </div>
+    <div class="sc-card">
+      <div class="accent-line al-a"></div>
+      <div class="sc-num">02</div>
+      <h3>实时 + 历史混合查询</h3>
+      <p>OLAP 引擎（StarRocks / Doris）通过外表直读 Paimon，同时覆盖 T+0 实时数据和 T-N 历史数据，报表不再需要双源合并逻辑，查询简洁且一致性有保障。</p>
+    </div>
+    <div class="sc-card">
+      <div class="accent-line al-g"></div>
+      <div class="sc-num">03</div>
+      <h3>流式 Lookup Join 维表</h3>
+      <p>维度表存储在 Paimon，主流程 Flink 作业通过 Lookup Join 查询最新维度值。Paimon 本地 RocksDB 缓存维表数据，避免高频远程读取，延迟可控在毫秒级。</p>
+    </div>
+    <div class="sc-card">
+      <div class="accent-line al-k"></div>
+      <div class="sc-num">04</div>
+      <h3>分层物化视图</h3>
+      <p>ODS → DWD → DWS 每层均用 Paimon 表存储，流式 Flink 作业链式处理，批量 Spark 作业定期全量修正。每层独立快照，回溯和重算精确到分区粒度。</p>
+    </div>
+  </div>
+
+  <div class="mm-wrap reveal" style="margin-top:48px">
+    <div class="mm-col">
+      <h4 style="color:#c4b5fd">⚡ 实时写入侧</h4>
+      <div class="mm-list">
+        <div class="mm-item"><div class="mm-dot mdp"></div><span>Flink CDC Source → 实时摄取</span></div>
+        <div class="mm-item"><div class="mm-dot mdp"></div><span>每 60s Checkpoint → 生成 Snapshot</span></div>
+        <div class="mm-item"><div class="mm-dot mdp"></div><span>异步 Compaction → 持续整理</span></div>
+        <div class="mm-item"><div class="mm-dot mdp"></div><span>changelog-producer=input 供下游消费</span></div>
+      </div>
+    </div>
+    <div class="mm-mid">
+      <div class="mm-arrow">→</div>
+      <div class="mm-mid-box">PAIMON<br>TABLE</div>
+      <div class="mm-arrow">←</div>
+    </div>
+    <div class="mm-col">
+      <h4 style="color:#fde68a">🗂️ 批量修正侧</h4>
+      <div class="mm-list">
+        <div class="mm-item"><div class="mm-dot mda"></div><span>Spark 每日 T+1 回刷修正</span></div>
+        <div class="mm-item"><div class="mm-dot mda"></div><span>INSERT OVERWRITE 原子替换分区</span></div>
+        <div class="mm-item"><div class="mm-dot mda"></div><span>批量 Compact 整理小文件</span></div>
+        <div class="mm-item"><div class="mm-dot mda"></div><span>Tag 标记可信历史版本</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- S7: 性能参数参考 -->
+<section class="section reveal" id="s7">
+  <div class="stag">07 / PERFORMANCE REFERENCE</div>
+  <h2 class="stitle">关键性能参数参考</h2>
+  <p class="ssub">合理配置这些参数，可以在写入吞吐、读取延迟、资源消耗之间取得最优平衡。数值为社区典型生产实践参考，需根据实际数据量和集群规格调整。</p>
+
+  <div class="bench reveal">
+    <div class="bench-item">
+      <div class="bench-head"><span class="bench-name">write-buffer-size（MemTable 大小）</span><span class="bench-val">64MB ~ 512MB</span></div>
+      <div class="bench-bar-bg"><div class="bench-bar" data-w="55%" style="width:0;background:linear-gradient(90deg,var(--a1),var(--a2))"></div></div>
+      <div class="bench-sub">推荐 256MB，过小增加 Flush 频率，过大增加 OOM 风险。调大前确保 TM heap 充足。</div>
+    </div>
+    <div class="bench-item">
+      <div class="bench-head"><span class="bench-name">num-sorted-run.compaction-trigger（L0 触发阈值）</span><span class="bench-val">5 ~ 10</span></div>
+      <div class="bench-bar-bg"><div class="bench-bar" data-w="38%" style="width:0;background:linear-gradient(90deg,var(--a3),#f0abfc)"></div></div>
+      <div class="bench-sub">默认 5，过大会导致读放大，过小频繁 Compaction 影响写吞吐。流式场景建议 5~8。</div>
+    </div>
+    <div class="bench-item">
+      <div class="bench-head"><span class="bench-name">target-file-size（DataFile 目标大小）</span><span class="bench-val">64MB ~ 256MB</span></div>
+      <div class="bench-bar-bg"><div class="bench-bar" data-w="70%" style="width:0;background:linear-gradient(90deg,var(--a4),var(--a1))"></div></div>
+      <div class="bench-sub">默认 128MB，对应 Parquet Row Group 分布。批量场景可调大至 256MB，减少文件数量。</div>
+    </div>
+    <div class="bench-item">
+      <div class="bench-head"><span class="bench-name">Checkpoint 间隔（流式写入可见延迟）</span><span class="bench-val">30s ~ 300s</span></div>
+      <div class="bench-bar-bg"><div class="bench-bar" data-w="28%" style="width:0;background:linear-gradient(90deg,var(--a2),var(--a4))"></div></div>
+      <div class="bench-sub">Checkpoint 间隔 = 数据可见最大延迟。实时性要求高可设 30~60s，稳定性优先设 120~300s。</div>
+    </div>
+  </div>
+
+  <div class="ib tip reveal">
+    <div class="il">TUNING STRATEGY</div>
+    流批一体场景下，建议将 Compaction 任务拆分为独立 Flink Job（写入 Job 设置 <code style="font-family:var(--mono);font-size:12px;color:var(--a4)">write.compaction-skip=true</code>），避免 Compaction 与写入竞争 CPU/IO 资源，两者分别独立扩容，整体吞吐可提升 30%~50%。
+  </div>
+</section>
+
+<!-- footer -->
+<div class="footer-nav">
+  <div>
+    <div class="toc">
+      <div class="toc-item done"><span class="tn">01</span><span>存储架构与文件格式深度解析</span></div>
+      <div class="toc-item done"><span class="tn">02</span><span>Changelog 与 CDC 数据摄取机制</span></div>
+      <div class="toc-item active"><span class="tn">03</span><span>流批一体写入与读取原理</span></div>
+      <div class="toc-item dim"><span class="tn">04</span><span>Schema Evolution 与 DDL 变更</span></div>
+      <div class="toc-item dim"><span class="tn">05</span><span>性能调优与生产运维最佳实践</span></div>
+      <div class="toc-item dim"><span class="tn">06</span><span>与 Flink/Spark 集成深度实战</span></div>
+    </div>
+  </div>
+  <div>
+    <div class="nl">NEXT CHAPTER →</div>
+    <div class="nt">Schema Evolution<br>与 DDL 变更</div>
+  </div>
+</div>
+
+</main>
+
+<script>
+const reveals = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) setTimeout(() => e.target.classList.add('visible'), i * 50);
+  });
+}, { threshold: 0.07 });
+reveals.forEach(r => io.observe(r));
+
+const sections = document.querySelectorAll('section[id]');
+const dots = document.querySelectorAll('.sdot');
+const sio = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const idx = Array.from(sections).indexOf(e.target);
+      dots.forEach(d => d.classList.remove('act'));
+      if (dots[idx]) dots[idx].classList.add('act');
+    }
+  });
+}, { threshold: 0.35 });
+sections.forEach(s => sio.observe(s));
+
+const bars = document.querySelectorAll('.bench-bar');
+const bio = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.style.width = e.target.dataset.w;
+      bio.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.5 });
+bars.forEach(b => bio.observe(b));
+</script>
+</body>
+</html>
