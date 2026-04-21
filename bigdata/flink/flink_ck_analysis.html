@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flink CK 增大根因分析 | 深度拆解</title>
+<title>Flink CK 增大根因分析</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
@@ -40,7 +40,7 @@
     background: var(--bg);
     color: var(--text);
     font-family: var(--body);
-    font-size: 18.75px;        /* 原15px ×1.25 = 18.75px 整体放大25% */
+    font-size: 15px;
     line-height: 1.8;
     min-height: 100vh;
   }
@@ -77,32 +77,32 @@
   .wrapper {
     position: relative;
     z-index: 1;
-    max-width: 1150px;
+    max-width: 920px;
     margin: 0 auto;
-    padding: 0 30px 100px;
+    padding: 0 24px 80px;
   }
 
   /* ─── HERO ─── */
   .hero {
-    padding: 75px 0 50px;
+    padding: 60px 0 40px;
     border-bottom: 1px solid var(--border);
     position: relative;
   }
   .hero-tag {
     font-family: var(--mono);
-    font-size: 13.75px;
+    font-size: 11px;
     color: var(--cyan);
     letter-spacing: 3px;
     text-transform: uppercase;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
   }
   .hero-tag::before {
     content: '';
     display: inline-block;
-    width: 7.5px; height: 7.5px;
+    width: 6px; height: 6px;
     background: var(--cyan);
     border-radius: 50%;
     animation: blink 1.4s ease-in-out infinite;
@@ -111,34 +111,34 @@
 
   h1 {
     font-family: var(--title);
-    font-size: clamp(40px, 6.25vw, 65px);
+    font-size: clamp(32px, 5vw, 52px);
     font-weight: 700;
     color: var(--text-bright);
     line-height: 1.1;
     letter-spacing: 1px;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
   }
   h1 span { color: var(--cyan); }
   h1 em { color: var(--amber); font-style: normal; }
 
   .hero-sub {
     font-family: var(--mono);
-    font-size: 16.25px;
+    font-size: 13px;
     color: var(--text-dim);
-    margin-top: 20px;
+    margin-top: 16px;
   }
 
   .hero-metrics {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-    margin-top: 40px;
+    gap: 12px;
+    margin-top: 32px;
   }
   .metric-card {
     background: var(--panel);
     border: 1px solid var(--border);
     border-top: 2px solid var(--cyan);
-    padding: 20px 25px;
+    padding: 16px 20px;
     position: relative;
     overflow: hidden;
   }
@@ -149,61 +149,61 @@
     background: linear-gradient(135deg, var(--cyan-faint), transparent 50%);
     pointer-events: none;
   }
-  .metric-label { font-family: var(--mono); font-size: 12.5px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; }
-  .metric-value { font-family: var(--title); font-size: 35px; font-weight: 700; color: var(--text-bright); margin-top: 5px; }
+  .metric-label { font-family: var(--mono); font-size: 10px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; }
+  .metric-value { font-family: var(--title); font-size: 28px; font-weight: 700; color: var(--text-bright); margin-top: 4px; }
   .metric-value.amber { color: var(--amber); }
   .metric-value.red { color: var(--red); }
   .metric-value.green { color: var(--green); }
-  .metric-delta { font-family: var(--mono); font-size: 13.75px; color: var(--red); margin-top: 2px; }
+  .metric-delta { font-family: var(--mono); font-size: 11px; color: var(--red); margin-top: 2px; }
 
   /* ─── SECTION ─── */
   .section {
-    margin-top: 70px;
+    margin-top: 56px;
   }
   .section-header {
     display: flex;
     align-items: center;
-    gap: 15px;
-    margin-bottom: 30px;
+    gap: 12px;
+    margin-bottom: 24px;
   }
   .section-num {
     font-family: var(--mono);
-    font-size: 13.75px;
+    font-size: 11px;
     color: var(--cyan);
     background: var(--cyan-faint);
     border: 1px solid var(--cyan);
-    padding: 2px 10px;
+    padding: 2px 8px;
     letter-spacing: 1px;
   }
   h2 {
     font-family: var(--title);
-    font-size: 27.5px;
+    font-size: 22px;
     font-weight: 600;
     color: var(--text-bright);
     letter-spacing: 1px;
   }
   h3 {
     font-family: var(--title);
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 600;
     color: var(--cyan-dim);
     letter-spacing: 1px;
-    margin: 35px 0 12px;
+    margin: 28px 0 10px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
   }
-  h3::before { content: '//'; color: var(--text-dim); font-family: var(--mono); font-size: 15px; }
+  h3::before { content: '//'; color: var(--text-dim); font-family: var(--mono); font-size: 12px; }
 
-  p { color: var(--text); margin-bottom: 17.5px; }
+  p { color: var(--text); margin-bottom: 14px; }
   strong { color: var(--text-bright); font-weight: 500; }
 
   /* ─── PANEL ─── */
   .panel {
     background: var(--panel);
     border: 1px solid var(--border);
-    padding: 25px 30px;
-    margin: 20px 0;
+    padding: 20px 24px;
+    margin: 16px 0;
     position: relative;
   }
   .panel.cyan { border-left: 3px solid var(--cyan); background: linear-gradient(90deg, var(--cyan-faint), var(--panel) 60%); }
@@ -215,23 +215,23 @@
   /* ─── CODE ─── */
   code {
     font-family: var(--mono);
-    font-size: 15px;
+    font-size: 12px;
     color: var(--cyan);
     background: var(--cyan-faint);
-    padding: 1px 6px;
+    padding: 1px 5px;
     border: 1px solid var(--border);
   }
   pre {
     font-family: var(--mono);
-    font-size: 15px;
+    font-size: 12px;
     background: var(--bg2);
     border: 1px solid var(--border);
     border-left: 3px solid var(--purple);
-    padding: 20px 25px;
+    padding: 16px 20px;
     overflow-x: auto;
     color: #a0bfd0;
     line-height: 1.7;
-    margin: 20px 0;
+    margin: 16px 0;
   }
   pre .c { color: var(--text-dim); }
   pre .k { color: var(--purple); }
@@ -242,22 +242,22 @@
   .data-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 16.25px;
-    margin: 20px 0;
+    font-size: 13px;
+    margin: 16px 0;
     font-family: var(--mono);
   }
   .data-table th {
     text-align: left;
-    padding: 10px 17px;
+    padding: 8px 14px;
     background: var(--bg2);
     color: var(--cyan);
-    font-size: 13.75px;
+    font-size: 11px;
     letter-spacing: 1.5px;
     text-transform: uppercase;
     border-bottom: 1px solid var(--cyan);
   }
   .data-table td {
-    padding: 11px 17px;
+    padding: 9px 14px;
     border-bottom: 1px solid var(--border);
     color: var(--text);
     vertical-align: top;
@@ -265,8 +265,8 @@
   .data-table tr:hover td { background: var(--cyan-faint); }
   .tag {
     font-family: var(--mono);
-    font-size: 12.5px;
-    padding: 2px 9px;
+    font-size: 10px;
+    padding: 2px 7px;
     border-radius: 2px;
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -278,7 +278,7 @@
   /* ─── LIST ─── */
   .cp-list { list-style: none; padding: 0; }
   .cp-list li {
-    padding: 10px 0 10px 30px;
+    padding: 8px 0 8px 24px;
     border-bottom: 1px solid var(--border);
     position: relative;
     color: var(--text);
@@ -288,28 +288,28 @@
     position: absolute;
     left: 0;
     color: var(--cyan);
-    font-size: 15px;
+    font-size: 12px;
   }
   .cp-list li:last-child { border-bottom: none; }
 
   /* ─── DIAGRAM WRAPPER ─── */
   .diagram-wrap {
-    margin: 30px 0;
+    margin: 24px 0;
     background: var(--bg2);
     border: 1px solid var(--border);
-    padding: 10px;
+    padding: 8px;
     position: relative;
   }
   .diagram-wrap::before {
     content: attr(data-label);
     position: absolute;
-    top: -13px;
-    left: 20px;
+    top: -11px;
+    left: 16px;
     font-family: var(--mono);
-    font-size: 12.5px;
+    font-size: 10px;
     color: var(--cyan);
     background: var(--bg);
-    padding: 0 10px;
+    padding: 0 8px;
     letter-spacing: 2px;
     text-transform: uppercase;
   }
@@ -317,8 +317,8 @@
 
   /* ─── CONCLUSION ─── */
   .conclusion {
-    margin-top: 70px;
-    padding: 40px;
+    margin-top: 56px;
+    padding: 32px;
     background: var(--panel);
     border: 1px solid var(--border);
     border-top: 2px solid var(--cyan);
@@ -334,11 +334,11 @@
   }
   .conclusion-title {
     font-family: var(--title);
-    font-size: 25px;
+    font-size: 20px;
     font-weight: 700;
     color: var(--cyan);
     letter-spacing: 2px;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
     text-transform: uppercase;
   }
 
@@ -346,11 +346,11 @@
   .divider {
     display: flex;
     align-items: center;
-    gap: 15px;
-    margin: 50px 0;
+    gap: 12px;
+    margin: 40px 0;
     color: var(--text-dim);
     font-family: var(--mono);
-    font-size: 12.5px;
+    font-size: 10px;
     letter-spacing: 3px;
   }
   .divider::before, .divider::after {
@@ -363,35 +363,32 @@
   /* ─── CALLOUT ─── */
   .callout {
     display: flex;
-    gap: 20px;
+    gap: 16px;
     align-items: flex-start;
     background: var(--panel);
     border: 1px solid var(--border);
-    padding: 20px 25px;
-    margin: 20px 0;
+    padding: 16px 20px;
+    margin: 16px 0;
   }
-  .callout-icon { font-family: var(--mono); font-size: 25px; flex-shrink: 0; line-height: 1.8; }
+  .callout-icon { font-family: var(--mono); font-size: 20px; flex-shrink: 0; line-height: 1.8; }
   .callout-body { flex: 1; }
-  .callout-title { font-family: var(--title); font-size: 16.25px; font-weight: 600; letter-spacing: 1px; color: var(--text-bright); margin-bottom: 5px; text-transform: uppercase; }
+  .callout-title { font-family: var(--title); font-size: 13px; font-weight: 600; letter-spacing: 1px; color: var(--text-bright); margin-bottom: 4px; text-transform: uppercase; }
 
   /* ─── FIX ITEMS ─── */
-  .fix-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-top: 20px; }
+  .fix-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 16px; }
   .fix-card {
     background: var(--bg2);
     border: 1px solid var(--border);
-    padding: 20px;
+    padding: 16px;
     position: relative;
   }
-  .fix-card-num { font-family: var(--mono); font-size: 35px; font-weight: 700; color: var(--border); position: absolute; top: 10px; right: 15px; }
-  .fix-card-title { font-family: var(--title); font-size: 17.5px; font-weight: 600; color: var(--amber); margin-bottom: 10px; }
-  .fix-card-body { font-size: 16.25px; color: var(--text-dim); line-height: 1.6; }
+  .fix-card-num { font-family: var(--mono); font-size: 28px; font-weight: 700; color: var(--border); position: absolute; top: 8px; right: 12px; }
+  .fix-card-title { font-family: var(--title); font-size: 14px; font-weight: 600; color: var(--amber); margin-bottom: 8px; }
+  .fix-card-body { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
   code.fix { color: var(--green); background: var(--green-faint); border-color: var(--green); }
 
   @media (max-width: 600px) {
     .hero-metrics { grid-template-columns: 1fr; }
-    body { font-size: 16px; }
-    .wrapper { padding: 0 16px 60px; }
-    h2 { font-size: 24px; }
   }
 </style>
 </head>
@@ -402,7 +399,7 @@
   <div class="hero">
     <div class="hero-tag">FLINK INTERNALS // ROOT CAUSE ANALYSIS // CHECKPOINT BLOAT</div>
     <h1>并行度 <span>×2</span><br>Checkpoint 大小 <em>≠ ×2</em></h1>
-    <p style="margin-top:20px; max-width:800px; color:var(--text-dim);">
+    <p style="margin-top:16px; max-width:640px; color:var(--text-dim);">
       从 2 个并行度扩容到 4 个并行度后，RocksDB State Backend 的 Checkpoint 大小从 8&nbsp;GB 膨胀至 15&nbsp;GB。
       这不是 bug，而是多个底层机制共同作用的必然结果。本文完整拆解每一层根因。
     </p>
@@ -432,6 +429,7 @@
       <h2>根因全景图</h2>
     </div>
     <p>下图展示了 CK 膨胀的完整因果链。每一个分支都是独立的增量来源，最终叠加导致了 15&nbsp;GB 的结果。</p>
+
     <div class="diagram-wrap" data-label="CHECKPOINT BLOAT — CAUSAL MAP">
 <svg width="100%" viewBox="0 0 880 560" xmlns="http://www.w3.org/2000/svg">
   <defs>
@@ -445,173 +443,587 @@
       <path d="M2 1L8 5L2 9" fill="none" stroke="#ff3d5a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     </marker>
   </defs>
-  <rect x="330" y="20" width="220" height="52" rx="4" fill="#0d2030" stroke="#00e5ff" stroke-width="1.5"/>
-  <text x="440" y="42" text-anchor="middle" fill="#00e5ff" font-size="16.25" font-weight="600">并行度 2 → 4</text>
-  <text x="440" y="60" text-anchor="middle" fill="#6a8090" font-size="13.75">KeyGroup 重新分配</text>
 
+  <!-- Root cause: parallelism change -->
+  <rect x="330" y="20" width="220" height="52" rx="4" fill="#0d2030" stroke="#00e5ff" stroke-width="1.5"/>
+  <text x="440" y="42" text-anchor="middle" fill="#00e5ff" font-size="13" font-weight="600">并行度 2 → 4</text>
+  <text x="440" y="60" text-anchor="middle" fill="#6a8090" font-size="11">KeyGroup 重新分配</text>
+
+  <!-- Three branches -->
+  <!-- Branch A: RocksDB multi-instance -->
   <line x1="340" y1="72" x2="160" y2="148" stroke="#00e5ff" stroke-width="1" marker-end="url(#arr)" stroke-dasharray="4 3"/>
   <rect x="60" y="148" width="200" height="52" rx="4" fill="#0d1a24" stroke="#00b8cc" stroke-width="1"/>
-  <text x="160" y="170" text-anchor="middle" fill="#00b8cc" font-size="15" font-weight="600">RocksDB 实例 ×2</text>
-  <text x="160" y="187" text-anchor="middle" fill="#6a8090" font-size="12.5">4 个独立 RocksDB 实例</text>
+  <text x="160" y="170" text-anchor="middle" fill="#00b8cc" font-size="12" font-weight="600">RocksDB 实例 ×2</text>
+  <text x="160" y="187" text-anchor="middle" fill="#6a8090" font-size="10">4 个独立 RocksDB 实例</text>
 
+  <!-- Branch B: Incremental CK pseudo-full -->
   <line x1="440" y1="72" x2="440" y2="148" stroke="#ffb300" stroke-width="1" marker-end="url(#arr-amber)" stroke-dasharray="4 3"/>
   <rect x="330" y="148" width="220" height="52" rx="4" fill="#201800" stroke="#ffb300" stroke-width="1"/>
-  <text x="440" y="170" text-anchor="middle" fill="#ffb300" font-size="15" font-weight="600">增量 CK 伪全量</text>
-  <text x="440" y="187" text-anchor="middle" fill="#6a8090" font-size="12.5">扩容后首次 CK = 全量上传</text>
+  <text x="440" y="170" text-anchor="middle" fill="#ffb300" font-size="12" font-weight="600">增量 CK 伪全量</text>
+  <text x="440" y="187" text-anchor="middle" fill="#6a8090" font-size="10">扩容后首次 CK = 全量上传</text>
 
+  <!-- Branch C: Data skew -->
   <line x1="540" y1="72" x2="720" y2="148" stroke="#ff3d5a" stroke-width="1" marker-end="url(#arr-red)" stroke-dasharray="4 3"/>
   <rect x="620" y="148" width="200" height="52" rx="4" fill="#1a0008" stroke="#ff3d5a" stroke-width="1"/>
-  <text x="720" y="170" text-anchor="middle" fill="#ff3d5a" font-size="15" font-weight="600">数据倾斜加剧</text>
-  <text x="720" y="187" text-anchor="middle" fill="#6a8090" font-size="12.5">KeyGroup 边界切割不均</text>
+  <text x="720" y="170" text-anchor="middle" fill="#ff3d5a" font-size="12" font-weight="600">数据倾斜加剧</text>
+  <text x="720" y="187" text-anchor="middle" fill="#6a8090" font-size="10">KeyGroup 边界切割不均</text>
 
+  <!-- Level 2: sub-causes -->
+  <!-- A.1 metadata overhead -->
   <line x1="130" y1="200" x2="100" y2="268" stroke="#00b8cc" stroke-width="0.8" marker-end="url(#arr)" stroke-dasharray="3 3"/>
   <rect x="20" y="268" width="160" height="48" rx="4" fill="#080f16" stroke="#1a2a3a" stroke-width="1"/>
-  <text x="100" y="288" text-anchor="middle" fill="#6a8090" font-size="13.75">元数据文件膨胀</text>
-  <text x="100" y="304" text-anchor="middle" fill="#4a6070" font-size="12.5">MANIFEST / OPTIONS ×4</text>
+  <text x="100" y="288" text-anchor="middle" fill="#6a8090" font-size="11">元数据文件膨胀</text>
+  <text x="100" y="304" text-anchor="middle" fill="#4a6070" font-size="10">MANIFEST / OPTIONS ×4</text>
 
+  <!-- A.2 compaction inefficiency -->
   <line x1="190" y1="200" x2="230" y2="268" stroke="#00b8cc" stroke-width="0.8" marker-end="url(#arr)" stroke-dasharray="3 3"/>
   <rect x="170" y="268" width="160" height="48" rx="4" fill="#080f16" stroke="#1a2a3a" stroke-width="1"/>
-  <text x="250" y="288" text-anchor="middle" fill="#6a8090" font-size="13.75">compaction 收益降低</text>
-  <text x="250" y="304" text-anchor="middle" fill="#4a6070" font-size="12.5">单实例数据量↓ 触发阈值↑</text>
+  <text x="250" y="288" text-anchor="middle" fill="#6a8090" font-size="11">compaction 收益降低</text>
+  <text x="250" y="304" text-anchor="middle" fill="#4a6070" font-size="10">单实例数据量↓ 触发阈值↑</text>
 
+  <!-- B.1 SST chain rebuild -->
   <line x1="440" y1="200" x2="440" y2="268" stroke="#ffb300" stroke-width="0.8" marker-end="url(#arr-amber)" stroke-dasharray="3 3"/>
   <rect x="355" y="268" width="170" height="48" rx="4" fill="#080f16" stroke="#1a2a3a" stroke-width="1"/>
-  <text x="440" y="288" text-anchor="middle" fill="#cc8c00" font-size="13.75">SST 引用链重建</text>
-  <text x="440" y="304" text-anchor="middle" fill="#4a6070" font-size="12.5">新 subtask 无历史引用</text>
+  <text x="440" y="288" text-anchor="middle" fill="#cc8c00" font-size="11">SST 引用链重建</text>
+  <text x="440" y="304" text-anchor="middle" fill="#4a6070" font-size="10">新 subtask 无历史引用</text>
 
+  <!-- C.1 hot keys concentrated -->
   <line x1="700" y1="200" x2="660" y2="268" stroke="#ff3d5a" stroke-width="0.8" marker-end="url(#arr-red)" stroke-dasharray="3 3"/>
   <rect x="555" y="268" width="170" height="48" rx="4" fill="#080f16" stroke="#1a2a3a" stroke-width="1"/>
-  <text x="640" y="288" text-anchor="middle" fill="#ff4060" font-size="13.75">热点 key 集中</text>
-  <text x="640" y="304" text-anchor="middle" fill="#4a6070" font-size="12.5">部分 subtask state 暴增</text>
+  <text x="640" y="288" text-anchor="middle" fill="#ff4060" font-size="11">热点 key 集中</text>
+  <text x="640" y="304" text-anchor="middle" fill="#4a6070" font-size="10">部分 subtask state 暴增</text>
 
+  <!-- C.2 serialization padding -->
   <line x1="740" y1="200" x2="780" y2="268" stroke="#ff3d5a" stroke-width="0.8" marker-end="url(#arr-red)" stroke-dasharray="3 3"/>
   <rect x="720" y="268" width="140" height="48" rx="4" fill="#080f16" stroke="#1a2a3a" stroke-width="1"/>
-  <text x="790" y="288" text-anchor="middle" fill="#ff4060" font-size="13.75">序列化 padding</text>
-  <text x="790" y="304" text-anchor="middle" fill="#4a6070" font-size="12.5">subtask 越多叠加越多</text>
+  <text x="790" y="288" text-anchor="middle" fill="#ff4060" font-size="11">序列化 padding</text>
+  <text x="790" y="304" text-anchor="middle" fill="#4a6070" font-size="10">subtask 越多叠加越多</text>
 
+  <!-- Convergence line to result -->
   <line x1="100" y1="316" x2="100" y2="360" stroke="#1a2a3a" stroke-width="0.8"/>
   <line x1="250" y1="316" x2="250" y2="380" stroke="#1a2a3a" stroke-width="0.8"/>
   <line x1="440" y1="316" x2="440" y2="380" stroke="#ffb300" stroke-width="0.8"/>
   <line x1="640" y1="316" x2="640" y2="380" stroke="#1a2a3a" stroke-width="0.8"/>
   <line x1="790" y1="316" x2="790" y2="380" stroke="#1a2a3a" stroke-width="0.8"/>
+  <!-- Horizontal convergence -->
   <line x1="100" y1="380" x2="790" y2="380" stroke="#1a2a3a" stroke-width="0.8"/>
   <line x1="440" y1="380" x2="440" y2="420" stroke="#00e5ff" stroke-width="1.5" marker-end="url(#arr)"/>
 
+  <!-- Result -->
   <rect x="290" y="420" width="300" height="60" rx="4" fill="#0a2010" stroke="#00e676" stroke-width="1.5"/>
-  <text x="440" y="446" text-anchor="middle" fill="#00e676" font-size="17.5" font-weight="700">CK 大小: 8 GB → 15 GB</text>
-  <text x="440" y="466" text-anchor="middle" fill="#6a8090" font-size="13.75">多因素叠加 ≈ 1.875× 而非 2×</text>
+  <text x="440" y="446" text-anchor="middle" fill="#00e676" font-size="14" font-weight="700">CK 大小: 8 GB → 15 GB</text>
+  <text x="440" y="466" text-anchor="middle" fill="#6a8090" font-size="11">多因素叠加 ≈ 1.875× 而非 2×</text>
 
+  <!-- Legend -->
   <line x1="30" y1="520" x2="60" y2="520" stroke="#00e5ff" stroke-width="1" stroke-dasharray="4 3"/>
-  <text x="68" y="524" fill="#6a8090" font-size="12.5">RocksDB 实例开销</text>
+  <text x="68" y="524" fill="#6a8090" font-size="10">RocksDB 实例开销</text>
   <line x1="200" y1="520" x2="230" y2="520" stroke="#ffb300" stroke-width="1" stroke-dasharray="4 3"/>
-  <text x="238" y="524" fill="#6a8090" font-size="12.5">增量 CK 机制</text>
+  <text x="238" y="524" fill="#6a8090" font-size="10">增量 CK 机制</text>
   <line x1="340" y1="520" x2="370" y2="520" stroke="#ff3d5a" stroke-width="1" stroke-dasharray="4 3"/>
-  <text x="378" y="524" fill="#6a8090" font-size="12.5">数据分布影响</text>
+  <text x="378" y="524" fill="#6a8090" font-size="10">数据分布影响</text>
 </svg>
     </div>
   </div>
 
   <div class="divider">ROOT CAUSE DEEP DIVE</div>
 
-  <!-- ═══ SECTION 1: KeyGroup 重分配机制 (修复版：增大矩形尺寸，调整文本坐标，避免重叠) ═══ -->
+  <!-- ═══ SECTION 1: KeyGroup ═══ -->
   <div class="section">
     <div class="section-header">
       <span class="section-num">01</span>
       <h2>KeyGroup 重分配机制</h2>
     </div>
+
     <p>Flink 使用 <strong>KeyGroup</strong> 作为 state 分配的最小单元。<code>maxParallelism</code>（默认 128）决定了 KeyGroup 的总数量，而 subtask 负责的 KeyGroup 区间在扩容时会被重新切割。</p>
+
     <div class="diagram-wrap" data-label="KEYGROUP REDISTRIBUTION">
-<svg width="100%" viewBox="0 0 900 340" xmlns="http://www.w3.org/2000/svg">
+<svg width="100%" viewBox="0 0 880 370" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M2 1L8 5L2 9" fill="none" stroke="#00e5ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     </marker>
   </defs>
 
-  <!-- 标题：并行度 = 2 -->
-  <text x="40" y="30" fill="#6a8090" font-size="14" letter-spacing="2">PARALLELISM = 2 (maxParallelism = 8)</text>
+  <!-- ── PARALLELISM = 2 ── -->
+  <text x="44" y="26" fill="#6a8090" font-size="11" letter-spacing="2">PARALLELISM = 2  (maxParallelism = 8)</text>
 
-  <!-- subtask-0 区块 -->
-  <rect x="40" y="50" width="380" height="70" rx="4" fill="#0d2030" stroke="#00b8cc" stroke-width="1.2"/>
-  <text x="60" y="75" fill="#00b8cc" font-size="15" font-weight="600">subtask-0</text>
-  <!-- KeyGroup 0-3 四个独立块，宽度增加至 90，间距 2，保证文字居中不重叠 -->
-  <rect x="40" y="92" width="92" height="24" rx="2" fill="#00e5ff18" stroke="#00e5ff" stroke-width="0.8"/>
-  <text x="86" y="108" text-anchor="middle" fill="#00e5ff" font-size="13" font-weight="500">KG 0</text>
-  <rect x="136" y="92" width="92" height="24" rx="2" fill="#00e5ff14" stroke="#00e5ff" stroke-width="0.8"/>
-  <text x="182" y="108" text-anchor="middle" fill="#00e5ff" font-size="13" font-weight="500">KG 1</text>
-  <rect x="232" y="92" width="92" height="24" rx="2" fill="#00e5ff18" stroke="#00e5ff" stroke-width="0.8"/>
-  <text x="278" y="108" text-anchor="middle" fill="#00e5ff" font-size="13" font-weight="500">KG 2</text>
-  <rect x="328" y="92" width="92" height="24" rx="2" fill="#00e5ff14" stroke="#00e5ff" stroke-width="0.8"/>
-  <text x="374" y="108" text-anchor="middle" fill="#00e5ff" font-size="13" font-weight="500">KG 3</text>
+  <!-- subtask-0 label row (above the KG cells) -->
+  <text x="44" y="50" fill="#00b8cc" font-size="12" font-weight="600">subtask-0</text>
+  <!-- KG cells: y=58, height=44 -->
+  <rect x="40"  y="58" width="90" height="44" rx="0" fill="#00e5ff18" stroke="#00e5ff" stroke-width="0.8"/>
+  <text x="85"  y="84" text-anchor="middle" fill="#00e5ff" font-size="11">KG 0</text>
+  <rect x="130" y="58" width="90" height="44" rx="0" fill="#00e5ff10" stroke="#00e5ff" stroke-width="0.5"/>
+  <text x="175" y="84" text-anchor="middle" fill="#00e5ff" font-size="11">KG 1</text>
+  <rect x="220" y="58" width="90" height="44" rx="0" fill="#00e5ff18" stroke="#00e5ff" stroke-width="0.8"/>
+  <text x="265" y="84" text-anchor="middle" fill="#00e5ff" font-size="11">KG 2</text>
+  <rect x="310" y="58" width="90" height="44" rx="0" fill="#00e5ff10" stroke="#00e5ff" stroke-width="0.5"/>
+  <text x="355" y="84" text-anchor="middle" fill="#00e5ff" font-size="11">KG 3</text>
+  <!-- outer border -->
+  <rect x="40" y="58" width="360" height="44" rx="3" fill="none" stroke="#00b8cc" stroke-width="1.5"/>
 
-  <!-- subtask-1 区块 -->
-  <rect x="480" y="50" width="380" height="70" rx="4" fill="#0d2030" stroke="#00b8cc" stroke-width="1.2"/>
-  <text x="500" y="75" fill="#00b8cc" font-size="15" font-weight="600">subtask-1</text>
-  <rect x="480" y="92" width="92" height="24" rx="2" fill="#ffb30018" stroke="#ffb300" stroke-width="0.8"/>
-  <text x="526" y="108" text-anchor="middle" fill="#ffb300" font-size="13" font-weight="500">KG 4</text>
-  <rect x="576" y="92" width="92" height="24" rx="2" fill="#ffb30014" stroke="#ffb300" stroke-width="0.8"/>
-  <text x="622" y="108" text-anchor="middle" fill="#ffb300" font-size="13" font-weight="500">KG 5</text>
-  <rect x="672" y="92" width="92" height="24" rx="2" fill="#ffb30018" stroke="#ffb300" stroke-width="0.8"/>
-  <text x="718" y="108" text-anchor="middle" fill="#ffb300" font-size="13" font-weight="500">KG 6</text>
-  <rect x="768" y="92" width="92" height="24" rx="2" fill="#ffb30014" stroke="#ffb300" stroke-width="0.8"/>
-  <text x="814" y="108" text-anchor="middle" fill="#ffb300" font-size="13" font-weight="500">KG 7</text>
+  <!-- subtask-1 label row -->
+  <text x="444" y="50" fill="#ffb300" font-size="12" font-weight="600">subtask-1</text>
+  <!-- KG cells -->
+  <rect x="440" y="58" width="90" height="44" rx="0" fill="#ffb30018" stroke="#ffb300" stroke-width="0.8"/>
+  <text x="485" y="84" text-anchor="middle" fill="#ffb300" font-size="11">KG 4</text>
+  <rect x="530" y="58" width="90" height="44" rx="0" fill="#ffb30010" stroke="#ffb300" stroke-width="0.5"/>
+  <text x="575" y="84" text-anchor="middle" fill="#ffb300" font-size="11">KG 5</text>
+  <rect x="620" y="58" width="90" height="44" rx="0" fill="#ffb30018" stroke="#ffb300" stroke-width="0.8"/>
+  <text x="665" y="84" text-anchor="middle" fill="#ffb300" font-size="11">KG 6</text>
+  <rect x="710" y="58" width="90" height="44" rx="0" fill="#ffb30010" stroke="#ffb300" stroke-width="0.5"/>
+  <text x="755" y="84" text-anchor="middle" fill="#ffb300" font-size="11">KG 7</text>
+  <!-- outer border -->
+  <rect x="440" y="58" width="360" height="44" rx="3" fill="none" stroke="#ffb300" stroke-width="1.5"/>
 
-  <!-- 向下箭头 + 扩容说明 -->
-  <text x="450" y="172" text-anchor="middle" fill="#00e5ff" font-size="24" font-weight="700">↓</text>
-  <text x="570" y="172" text-anchor="middle" fill="#6a8090" font-size="13" letter-spacing="1">SCALE OUT → PARALLELISM = 4</text>
+  <!-- ── TRANSITION ARROW ── -->
+  <line x1="440" y1="122" x2="440" y2="158" stroke="#00e5ff" stroke-width="1.2" marker-end="url(#arr2)"/>
+  <text x="460" y="145" fill="#6a8090" font-size="10" letter-spacing="1">SCALE OUT TO PARALLELISM = 4</text>
 
-  <!-- 并行度 = 4 区块 -->
-  <text x="40" y="208" fill="#6a8090" font-size="14" letter-spacing="2">PARALLELISM = 4</text>
+  <!-- ── PARALLELISM = 4 ── -->
+  <text x="44" y="182" fill="#6a8090" font-size="11" letter-spacing="2">PARALLELISM = 4</text>
 
-  <!-- subtask-0 (KG 0-1) -->
-  <rect x="40" y="224" width="200" height="70" rx="4" fill="#0d2030" stroke="#00b8cc" stroke-width="1.2"/>
-  <text x="140" y="248" text-anchor="middle" fill="#00b8cc" font-size="14" font-weight="600">subtask-0</text>
-  <rect x="48" y="262" width="92" height="24" rx="2" fill="#00e5ff18" stroke="#00e5ff" stroke-width="0.8"/>
-  <text x="94" y="278" text-anchor="middle" fill="#00e5ff" font-size="13" font-weight="500">KG 0</text>
-  <rect x="144" y="262" width="92" height="24" rx="2" fill="#00e5ff14" stroke="#00e5ff" stroke-width="0.8"/>
-  <text x="190" y="278" text-anchor="middle" fill="#00e5ff" font-size="13" font-weight="500">KG 1</text>
+  <!-- subtask-0: KG 0-1 -->
+  <text x="44" y="206" fill="#00b8cc" font-size="11" font-weight="600">subtask-0</text>
+  <rect x="40"  y="214" width="90" height="44" rx="0" fill="#00e5ff18" stroke="#00e5ff" stroke-width="0.8"/>
+  <text x="85"  y="240" text-anchor="middle" fill="#00e5ff" font-size="11">KG 0</text>
+  <rect x="130" y="214" width="90" height="44" rx="0" fill="#00e5ff10" stroke="#00e5ff" stroke-width="0.5"/>
+  <text x="175" y="240" text-anchor="middle" fill="#00e5ff" font-size="11">KG 1</text>
+  <rect x="40"  y="214" width="180" height="44" rx="3" fill="none" stroke="#00b8cc" stroke-width="1.5"/>
 
-  <!-- subtask-1 (KG 2-3) -->
-  <rect x="250" y="224" width="200" height="70" rx="4" fill="#0d2030" stroke="#00b8cc" stroke-width="1.2"/>
-  <text x="350" y="248" text-anchor="middle" fill="#00b8cc" font-size="14" font-weight="600">subtask-1</text>
-  <rect x="258" y="262" width="92" height="24" rx="2" fill="#00e5ff18" stroke="#00e5ff" stroke-width="0.8"/>
-  <text x="304" y="278" text-anchor="middle" fill="#00e5ff" font-size="13" font-weight="500">KG 2</text>
-  <rect x="354" y="262" width="92" height="24" rx="2" fill="#00e5ff14" stroke="#00e5ff" stroke-width="0.8"/>
-  <text x="400" y="278" text-anchor="middle" fill="#00e5ff" font-size="13" font-weight="500">KG 3</text>
+  <!-- subtask-1: KG 2-3 -->
+  <text x="244" y="206" fill="#00b8cc" font-size="11" font-weight="600">subtask-1</text>
+  <rect x="240" y="214" width="90" height="44" rx="0" fill="#00e5ff18" stroke="#00e5ff" stroke-width="0.8"/>
+  <text x="285" y="240" text-anchor="middle" fill="#00e5ff" font-size="11">KG 2</text>
+  <rect x="330" y="214" width="90" height="44" rx="0" fill="#00e5ff10" stroke="#00e5ff" stroke-width="0.5"/>
+  <text x="375" y="240" text-anchor="middle" fill="#00e5ff" font-size="11">KG 3</text>
+  <rect x="240" y="214" width="180" height="44" rx="3" fill="none" stroke="#00b8cc" stroke-width="1.5"/>
 
-  <!-- subtask-2 (KG 4-5) -->
-  <rect x="460" y="224" width="200" height="70" rx="4" fill="#201800" stroke="#ffb300" stroke-width="1.2"/>
-  <text x="560" y="248" text-anchor="middle" fill="#ffb300" font-size="14" font-weight="600">subtask-2</text>
-  <rect x="468" y="262" width="92" height="24" rx="2" fill="#ffb30018" stroke="#ffb300" stroke-width="0.8"/>
-  <text x="514" y="278" text-anchor="middle" fill="#ffb300" font-size="13" font-weight="500">KG 4</text>
-  <rect x="564" y="262" width="92" height="24" rx="2" fill="#ffb30014" stroke="#ffb300" stroke-width="0.8"/>
-  <text x="610" y="278" text-anchor="middle" fill="#ffb300" font-size="13" font-weight="500">KG 5</text>
+  <!-- subtask-2: KG 4-5 -->
+  <text x="444" y="206" fill="#ffb300" font-size="11" font-weight="600">subtask-2</text>
+  <rect x="440" y="214" width="90" height="44" rx="0" fill="#ffb30018" stroke="#ffb300" stroke-width="0.8"/>
+  <text x="485" y="240" text-anchor="middle" fill="#ffb300" font-size="11">KG 4</text>
+  <rect x="530" y="214" width="90" height="44" rx="0" fill="#ffb30010" stroke="#ffb300" stroke-width="0.5"/>
+  <text x="575" y="240" text-anchor="middle" fill="#ffb300" font-size="11">KG 5</text>
+  <rect x="440" y="214" width="180" height="44" rx="3" fill="none" stroke="#ffb300" stroke-width="1.5"/>
 
-  <!-- subtask-3 (KG 6-7) -->
-  <rect x="670" y="224" width="200" height="70" rx="4" fill="#201800" stroke="#ffb300" stroke-width="1.2"/>
-  <text x="770" y="248" text-anchor="middle" fill="#ffb300" font-size="14" font-weight="600">subtask-3</text>
-  <rect x="678" y="262" width="92" height="24" rx="2" fill="#ffb30018" stroke="#ffb300" stroke-width="0.8"/>
-  <text x="724" y="278" text-anchor="middle" fill="#ffb300" font-size="13" font-weight="500">KG 6</text>
-  <rect x="774" y="262" width="92" height="24" rx="2" fill="#ffb30014" stroke="#ffb300" stroke-width="0.8"/>
-  <text x="820" y="278" text-anchor="middle" fill="#ffb300" font-size="13" font-weight="500">KG 7</text>
+  <!-- subtask-3: KG 6-7 -->
+  <text x="644" y="206" fill="#ffb300" font-size="11" font-weight="600">subtask-3</text>
+  <rect x="640" y="214" width="90" height="44" rx="0" fill="#ffb30018" stroke="#ffb300" stroke-width="0.8"/>
+  <text x="685" y="240" text-anchor="middle" fill="#ffb300" font-size="11">KG 6</text>
+  <rect x="730" y="214" width="90" height="44" rx="0" fill="#ffb30010" stroke="#ffb300" stroke-width="0.5"/>
+  <text x="775" y="240" text-anchor="middle" fill="#ffb300" font-size="11">KG 7</text>
+  <rect x="640" y="214" width="180" height="44" rx="3" fill="none" stroke="#ffb300" stroke-width="1.5"/>
 
-  <!-- 底部说明 -->
-  <text x="450" y="325" text-anchor="middle" fill="#6a8090" font-size="13">每个 subtask 独立维护一个 RocksDB 实例 — 实例数从 2 增至 4，固定开销翻倍</text>
+  <!-- Range labels below each subtask -->
+  <text x="130" y="276" text-anchor="middle" fill="#6a8090" font-size="10">KG 0 – 1</text>
+  <text x="330" y="276" text-anchor="middle" fill="#6a8090" font-size="10">KG 2 – 3</text>
+  <text x="530" y="276" text-anchor="middle" fill="#6a8090" font-size="10">KG 4 – 5</text>
+  <text x="730" y="276" text-anchor="middle" fill="#6a8090" font-size="10">KG 6 – 7</text>
+
+  <!-- RocksDB instance count annotation -->
+  <text x="440" y="310" text-anchor="middle" fill="#6a8090" font-size="10">↑ 每个 subtask 独立运行一个 RocksDB 实例 — 实例数从 2 增至 4，固定开销翻倍</text>
+
+  <!-- Instance count badges -->
+  <rect x="116" y="290" width="28" height="14" rx="2" fill="#0d2030" stroke="#00b8cc" stroke-width="0.8"/>
+  <text x="130" y="301" text-anchor="middle" fill="#00b8cc" font-size="9">DB</text>
+  <rect x="316" y="290" width="28" height="14" rx="2" fill="#0d2030" stroke="#00b8cc" stroke-width="0.8"/>
+  <text x="330" y="301" text-anchor="middle" fill="#00b8cc" font-size="9">DB</text>
+  <rect x="516" y="290" width="28" height="14" rx="2" fill="#201800" stroke="#ffb300" stroke-width="0.8"/>
+  <text x="530" y="301" text-anchor="middle" fill="#ffb300" font-size="9">DB</text>
+  <rect x="716" y="290" width="28" height="14" rx="2" fill="#201800" stroke="#ffb300" stroke-width="0.8"/>
+  <text x="730" y="301" text-anchor="middle" fill="#ffb300" font-size="9">DB</text>
 </svg>
     </div>
+
     <div class="panel cyan">
       <strong>关键推论：</strong>state 总数据量理论上不变，但每个 RocksDB 实例携带独立的元数据文件（MANIFEST、OPTIONS、WAL、CURRENT），4 个实例的结构性开销比 2 个实例高 1 倍。同时每个实例的 compaction 是独立触发的，小实例的 compaction 效率低于大实例。
     </div>
   </div>
 
-  <!-- ═══ 其余章节保持原有修复后内容（因篇幅仅展示关键修复，原样保留后续诊断等） ═══ -->
+  <!-- ═══ SECTION 2: Incremental CK ═══ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2>增量 CK 的"伪全量"陷阱</h2>
+    </div>
+
+    <p>Flink 的 Incremental Checkpoint 依赖 RocksDB 的 SST 文件引用链。每个 subtask 只上传上次 CK 之后新增的 SST 文件，并在元数据中记录所有 SST 文件的引用，形成一条历史链。</p>
+    <p><strong>扩容后发生了什么：</strong>新的 4 个 subtask 是全新的 RocksDB 实例，它们没有任何历史引用链。因此，第一次 CK 必须上传所有 SST 文件——等同于全量 CK。</p>
+
+    <div class="diagram-wrap" data-label="INCREMENTAL CK — SCALE-OUT BEHAVIOR">
+<svg width="100%" viewBox="0 0 880 380" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arr3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#ffb300" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arr3g" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#00e676" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <!-- Timeline axis -->
+  <text x="40" y="30" fill="#6a8090" font-size="10" letter-spacing="2">CHECKPOINT TIMELINE</text>
+  <line x1="40" y1="44" x2="840" y2="44" stroke="#1a2a3a" stroke-width="1"/>
+  <!-- CK markers -->
+  <line x1="120" y1="38" x2="120" y2="50" stroke="#6a8090" stroke-width="1"/>
+  <text x="120" y="62" text-anchor="middle" fill="#6a8090" font-size="10">CK n-2</text>
+  <line x1="300" y1="38" x2="300" y2="50" stroke="#6a8090" stroke-width="1"/>
+  <text x="300" y="62" text-anchor="middle" fill="#6a8090" font-size="10">CK n-1</text>
+  <line x1="500" y1="38" x2="500" y2="50" stroke="#ffb300" stroke-width="1.5"/>
+  <text x="500" y="62" text-anchor="middle" fill="#ffb300" font-size="10">CK n (扩容后首次)</text>
+  <line x1="700" y1="38" x2="700" y2="50" stroke="#00e676" stroke-width="1"/>
+  <text x="700" y="62" text-anchor="middle" fill="#00e676" font-size="10">CK n+1 (恢复正常)</text>
+
+  <!-- Before scale: subtask rows -->
+  <text x="40" y="90" fill="#00b8cc" font-size="11">subtask-0 (parallelism=2)</text>
+  <!-- SST files at CK n-2 -->
+  <rect x="80" y="100" width="80" height="28" rx="2" fill="#0d1a24" stroke="#00e5ff" stroke-width="0.8"/>
+  <text x="120" y="118" text-anchor="middle" fill="#6a8090" font-size="9">SST-A B C</text>
+  <!-- SST files at CK n-1 (incremental: only D added) -->
+  <rect x="260" y="100" width="80" height="28" rx="2" fill="#0d1a24" stroke="#00e5ff" stroke-width="0.8"/>
+  <text x="300" y="118" text-anchor="middle" fill="#6a8090" font-size="9">+SST-D</text>
+  <text x="190" y="118" text-anchor="middle" fill="#4a5060" font-size="9">→ ref A B C D</text>
+
+  <!-- After scale: 4 subtasks, first CK is full -->
+  <text x="40" y="162" fill="#ffb300" font-size="11">新 subtask-0..3 (parallelism=4)</text>
+
+  <!-- subtask-0 new -->
+  <rect x="455" y="174" width="90" height="28" rx="2" fill="#201800" stroke="#ffb300" stroke-width="1"/>
+  <text x="500" y="192" text-anchor="middle" fill="#ffb300" font-size="9">FULL UPLOAD</text>
+  <text x="390" y="192" text-anchor="middle" fill="#4a5060" font-size="9">无历史引用 →</text>
+
+  <rect x="455" y="210" width="90" height="28" rx="2" fill="#201800" stroke="#ffb300" stroke-width="1"/>
+  <text x="500" y="228" text-anchor="middle" fill="#ffb300" font-size="9">FULL UPLOAD</text>
+
+  <rect x="455" y="246" width="90" height="28" rx="2" fill="#201800" stroke="#ffb300" stroke-width="1"/>
+  <text x="500" y="264" text-anchor="middle" fill="#ffb300" font-size="9">FULL UPLOAD</text>
+
+  <rect x="455" y="282" width="90" height="28" rx="2" fill="#201800" stroke="#ffb300" stroke-width="1"/>
+  <text x="500" y="300" text-anchor="middle" fill="#ffb300" font-size="9">FULL UPLOAD</text>
+
+  <!-- Labels for new subtasks -->
+  <text x="380" y="228" text-anchor="middle" fill="#4a5060" font-size="9">subtask-1 →</text>
+  <text x="380" y="264" text-anchor="middle" fill="#4a5060" font-size="9">subtask-2 →</text>
+  <text x="380" y="300" text-anchor="middle" fill="#4a5060" font-size="9">subtask-3 →</text>
+
+  <!-- CK n+1: incremental resumes -->
+  <rect x="660" y="174" width="90" height="28" rx="2" fill="#0a1a0a" stroke="#00e676" stroke-width="0.8"/>
+  <text x="705" y="192" text-anchor="middle" fill="#00e676" font-size="9">+SST-new</text>
+  <rect x="660" y="210" width="90" height="28" rx="2" fill="#0a1a0a" stroke="#00e676" stroke-width="0.8"/>
+  <text x="705" y="228" text-anchor="middle" fill="#00e676" font-size="9">+SST-new</text>
+  <rect x="660" y="246" width="90" height="28" rx="2" fill="#0a1a0a" stroke="#00e676" stroke-width="0.8"/>
+  <text x="705" y="264" text-anchor="middle" fill="#00e676" font-size="9">+SST-new</text>
+  <rect x="660" y="282" width="90" height="28" rx="2" fill="#0a1a0a" stroke="#00e676" stroke-width="0.8"/>
+  <text x="705" y="300" text-anchor="middle" fill="#00e676" font-size="9">+SST-new</text>
+
+  <!-- Size annotations -->
+  <rect x="456" y="330" width="88" height="22" rx="2" fill="#1a0808" stroke="#ff3d5a" stroke-width="0.8"/>
+  <text x="500" y="344" text-anchor="middle" fill="#ff3d5a" font-size="10">峰值 ≈ 15 GB</text>
+  <rect x="652" y="330" width="104" height="22" rx="2" fill="#0a1a0a" stroke="#00e676" stroke-width="0.8"/>
+  <text x="704" y="344" text-anchor="middle" fill="#00e676" font-size="10">逐渐回落</text>
+  <text x="100" y="344" text-anchor="middle" fill="#6a8090" font-size="10">≈ 4 GB (incremental)</text>
+</svg>
+    </div>
+
+    <div class="callout">
+      <div class="callout-icon" style="color:var(--amber)">!</div>
+      <div class="callout-body">
+        <div class="callout-title">扩容后等待几个 CK 周期</div>
+        <p style="font-size:13px; color:var(--text-dim); margin:0;">第一次 CK 的巨大体积是一次性的"伪全量"现象。随着后续 CK 恢复增量模式，大小会逐渐回落。如果 CK 大小持续保持在 15&nbsp;GB 以上，说明有其他根因（数据倾斜或 state 本身增长）。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 3: RocksDB ═══ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2>RocksDB 多实例开销拆解</h2>
+    </div>
+
+    <p>每个 Flink subtask 运行一个完全独立的 RocksDB 实例。实例数量从 2 增至 4，带来两类额外开销：</p>
+
+    <h3>结构性文件开销</h3>
+    <table class="data-table">
+      <thead><tr><th>文件类型</th><th>parallelism = 2</th><th>parallelism = 4</th><th>增量</th></tr></thead>
+      <tbody>
+        <tr><td>MANIFEST 文件</td><td>2 个</td><td>4 个</td><td><span class="tag high">×2</span></td></tr>
+        <tr><td>OPTIONS 文件</td><td>2 个</td><td>4 个</td><td><span class="tag high">×2</span></td></tr>
+        <tr><td>WAL 日志</td><td>2 组</td><td>4 组</td><td><span class="tag high">×2</span></td></tr>
+        <tr><td>CURRENT 文件</td><td>2 个</td><td>4 个</td><td><span class="tag high">×2</span></td></tr>
+        <tr><td>SST 数据文件</td><td>按数据量</td><td>按数据量</td><td><span class="tag low">≈ 不变</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Compaction 效率变化</h3>
+    <p>RocksDB 的 Compaction 在单个实例的 SST 文件超过阈值时触发。扩容后每个实例负责的数据量减半，相对于 compaction 触发阈值而言，合并的频率降低，导致更多碎片化 SST 文件被写入 CK。</p>
+
+    <div class="diagram-wrap" data-label="ROCKSDB COMPACTION EFFICIENCY">
+<svg width="100%" viewBox="0 0 880 220" xmlns="http://www.w3.org/2000/svg">
+  <!-- Left: p=2, one large instance, good compaction -->
+  <text x="200" y="24" text-anchor="middle" fill="#6a8090" font-size="11" letter-spacing="1">PARALLELISM = 2</text>
+  <rect x="60" y="36" width="280" height="140" rx="4" fill="#080f16" stroke="#1a2a3a" stroke-width="1"/>
+  <text x="200" y="58" text-anchor="middle" fill="#00b8cc" font-size="11">RocksDB instance-0</text>
+  <!-- L0 files -->
+  <rect x="80"  y="68" width="36" height="20" rx="2" fill="#0d2030" stroke="#00e5ff" stroke-width="0.8"/>
+  <text x="98"  y="82" text-anchor="middle" fill="#00e5ff" font-size="9">L0</text>
+  <rect x="124" y="68" width="36" height="20" rx="2" fill="#0d2030" stroke="#00e5ff" stroke-width="0.8"/>
+  <text x="142" y="82" text-anchor="middle" fill="#00e5ff" font-size="9">L0</text>
+  <rect x="168" y="68" width="36" height="20" rx="2" fill="#0d2030" stroke="#00e5ff" stroke-width="0.8"/>
+  <text x="186" y="82" text-anchor="middle" fill="#00e5ff" font-size="9">L0</text>
+  <rect x="212" y="68" width="36" height="20" rx="2" fill="#0d2030" stroke="#00e5ff" stroke-width="0.8"/>
+  <text x="230" y="82" text-anchor="middle" fill="#00e5ff" font-size="9">L0</text>
+  <!-- compaction arrow -->
+  <text x="200" y="102" text-anchor="middle" fill="#00e676" font-size="18">↓</text>
+  <text x="200" y="116" text-anchor="middle" fill="#4a7060" font-size="10">compaction 频繁触发</text>
+  <!-- L1 big block -->
+  <rect x="80" y="122" width="240" height="36" rx="2" fill="#0d3020" stroke="#00e676" stroke-width="0.8"/>
+  <text x="200" y="144" text-anchor="middle" fill="#00e676" font-size="10">L1 — 合并后大文件 (高效)</text>
+
+  <!-- Right: p=4, 4 small instances, poor compaction -->
+  <text x="630" y="24" text-anchor="middle" fill="#6a8090" font-size="11" letter-spacing="1">PARALLELISM = 4</text>
+
+  <!-- instance 0 -->
+  <rect x="440" y="36" width="120" height="80" rx="4" fill="#080f16" stroke="#1a2a3a" stroke-width="1"/>
+  <text x="500" y="52" text-anchor="middle" fill="#ffb300" font-size="9">instance-0</text>
+  <rect x="454" y="60" width="28" height="16" rx="2" fill="#201800" stroke="#ffb300" stroke-width="0.5"/>
+  <text x="468" y="72" text-anchor="middle" fill="#ffb300" font-size="8">L0</text>
+  <rect x="488" y="60" width="28" height="16" rx="2" fill="#201800" stroke="#ffb300" stroke-width="0.5"/>
+  <text x="502" y="72" text-anchor="middle" fill="#ffb300" font-size="8">L0</text>
+  <text x="500" y="100" text-anchor="middle" fill="#6a3a00" font-size="8">compaction 少触发</text>
+
+  <!-- instance 1 -->
+  <rect x="570" y="36" width="120" height="80" rx="4" fill="#080f16" stroke="#1a2a3a" stroke-width="1"/>
+  <text x="630" y="52" text-anchor="middle" fill="#ffb300" font-size="9">instance-1</text>
+  <rect x="584" y="60" width="28" height="16" rx="2" fill="#201800" stroke="#ffb300" stroke-width="0.5"/>
+  <text x="598" y="72" text-anchor="middle" fill="#ffb300" font-size="8">L0</text>
+  <text x="630" y="100" text-anchor="middle" fill="#6a3a00" font-size="8">compaction 少触发</text>
+
+  <!-- instance 2 -->
+  <rect x="440" y="130" width="120" height="80" rx="4" fill="#080f16" stroke="#1a2a3a" stroke-width="1"/>
+  <text x="500" y="146" text-anchor="middle" fill="#ffb300" font-size="9">instance-2</text>
+  <rect x="454" y="154" width="28" height="16" rx="2" fill="#201800" stroke="#ffb300" stroke-width="0.5"/>
+  <text x="468" y="166" text-anchor="middle" fill="#ffb300" font-size="8">L0</text>
+  <rect x="488" y="154" width="28" height="16" rx="2" fill="#201800" stroke="#ffb300" stroke-width="0.5"/>
+  <text x="502" y="166" text-anchor="middle" fill="#ffb300" font-size="8">L0</text>
+  <rect x="522" y="154" width="28" height="16" rx="2" fill="#201800" stroke="#ff3d5a" stroke-width="0.8"/>
+  <text x="536" y="166" text-anchor="middle" fill="#ff3d5a" font-size="8">L0</text>
+  <text x="500" y="196" text-anchor="middle" fill="#6a3a00" font-size="8">碎片未合并</text>
+
+  <!-- instance 3 -->
+  <rect x="570" y="130" width="120" height="80" rx="4" fill="#080f16" stroke="#1a2a3a" stroke-width="1"/>
+  <text x="630" y="146" text-anchor="middle" fill="#ffb300" font-size="9">instance-3</text>
+  <rect x="584" y="154" width="28" height="16" rx="2" fill="#201800" stroke="#ffb300" stroke-width="0.5"/>
+  <text x="598" y="166" text-anchor="middle" fill="#ffb300" font-size="8">L0</text>
+  <rect x="618" y="154" width="28" height="16" rx="2" fill="#201800" stroke="#ff3d5a" stroke-width="0.8"/>
+  <text x="632" y="166" text-anchor="middle" fill="#ff3d5a" font-size="8">L0</text>
+  <text x="630" y="196" text-anchor="middle" fill="#6a3a00" font-size="8">多余 SST 写入 CK</text>
+
+  <!-- dividing line -->
+  <line x1="400" y1="20" x2="400" y2="200" stroke="#1a2a3a" stroke-width="1" stroke-dasharray="4 4"/>
+</svg>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 4: Data Skew ═══ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2>数据倾斜与序列化 Padding</h2>
+    </div>
+
+    <h3>KeyGroup 边界切割引发的倾斜</h3>
+    <p>KeyGroup 按 key 的哈希值均匀分布，但业务数据的 key 分布往往不均匀。扩容后，原来被 subtask-1 "稀释"的热点 key 可能集中落在新的单个 subtask 中，导致该 subtask 的 state 远超平均值。</p>
+
+    <div class="diagram-wrap" data-label="DATA SKEW — STATE SIZE DISTRIBUTION">
+<svg width="100%" viewBox="0 0 880 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- p=2 bar chart -->
+  <text x="200" y="24" text-anchor="middle" fill="#6a8090" font-size="10" letter-spacing="1">PARALLELISM = 2 — STATE 分布</text>
+  <rect x="100" y="60" width="80" height="100" rx="2" fill="#0d2030" stroke="#00e5ff" stroke-width="1"/>
+  <text x="140" y="170" text-anchor="middle" fill="#00b8cc" font-size="10">subtask-0</text>
+  <text x="140" y="52" text-anchor="middle" fill="#00e5ff" font-size="10">4 GB</text>
+  <rect x="220" y="60" width="80" height="100" rx="2" fill="#0d2030" stroke="#00e5ff" stroke-width="1"/>
+  <text x="260" y="170" text-anchor="middle" fill="#00b8cc" font-size="10">subtask-1</text>
+  <text x="260" y="52" text-anchor="middle" fill="#00e5ff" font-size="10">4 GB</text>
+  <text x="200" y="190" text-anchor="middle" fill="#4a7080" font-size="9">分布均匀 → 总 8 GB</text>
+
+  <!-- p=4 bar chart with skew -->
+  <text x="630" y="24" text-anchor="middle" fill="#6a8090" font-size="10" letter-spacing="1">PARALLELISM = 4 — STATE 分布 (倾斜)</text>
+  <!-- bar 0 -->
+  <rect x="468" y="90" width="60" height="70" rx="2" fill="#0d2030" stroke="#00b8cc" stroke-width="1"/>
+  <text x="498" y="170" text-anchor="middle" fill="#6a8090" font-size="9">st-0</text>
+  <text x="498" y="82" text-anchor="middle" fill="#6a8090" font-size="9">1.5G</text>
+  <!-- bar 1 -->
+  <rect x="538" y="70" width="60" height="90" rx="2" fill="#0d2030" stroke="#00b8cc" stroke-width="1"/>
+  <text x="568" y="170" text-anchor="middle" fill="#6a8090" font-size="9">st-1</text>
+  <text x="568" y="62" text-anchor="middle" fill="#6a8090" font-size="9">2.5G</text>
+  <!-- bar 2 HOT -->
+  <rect x="608" y="36" width="60" height="124" rx="2" fill="#1a0808" stroke="#ff3d5a" stroke-width="1.5"/>
+  <text x="638" y="170" text-anchor="middle" fill="#ff3d5a" font-size="9">st-2</text>
+  <text x="638" y="28" text-anchor="middle" fill="#ff3d5a" font-size="9">7G !</text>
+  <text x="638" y="42" text-anchor="middle" fill="#ff3d5a" font-size="7">HOT</text>
+  <!-- bar 3 -->
+  <rect x="678" y="110" width="60" height="50" rx="2" fill="#0d2030" stroke="#00b8cc" stroke-width="1"/>
+  <text x="708" y="170" text-anchor="middle" fill="#6a8090" font-size="9">st-3</text>
+  <text x="708" y="102" text-anchor="middle" fill="#6a8090" font-size="9">4G</text>
+
+  <text x="630" y="190" text-anchor="middle" fill="#ff3d5a" font-size="9">严重倾斜 → 总 15 GB （热点 subtask 独占 7 GB）</text>
+
+  <line x1="420" y1="20" x2="420" y2="195" stroke="#1a2a3a" stroke-width="1" stroke-dasharray="4 4"/>
+</svg>
+    </div>
+
+    <h3>序列化 Padding 累积</h3>
+    <p>每个 KeyGroup 在序列化写入 CK 时有固定的 header overhead（键类型、命名空间、序列化版本等）。subtask 数量增加后，KeyGroup 边界增多，小对象的序列化 padding 在整体上累积更多字节。这是 CK 大小超过"精确 2 倍"的次要因素。</p>
+
+    <div class="panel amber">
+      <strong>量化参考：</strong>对于单个 KeyedValueState，每条记录的序列化 overhead 约 20~60 字节。当 state 中有数千万条记录时，padding 的累积可达数百 MB，在多 subtask 场景下尤为明显。
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 5: Math ═══ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2>量化拆解：8 GB → 15 GB</h2>
+    </div>
+
+    <div class="diagram-wrap" data-label="CK SIZE DECOMPOSITION">
+<svg width="100%" viewBox="0 0 880 320" xmlns="http://www.w3.org/2000/svg">
+  <!-- Stacked bar: before -->
+  <text x="200" y="24" text-anchor="middle" fill="#6a8090" font-size="11" letter-spacing="1">扩容前 CK 组成 (8 GB)</text>
+
+  <!-- State data: 7.2 GB = 90% -->
+  <rect x="120" y="40" width="160" height="216" rx="3" fill="#0d2030" stroke="#00e5ff" stroke-width="1"/>
+  <text x="200" y="152" text-anchor="middle" fill="#00b8cc" font-size="12" font-weight="600">State Data</text>
+  <text x="200" y="170" text-anchor="middle" fill="#6a8090" font-size="10">≈ 7.2 GB</text>
+
+  <!-- Metadata: 0.4 GB = 5% -->
+  <rect x="120" y="256" width="160" height="24" rx="0" fill="#0d1a10" stroke="#00e676" stroke-width="0.8"/>
+  <text x="200" y="272" text-anchor="middle" fill="#00e676" font-size="9">Metadata 0.4 GB</text>
+
+  <!-- Padding: 0.4 GB = 5% -->
+  <rect x="120" y="280" width="160" height="16" rx="0" fill="#201010" stroke="#ff3d5a" stroke-width="0.8"/>
+  <text x="200" y="292" text-anchor="middle" fill="#ff3d5a" font-size="8">Padding 0.4 GB</text>
+
+  <!-- After stacked bar -->
+  <text x="640" y="24" text-anchor="middle" fill="#6a8090" font-size="11" letter-spacing="1">扩容后 CK 组成 (15 GB)</text>
+
+  <!-- State data: 7.2 GB -->
+  <rect x="540" y="40" width="200" height="144" rx="3" fill="#0d2030" stroke="#00e5ff" stroke-width="1"/>
+  <text x="640" y="106" text-anchor="middle" fill="#00b8cc" font-size="12" font-weight="600">State Data (不变)</text>
+  <text x="640" y="124" text-anchor="middle" fill="#6a8090" font-size="10">≈ 7.2 GB</text>
+
+  <!-- Skew extra: +2.4 GB -->
+  <rect x="540" y="184" width="200" height="48" rx="0" fill="#1a0808" stroke="#ff3d5a" stroke-width="1.5"/>
+  <text x="640" y="204" text-anchor="middle" fill="#ff3d5a" font-size="11" font-weight="600">数据倾斜溢出</text>
+  <text x="640" y="222" text-anchor="middle" fill="#ff3d5a" font-size="10">+2.4 GB</text>
+
+  <!-- Pseudo-full upload: +2.4 GB (first ck) -->
+  <rect x="540" y="232" width="200" height="40" rx="0" fill="#201800" stroke="#ffb300" stroke-width="1"/>
+  <text x="640" y="252" text-anchor="middle" fill="#ffb300" font-size="10" font-weight="600">伪全量上传额外开销</text>
+  <text x="640" y="266" text-anchor="middle" fill="#ffb300" font-size="9">+2.0 GB (首次后消退)</text>
+
+  <!-- Metadata x2: 0.8 GB -->
+  <rect x="540" y="272" width="200" height="20" rx="0" fill="#0d1a10" stroke="#00e676" stroke-width="0.8"/>
+  <text x="640" y="286" text-anchor="middle" fill="#00e676" font-size="9">Metadata × 2 = 0.8 GB</text>
+
+  <!-- Padding x2: 0.6 GB -->
+  <rect x="540" y="292" width="200" height="16" rx="0" fill="#201010" stroke="#ff3d5a" stroke-width="0.8"/>
+  <text x="640" y="304" text-anchor="middle" fill="#ff3d5a" font-size="8">Padding × 2 = 0.6 GB</text>
+
+  <!-- Arrow between -->
+  <line x1="290" y1="180" x2="530" y2="180" stroke="#1a2a3a" stroke-width="1" stroke-dasharray="4 4"/>
+  <text x="410" y="174" text-anchor="middle" fill="#ffb300" font-size="14">→</text>
+
+  <!-- Total labels -->
+  <text x="200" y="315" text-anchor="middle" fill="#00e5ff" font-size="12" font-weight="600">= 8 GB</text>
+  <text x="640" y="319" text-anchor="middle" fill="#ff3d5a" font-size="12" font-weight="600">≈ 15 GB (首次 CK)</text>
+</svg>
+    </div>
+  </div>
+
   <div class="divider">DIAGNOSTIC PLAYBOOK</div>
 
+  <!-- ═══ SECTION 6: Diagnosis ═══ -->
   <div class="section">
     <div class="section-header">
       <span class="section-num">06</span>
       <h2>排查闭环流程</h2>
     </div>
+
+    <div class="diagram-wrap" data-label="DIAGNOSTIC FLOWCHART">
+<svg width="100%" viewBox="0 0 880 520" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="fa" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#00e5ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="fa-g" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#00e676" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="fa-r" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#ff3d5a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <!-- Start -->
+  <rect x="330" y="20" width="220" height="44" rx="22" fill="#0d2030" stroke="#00e5ff" stroke-width="1.5"/>
+  <text x="440" y="46" text-anchor="middle" fill="#00e5ff" font-size="12" font-weight="600">CK 大小异常增大</text>
+
+  <line x1="440" y1="64" x2="440" y2="100" stroke="#00e5ff" stroke-width="1" marker-end="url(#fa)"/>
+
+  <!-- Q1: 等待几个周期 -->
+  <rect x="290" y="100" width="300" height="52" rx="4" fill="#0d1a24" stroke="#00b8cc" stroke-width="1"/>
+  <text x="440" y="122" text-anchor="middle" fill="#00b8cc" font-size="12" font-weight="600">等待 3~5 个 CK 周期</text>
+  <text x="440" y="140" text-anchor="middle" fill="#6a8090" font-size="10">CK 大小是否回落？</text>
+
+  <!-- Yes branch -->
+  <line x1="290" y1="126" x2="160" y2="188" stroke="#00e676" stroke-width="1" marker-end="url(#fa-g)" stroke-dasharray="4 3"/>
+  <text x="220" y="164" fill="#00e676" font-size="10">YES</text>
+  <rect x="60" y="188" width="200" height="52" rx="4" fill="#0a1a0a" stroke="#00e676" stroke-width="1"/>
+  <text x="160" y="210" text-anchor="middle" fill="#00e676" font-size="11" font-weight="600">伪全量问题</text>
+  <text x="160" y="226" text-anchor="middle" fill="#6a8090" font-size="10">首次 CK 正常 → 无需处理</text>
+
+  <!-- No branch -->
+  <line x1="440" y1="152" x2="440" y2="208" stroke="#ff3d5a" stroke-width="1" marker-end="url(#fa-r)"/>
+  <text x="452" y="184" fill="#ff3d5a" font-size="10">NO</text>
+
+  <!-- Q2: Check skew -->
+  <rect x="290" y="208" width="300" height="52" rx="4" fill="#0d1a24" stroke="#00b8cc" stroke-width="1"/>
+  <text x="440" y="230" text-anchor="middle" fill="#00b8cc" font-size="12" font-weight="600">查看各 subtask state 大小</text>
+  <text x="440" y="248" text-anchor="middle" fill="#6a8090" font-size="10">是否存在明显倾斜（某个 >> 均值）？</text>
+
+  <!-- Skew yes -->
+  <line x1="590" y1="234" x2="700" y2="188" stroke="#ff3d5a" stroke-width="1" marker-end="url(#fa-r)" stroke-dasharray="4 3"/>
+  <text x="650" y="218" fill="#ff3d5a" font-size="10">YES</text>
+  <rect x="660" y="140" width="180" height="52" rx="4" fill="#1a0808" stroke="#ff3d5a" stroke-width="1"/>
+  <text x="750" y="162" text-anchor="middle" fill="#ff3d5a" font-size="11" font-weight="600">数据倾斜</text>
+  <text x="750" y="178" text-anchor="middle" fill="#6a8090" font-size="10">→ 检查 key 分布 / 重分区</text>
+
+  <!-- Skew no -->
+  <line x1="440" y1="260" x2="440" y2="316" stroke="#00e5ff" stroke-width="1" marker-end="url(#fa)"/>
+  <text x="452" y="292" fill="#6a8090" font-size="10">NO</text>
+
+  <!-- Q3: Check which operator -->
+  <rect x="270" y="316" width="340" height="52" rx="4" fill="#0d1a24" stroke="#00b8cc" stroke-width="1"/>
+  <text x="440" y="338" text-anchor="middle" fill="#00b8cc" font-size="12" font-weight="600">查看哪个算子 state 增长最多</text>
+  <text x="440" y="356" text-anchor="middle" fill="#6a8090" font-size="10">Flink WebUI → CK 详情 → 按算子分解</text>
+
+  <line x1="440" y1="368" x2="440" y2="420" stroke="#00e5ff" stroke-width="1" marker-end="url(#fa)"/>
+
+  <!-- Q4: RocksDB tuning -->
+  <rect x="250" y="420" width="380" height="52" rx="4" fill="#1a1400" stroke="#ffb300" stroke-width="1"/>
+  <text x="440" y="442" text-anchor="middle" fill="#ffb300" font-size="12" font-weight="600">调整 RocksDB 参数</text>
+  <text x="440" y="458" text-anchor="middle" fill="#6a8090" font-size="10">write-buffer-size / compaction / TTL</text>
+
+  <!-- Metric check -->
+  <rect x="60" y="316" width="180" height="52" rx="4" fill="#0d1a24" stroke="#1a2a3a" stroke-width="1"/>
+  <text x="150" y="338" text-anchor="middle" fill="#6a8090" font-size="11">Flink Metrics</text>
+  <text x="150" y="354" text-anchor="middle" fill="#4a6070" font-size="10">numLateRecordsDropped</text>
+  <line x1="270" y1="342" x2="240" y2="342" stroke="#1a2a3a" stroke-width="0.8" stroke-dasharray="3 3"/>
+</svg>
+    </div>
+
     <pre>
 <span class="c"># 快速查看各 subtask 的 state 大小</span>
 <span class="k">curl</span> http://<span class="n">jobmanager</span>:8081/jobs/<span class="n">{jobId}</span>/checkpoints/<span class="n">latest</span>/subtasks/<span class="n">{vertexId}</span>
@@ -623,19 +1035,46 @@
     </pre>
   </div>
 
+  <!-- ═══ SECTION 7: Fix ═══ -->
   <div class="section">
     <div class="section-header">
       <span class="section-num">07</span>
       <h2>调优方案</h2>
     </div>
+
     <div class="fix-grid">
-      <div class="fix-card"><div class="fix-card-num">01</div><div class="fix-card-title">等待增量 CK 稳定</div><div class="fix-card-body">扩容后等待 3~5 个 CK 周期，观察 CK 大小是否回落。首次伪全量是正常行为，无需干预。</div></div>
-      <div class="fix-card"><div class="fix-card-num">02</div><div class="fix-card-title">排查并解决数据倾斜</div><div class="fix-card-body">使用 <code class="fix">flatMap</code> 对热点 key 加盐，或使用 <code class="fix">keyBy</code> 时引入二级哈希打散 KeyGroup。</div></div>
-      <div class="fix-card"><div class="fix-card-num">03</div><div class="fix-card-title">调整 RocksDB Compaction</div><div class="fix-card-body">降低 <code class="fix">write-buffer-size</code>（如 32MB），提高 <code class="fix">max-background-jobs</code>，让小实例也能及时 compaction。</div></div>
-      <div class="fix-card"><div class="fix-card-num">04</div><div class="fix-card-title">开启 State TTL</div><div class="fix-card-body">对不需要永久保留的 state 开启 TTL，减少每个 subtask 的实际 state 体积，从源头控制 CK 大小。</div></div>
-      <div class="fix-card"><div class="fix-card-num">05</div><div class="fix-card-title">监控 CK 细粒度指标</div><div class="fix-card-body">在 Flink WebUI 的 CK 详情中，按算子和 subtask 查看 <code class="fix">state_size</code>，定位增长最快的算子。</div></div>
-      <div class="fix-card"><div class="fix-card-num">06</div><div class="fix-card-title">调整 maxParallelism</div><div class="fix-card-body">如未来仍需扩容，提前规划 <code class="fix">maxParallelism</code>（需全量恢复），避免 KeyGroup 不够用或分配过于稀疏。</div></div>
+      <div class="fix-card">
+        <div class="fix-card-num">01</div>
+        <div class="fix-card-title">等待增量 CK 稳定</div>
+        <div class="fix-card-body">扩容后等待 3~5 个 CK 周期，观察 CK 大小是否回落。首次伪全量是正常行为，无需干预。</div>
+      </div>
+      <div class="fix-card">
+        <div class="fix-card-num">02</div>
+        <div class="fix-card-title">排查并解决数据倾斜</div>
+        <div class="fix-card-body">使用 <code class="fix">flatMap</code> 对热点 key 加盐，或使用 <code class="fix">keyBy</code> 时引入二级哈希打散 KeyGroup。</div>
+      </div>
+      <div class="fix-card">
+        <div class="fix-card-num">03</div>
+        <div class="fix-card-title">调整 RocksDB Compaction</div>
+        <div class="fix-card-body">降低 <code class="fix">write-buffer-size</code>（如 32MB），提高 <code class="fix">max-background-jobs</code>，让小实例也能及时 compaction。</div>
+      </div>
+      <div class="fix-card">
+        <div class="fix-card-num">04</div>
+        <div class="fix-card-title">开启 State TTL</div>
+        <div class="fix-card-body">对不需要永久保留的 state 开启 TTL，减少每个 subtask 的实际 state 体积，从源头控制 CK 大小。</div>
+      </div>
+      <div class="fix-card">
+        <div class="fix-card-num">05</div>
+        <div class="fix-card-title">监控 CK 细粒度指标</div>
+        <div class="fix-card-body">在 Flink WebUI 的 CK 详情中，按算子和 subtask 查看 <code class="fix">state_size</code>，定位增长最快的算子。</div>
+      </div>
+      <div class="fix-card">
+        <div class="fix-card-num">06</div>
+        <div class="fix-card-title">调整 maxParallelism</div>
+        <div class="fix-card-body">如未来仍需扩容，提前规划 <code class="fix">maxParallelism</code>（需全量恢复），避免 KeyGroup 不够用或分配过于稀疏。</div>
+      </div>
     </div>
+
     <pre>
 <span class="c">// RocksDB 参数调优示例</span>
 <span class="n">RocksDBStateBackend</span> backend = <span class="k">new</span> <span class="n">RocksDBStateBackend</span>(<span class="s">"hdfs://..."</span>, <span class="k">true</span>);
@@ -655,20 +1094,22 @@ options.<span class="n">setLevel0FileNumCompactionTrigger</span>(<span class="s"
     </pre>
   </div>
 
+  <!-- ═══ CONCLUSION ═══ -->
   <div class="conclusion">
     <div class="conclusion-title">// ANALYSIS COMPLETE</div>
     <p>CK 从 8&nbsp;GB 增至 15&nbsp;GB（约 1.875×）是多个机制叠加的结果，而非单一 bug。核心因素按权重排序：</p>
-    <ul class="cp-list" style="margin-top:20px;">
+    <ul class="cp-list" style="margin-top:16px;">
       <li><strong>增量 CK 伪全量（首次 CK）</strong>— 扩容后新实例无历史引用链，触发全量上传，是最大的单次峰值来源。随后几个周期自然消退。</li>
       <li><strong>RocksDB 多实例结构开销 × 2</strong>— 元数据文件、WAL、compaction 效率下降，属于持续存在的背景噪声，但体量有限（数百 MB 级）。</li>
       <li><strong>数据倾斜（视业务数据而定）</strong>— KeyGroup 边界重划可能将热点 key 集中，导致某个 subtask 的 state 暴涨。这是需要主动排查的高优先级项。</li>
       <li><strong>序列化 Padding 累积</strong>— 次要因素，随 subtask 数量线性增长，通常在数十 MB 量级。</li>
     </ul>
-    <p style="margin-top:25px; color:var(--text-dim); font-size:16.25px; font-family:var(--mono);">
+    <p style="margin-top:20px; color:var(--text-dim); font-size:13px; font-family:var(--mono);">
       // 如果等待 5 个 CK 周期后大小仍维持 15 GB，优先排查数据倾斜<br>
       // 如果大小持续增长（无收敛），检查 state 是否存在泄露（无 TTL 的无限增长 key）
     </p>
   </div>
+
 </div>
 </body>
 </html>
