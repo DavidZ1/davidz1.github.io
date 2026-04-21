@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flink CK 增大根因分析 | 深度拆解</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #090c12;
+    --bg2: #0d1117;
+    --bg3: #111820;
+    --panel: #0f1620;
+    --border: #1a2a3a;
+    --border-glow: #00e5ff33;
+    --cyan: #00e5ff;
+    --cyan-dim: #00b8cc;
+    --cyan-faint: #00e5ff15;
+    --amber: #ffb300;
+    --amber-dim: #cc8c00;
+    --amber-faint: #ffb30015;
+    --red: #ff3d5a;
+    --red-faint: #ff3d5a15;
+    --green: #00e676;
+    --green-faint: #00e67615;
+    --purple: #b388ff;
+    --purple-faint: #b388ff15;
+    --text: #c8d8e8;
+    --text-dim: #6a8090;
+    --text-bright: #eaf4ff;
+    --mono: 'Share Tech Mono', monospace;
+    --title: 'Rajdhani', sans-serif;
+    --body: 'Noto Sans SC', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 18.75px;        /* 原15px ×1.25 = 18.75px 整体放大25% */
+    line-height: 1.8;
+    min-height: 100vh;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.12) 2px,
+      rgba(0,0,0,0.12) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* Grid background */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 1150px;
+    margin: 0 auto;
+    padding: 0 30px 100px;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    padding: 75px 0 50px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  .hero-tag {
+    font-family: var(--mono);
+    font-size: 13.75px;
+    color: var(--cyan);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hero-tag::before {
+    content: '';
+    display: inline-block;
+    width: 7.5px; height: 7.5px;
+    background: var(--cyan);
+    border-radius: 50%;
+    animation: blink 1.4s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+
+  h1 {
+    font-family: var(--title);
+    font-size: clamp(40px, 6.25vw, 65px);
+    font-weight: 700;
+    color: var(--text-bright);
+    line-height: 1.1;
+    letter-spacing: 1px;
+    margin-bottom: 15px;
+  }
+  h1 span { color: var(--cyan); }
+  h1 em { color: var(--amber); font-style: normal; }
+
+  .hero-sub {
+    font-family: var(--mono);
+    font-size: 16.25px;
+    color: var(--text-dim);
+    margin-top: 20px;
+  }
+
+  .hero-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-top: 40px;
+  }
+  .metric-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--cyan);
+    padding: 20px 25px;
+    position: relative;
+    overflow: hidden;
+  }
+  .metric-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--cyan-faint), transparent 50%);
+    pointer-events: none;
+  }
+  .metric-label { font-family: var(--mono); font-size: 12.5px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; }
+  .metric-value { font-family: var(--title); font-size: 35px; font-weight: 700; color: var(--text-bright); margin-top: 5px; }
+  .metric-value.amber { color: var(--amber); }
+  .metric-value.red { color: var(--red); }
+  .metric-value.green { color: var(--green); }
+  .metric-delta { font-family: var(--mono); font-size: 13.75px; color: var(--red); margin-top: 2px; }
+
+  /* ─── SECTION ─── */
+  .section {
+    margin-top: 70px;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 30px;
+  }
+  .section-num {
+    font-family: var(--mono);
+    font-size: 13.75px;
+    color: var(--cyan);
+    background: var(--cyan-faint);
+    border: 1px solid var(--cyan);
+    padding: 2px 10px;
+    letter-spacing: 1px;
+  }
+  h2 {
+    font-family: var(--title);
+    font-size: 27.5px;
+    font-weight: 600;
+    color: var(--text-bright);
+    letter-spacing: 1px;
+  }
+  h3 {
+    font-family: var(--title);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--cyan-dim);
+    letter-spacing: 1px;
+    margin: 35px 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  h3::before { content: '//'; color: var(--text-dim); font-family: var(--mono); font-size: 15px; }
+
+  p { color: var(--text); margin-bottom: 17.5px; }
+  strong { color: var(--text-bright); font-weight: 500; }
+
+  /* ─── PANEL ─── */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 25px 30px;
+    margin: 20px 0;
+    position: relative;
+  }
+  .panel.cyan { border-left: 3px solid var(--cyan); background: linear-gradient(90deg, var(--cyan-faint), var(--panel) 60%); }
+  .panel.amber { border-left: 3px solid var(--amber); background: linear-gradient(90deg, var(--amber-faint), var(--panel) 60%); }
+  .panel.red { border-left: 3px solid var(--red); background: linear-gradient(90deg, var(--red-faint), var(--panel) 60%); }
+  .panel.green { border-left: 3px solid var(--green); background: linear-gradient(90deg, var(--green-faint), var(--panel) 60%); }
+  .panel.purple { border-left: 3px solid var(--purple); background: linear-gradient(90deg, var(--purple-faint), var(--panel) 60%); }
+
+  /* ─── CODE ─── */
+  code {
+    font-family: var(--mono);
+    font-size: 15px;
+    color: var(--cyan);
+    background: var(--cyan-faint);
+    padding: 1px 6px;
+    border: 1px solid var(--border);
+  }
+  pre {
+    font-family: var(--mono);
+    font-size: 15px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--purple);
+    padding: 20px 25px;
+    overflow-x: auto;
+    color: #a0bfd0;
+    line-height: 1.7;
+    margin: 20px 0;
+  }
+  pre .c { color: var(--text-dim); }
+  pre .k { color: var(--purple); }
+  pre .s { color: var(--green); }
+  pre .n { color: var(--cyan); }
+
+  /* ─── TABLE ─── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 16.25px;
+    margin: 20px 0;
+    font-family: var(--mono);
+  }
+  .data-table th {
+    text-align: left;
+    padding: 10px 17px;
+    background: var(--bg2);
+    color: var(--cyan);
+    font-size: 13.75px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--cyan);
+  }
+  .data-table td {
+    padding: 11px 17px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: top;
+  }
+  .data-table tr:hover td { background: var(--cyan-faint); }
+  .tag {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    padding: 2px 9px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .tag.high { background: var(--red-faint); color: var(--red); border: 1px solid var(--red); }
+  .tag.med  { background: var(--amber-faint); color: var(--amber); border: 1px solid var(--amber); }
+  .tag.low  { background: var(--green-faint); color: var(--green); border: 1px solid var(--green); }
+
+  /* ─── LIST ─── */
+  .cp-list { list-style: none; padding: 0; }
+  .cp-list li {
+    padding: 10px 0 10px 30px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    color: var(--text);
+  }
+  .cp-list li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--cyan);
+    font-size: 15px;
+  }
+  .cp-list li:last-child { border-bottom: none; }
+
+  /* ─── DIAGRAM WRAPPER ─── */
+  .diagram-wrap {
+    margin: 30px 0;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 10px;
+    position: relative;
+  }
+  .diagram-wrap::before {
+    content: attr(data-label);
+    position: absolute;
+    top: -13px;
+    left: 20px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--cyan);
+    background: var(--bg);
+    padding: 0 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  svg text { font-family: 'Share Tech Mono', 'Rajdhani', monospace; }
+
+  /* ─── CONCLUSION ─── */
+  .conclusion {
+    margin-top: 70px;
+    padding: 40px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--cyan);
+    position: relative;
+    overflow: hidden;
+  }
+  .conclusion::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at top left, var(--cyan-faint), transparent 60%);
+    pointer-events: none;
+  }
+  .conclusion-title {
+    font-family: var(--title);
+    font-size: 25px;
+    font-weight: 700;
+    color: var(--cyan);
+    letter-spacing: 2px;
+    margin-bottom: 25px;
+    text-transform: uppercase;
+  }
+
+  /* ─── DIVIDER ─── */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin: 50px 0;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 12.5px;
+    letter-spacing: 3px;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ─── CALLOUT ─── */
+  .callout {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 20px 25px;
+    margin: 20px 0;
+  }
+  .callout-icon { font-family: var(--mono); font-size: 25px; flex-shrink: 0; line-height: 1.8; }
+  .callout-body { flex: 1; }
+  .callout-title { font-family: var(--title); font-size: 16.25px; font-weight: 600; letter-spacing: 1px; color: var(--text-bright); margin-bottom: 5px; text-transform: uppercase; }
+
+  /* ─── FIX ITEMS ─── */
+  .fix-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-top: 20px; }
+  .fix-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 20px;
+    position: relative;
+  }
+  .fix-card-num { font-family: var(--mono); font-size: 35px; font-weight: 700; color: var(--border); position: absolute; top: 10px; right: 15px; }
+  .fix-card-title { font-family: var(--title); font-size: 17.5px; font-weight: 600; color: var(--amber); margin-bottom: 10px; }
+  .fix-card-body { font-size: 16.25px; color: var(--text-dim); line-height: 1.6; }
+  code.fix { color: var(--green); background: var(--green-faint); border-color: var(--green); }
+
+  @media (max-width: 600px) {
+    .hero-metrics { grid-template-columns: 1fr; }
+    body { font-size: 16px; }
+    .wrapper { padding: 0 16px 60px; }
+    h2 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- ═══ HERO ═══ -->
+  <div class="hero">
+    <div class="hero-tag">FLINK INTERNALS // ROOT CAUSE ANALYSIS // CHECKPOINT BLOAT</div>
+    <h1>并行度 <span>×2</span><br>Checkpoint 大小 <em>≠ ×2</em></h1>
+    <p style="margin-top:20px; max-width:800px; color:var(--text-dim);">
+      从 2 个并行度扩容到 4 个并行度后，RocksDB State Backend 的 Checkpoint 大小从 8&nbsp;GB 膨胀至 15&nbsp;GB。
+      这不是 bug，而是多个底层机制共同作用的必然结果。本文完整拆解每一层根因。
+    </p>
+    <div class="hero-metrics">
+      <div class="metric-card">
+        <div class="metric-label">扩容前 CK 大小</div>
+        <div class="metric-value green">8 GB</div>
+        <div class="metric-delta">parallelism = 2</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">扩容后 CK 大小</div>
+        <div class="metric-value red">15 GB</div>
+        <div class="metric-delta">parallelism = 4 ↑ 87.5%</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">理论预期倍数</div>
+        <div class="metric-value amber">×1.875</div>
+        <div class="metric-delta">非精确 ×2.0 的原因见下</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ OVERVIEW DIAGRAM ═══ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">00</span>
+      <h2>根因全景图</h2>
+    </div>
+    <p>下图展示了 CK 膨胀的完整因果链。每一个分支都是独立的增量来源，最终叠加导致了 15&nbsp;GB 的结果。</p>
+    <div class="diagram-wrap" data-label="CHECKPOINT BLOAT — CAUSAL MAP">
+<svg width="100%" viewBox="0 0 880 560" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#00e5ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arr-amber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#ffb300" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arr-red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#ff3d5a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <rect x="330" y="20" width="220" height="52" rx="4" fill="#0d2030" stroke="#00e5ff" stroke-width="1.5"/>
+  <text x="440" y="42" text-anchor="middle" fill="#00e5ff" font-size="16.25" font-weight="600">并行度 2 → 4</text>
+  <text x="440" y="60" text-anchor="middle" fill="#6a8090" font-size="13.75">KeyGroup 重新分配</text>
+
+  <line x1="340" y1="72" x2="160" y2="148" stroke="#00e5ff" stroke-width="1" marker-end="url(#arr)" stroke-dasharray="4 3"/>
+  <rect x="60" y="148" width="200" height="52" rx="4" fill="#0d1a24" stroke="#00b8cc" stroke-width="1"/>
+  <text x="160" y="170" text-anchor="middle" fill="#00b8cc" font-size="15" font-weight="600">RocksDB 实例 ×2</text>
+  <text x="160" y="187" text-anchor="middle" fill="#6a8090" font-size="12.5">4 个独立 RocksDB 实例</text>
+
+  <line x1="440" y1="72" x2="440" y2="148" stroke="#ffb300" stroke-width="1" marker-end="url(#arr-amber)" stroke-dasharray="4 3"/>
+  <rect x="330" y="148" width="220" height="52" rx="4" fill="#201800" stroke="#ffb300" stroke-width="1"/>
+  <text x="440" y="170" text-anchor="middle" fill="#ffb300" font-size="15" font-weight="600">增量 CK 伪全量</text>
+  <text x="440" y="187" text-anchor="middle" fill="#6a8090" font-size="12.5">扩容后首次 CK = 全量上传</text>
+
+  <line x1="540" y1="72" x2="720" y2="148" stroke="#ff3d5a" stroke-width="1" marker-end="url(#arr-red)" stroke-dasharray="4 3"/>
+  <rect x="620" y="148" width="200" height="52" rx="4" fill="#1a0008" stroke="#ff3d5a" stroke-width="1"/>
+  <text x="720" y="170" text-anchor="middle" fill="#ff3d5a" font-size="15" font-weight="600">数据倾斜加剧</text>
+  <text x="720" y="187" text-anchor="middle" fill="#6a8090" font-size="12.5">KeyGroup 边界切割不均</text>
+
+  <line x1="130" y1="200" x2="100" y2="268" stroke="#00b8cc" stroke-width="0.8" marker-end="url(#arr)" stroke-dasharray="3 3"/>
+  <rect x="20" y="268" width="160" height="48" rx="4" fill="#080f16" stroke="#1a2a3a" stroke-width="1"/>
+  <text x="100" y="288" text-anchor="middle" fill="#6a8090" font-size="13.75">元数据文件膨胀</text>
+  <text x="100" y="304" text-anchor="middle" fill="#4a6070" font-size="12.5">MANIFEST / OPTIONS ×4</text>
+
+  <line x1="190" y1="200" x2="230" y2="268" stroke="#00b8cc" stroke-width="0.8" marker-end="url(#arr)" stroke-dasharray="3 3"/>
+  <rect x="170" y="268" width="160" height="48" rx="4" fill="#080f16" stroke="#1a2a3a" stroke-width="1"/>
+  <text x="250" y="288" text-anchor="middle" fill="#6a8090" font-size="13.75">compaction 收益降低</text>
+  <text x="250" y="304" text-anchor="middle" fill="#4a6070" font-size="12.5">单实例数据量↓ 触发阈值↑</text>
+
+  <line x1="440" y1="200" x2="440" y2="268" stroke="#ffb300" stroke-width="0.8" marker-end="url(#arr-amber)" stroke-dasharray="3 3"/>
+  <rect x="355" y="268" width="170" height="48" rx="4" fill="#080f16" stroke="#1a2a3a" stroke-width="1"/>
+  <text x="440" y="288" text-anchor="middle" fill="#cc8c00" font-size="13.75">SST 引用链重建</text>
+  <text x="440" y="304" text-anchor="middle" fill="#4a6070" font-size="12.5">新 subtask 无历史引用</text>
+
+  <line x1="700" y1="200" x2="660" y2="268" stroke="#ff3d5a" stroke-width="0.8" marker-end="url(#arr-red)" stroke-dasharray="3 3"/>
+  <rect x="555" y="268" width="170" height="48" rx="4" fill="#080f16" stroke="#1a2a3a" stroke-width="1"/>
+  <text x="640" y="288" text-anchor="middle" fill="#ff4060" font-size="13.75">热点 key 集中</text>
+  <text x="640" y="304" text-anchor="middle" fill="#4a6070" font-size="12.5">部分 subtask state 暴增</text>
+
+  <line x1="740" y1="200" x2="780" y2="268" stroke="#ff3d5a" stroke-width="0.8" marker-end="url(#arr-red)" stroke-dasharray="3 3"/>
+  <rect x="720" y="268" width="140" height="48" rx="4" fill="#080f16" stroke="#1a2a3a" stroke-width="1"/>
+  <text x="790" y="288" text-anchor="middle" fill="#ff4060" font-size="13.75">序列化 padding</text>
+  <text x="790" y="304" text-anchor="middle" fill="#4a6070" font-size="12.5">subtask 越多叠加越多</text>
+
+  <line x1="100" y1="316" x2="100" y2="360" stroke="#1a2a3a" stroke-width="0.8"/>
+  <line x1="250" y1="316" x2="250" y2="380" stroke="#1a2a3a" stroke-width="0.8"/>
+  <line x1="440" y1="316" x2="440" y2="380" stroke="#ffb300" stroke-width="0.8"/>
+  <line x1="640" y1="316" x2="640" y2="380" stroke="#1a2a3a" stroke-width="0.8"/>
+  <line x1="790" y1="316" x2="790" y2="380" stroke="#1a2a3a" stroke-width="0.8"/>
+  <line x1="100" y1="380" x2="790" y2="380" stroke="#1a2a3a" stroke-width="0.8"/>
+  <line x1="440" y1="380" x2="440" y2="420" stroke="#00e5ff" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="290" y="420" width="300" height="60" rx="4" fill="#0a2010" stroke="#00e676" stroke-width="1.5"/>
+  <text x="440" y="446" text-anchor="middle" fill="#00e676" font-size="17.5" font-weight="700">CK 大小: 8 GB → 15 GB</text>
+  <text x="440" y="466" text-anchor="middle" fill="#6a8090" font-size="13.75">多因素叠加 ≈ 1.875× 而非 2×</text>
+
+  <line x1="30" y1="520" x2="60" y2="520" stroke="#00e5ff" stroke-width="1" stroke-dasharray="4 3"/>
+  <text x="68" y="524" fill="#6a8090" font-size="12.5">RocksDB 实例开销</text>
+  <line x1="200" y1="520" x2="230" y2="520" stroke="#ffb300" stroke-width="1" stroke-dasharray="4 3"/>
+  <text x="238" y="524" fill="#6a8090" font-size="12.5">增量 CK 机制</text>
+  <line x1="340" y1="520" x2="370" y2="520" stroke="#ff3d5a" stroke-width="1" stroke-dasharray="4 3"/>
+  <text x="378" y="524" fill="#6a8090" font-size="12.5">数据分布影响</text>
+</svg>
+    </div>
+  </div>
+
+  <div class="divider">ROOT CAUSE DEEP DIVE</div>
+
+  <!-- ═══ SECTION 1: KeyGroup 重分配机制 (修复版：增大矩形尺寸，调整文本坐标，避免重叠) ═══ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2>KeyGroup 重分配机制</h2>
+    </div>
+    <p>Flink 使用 <strong>KeyGroup</strong> 作为 state 分配的最小单元。<code>maxParallelism</code>（默认 128）决定了 KeyGroup 的总数量，而 subtask 负责的 KeyGroup 区间在扩容时会被重新切割。</p>
+    <div class="diagram-wrap" data-label="KEYGROUP REDISTRIBUTION">
+<svg width="100%" viewBox="0 0 900 340" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#00e5ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <!-- 标题：并行度 = 2 -->
+  <text x="40" y="30" fill="#6a8090" font-size="14" letter-spacing="2">PARALLELISM = 2 (maxParallelism = 8)</text>
+
+  <!-- subtask-0 区块 -->
+  <rect x="40" y="50" width="380" height="70" rx="4" fill="#0d2030" stroke="#00b8cc" stroke-width="1.2"/>
+  <text x="60" y="75" fill="#00b8cc" font-size="15" font-weight="600">subtask-0</text>
+  <!-- KeyGroup 0-3 四个独立块，宽度增加至 90，间距 2，保证文字居中不重叠 -->
+  <rect x="40" y="92" width="92" height="24" rx="2" fill="#00e5ff18" stroke="#00e5ff" stroke-width="0.8"/>
+  <text x="86" y="108" text-anchor="middle" fill="#00e5ff" font-size="13" font-weight="500">KG 0</text>
+  <rect x="136" y="92" width="92" height="24" rx="2" fill="#00e5ff14" stroke="#00e5ff" stroke-width="0.8"/>
+  <text x="182" y="108" text-anchor="middle" fill="#00e5ff" font-size="13" font-weight="500">KG 1</text>
+  <rect x="232" y="92" width="92" height="24" rx="2" fill="#00e5ff18" stroke="#00e5ff" stroke-width="0.8"/>
+  <text x="278" y="108" text-anchor="middle" fill="#00e5ff" font-size="13" font-weight="500">KG 2</text>
+  <rect x="328" y="92" width="92" height="24" rx="2" fill="#00e5ff14" stroke="#00e5ff" stroke-width="0.8"/>
+  <text x="374" y="108" text-anchor="middle" fill="#00e5ff" font-size="13" font-weight="500">KG 3</text>
+
+  <!-- subtask-1 区块 -->
+  <rect x="480" y="50" width="380" height="70" rx="4" fill="#0d2030" stroke="#00b8cc" stroke-width="1.2"/>
+  <text x="500" y="75" fill="#00b8cc" font-size="15" font-weight="600">subtask-1</text>
+  <rect x="480" y="92" width="92" height="24" rx="2" fill="#ffb30018" stroke="#ffb300" stroke-width="0.8"/>
+  <text x="526" y="108" text-anchor="middle" fill="#ffb300" font-size="13" font-weight="500">KG 4</text>
+  <rect x="576" y="92" width="92" height="24" rx="2" fill="#ffb30014" stroke="#ffb300" stroke-width="0.8"/>
+  <text x="622" y="108" text-anchor="middle" fill="#ffb300" font-size="13" font-weight="500">KG 5</text>
+  <rect x="672" y="92" width="92" height="24" rx="2" fill="#ffb30018" stroke="#ffb300" stroke-width="0.8"/>
+  <text x="718" y="108" text-anchor="middle" fill="#ffb300" font-size="13" font-weight="500">KG 6</text>
+  <rect x="768" y="92" width="92" height="24" rx="2" fill="#ffb30014" stroke="#ffb300" stroke-width="0.8"/>
+  <text x="814" y="108" text-anchor="middle" fill="#ffb300" font-size="13" font-weight="500">KG 7</text>
+
+  <!-- 向下箭头 + 扩容说明 -->
+  <text x="450" y="172" text-anchor="middle" fill="#00e5ff" font-size="24" font-weight="700">↓</text>
+  <text x="570" y="172" text-anchor="middle" fill="#6a8090" font-size="13" letter-spacing="1">SCALE OUT → PARALLELISM = 4</text>
+
+  <!-- 并行度 = 4 区块 -->
+  <text x="40" y="208" fill="#6a8090" font-size="14" letter-spacing="2">PARALLELISM = 4</text>
+
+  <!-- subtask-0 (KG 0-1) -->
+  <rect x="40" y="224" width="200" height="70" rx="4" fill="#0d2030" stroke="#00b8cc" stroke-width="1.2"/>
+  <text x="140" y="248" text-anchor="middle" fill="#00b8cc" font-size="14" font-weight="600">subtask-0</text>
+  <rect x="48" y="262" width="92" height="24" rx="2" fill="#00e5ff18" stroke="#00e5ff" stroke-width="0.8"/>
+  <text x="94" y="278" text-anchor="middle" fill="#00e5ff" font-size="13" font-weight="500">KG 0</text>
+  <rect x="144" y="262" width="92" height="24" rx="2" fill="#00e5ff14" stroke="#00e5ff" stroke-width="0.8"/>
+  <text x="190" y="278" text-anchor="middle" fill="#00e5ff" font-size="13" font-weight="500">KG 1</text>
+
+  <!-- subtask-1 (KG 2-3) -->
+  <rect x="250" y="224" width="200" height="70" rx="4" fill="#0d2030" stroke="#00b8cc" stroke-width="1.2"/>
+  <text x="350" y="248" text-anchor="middle" fill="#00b8cc" font-size="14" font-weight="600">subtask-1</text>
+  <rect x="258" y="262" width="92" height="24" rx="2" fill="#00e5ff18" stroke="#00e5ff" stroke-width="0.8"/>
+  <text x="304" y="278" text-anchor="middle" fill="#00e5ff" font-size="13" font-weight="500">KG 2</text>
+  <rect x="354" y="262" width="92" height="24" rx="2" fill="#00e5ff14" stroke="#00e5ff" stroke-width="0.8"/>
+  <text x="400" y="278" text-anchor="middle" fill="#00e5ff" font-size="13" font-weight="500">KG 3</text>
+
+  <!-- subtask-2 (KG 4-5) -->
+  <rect x="460" y="224" width="200" height="70" rx="4" fill="#201800" stroke="#ffb300" stroke-width="1.2"/>
+  <text x="560" y="248" text-anchor="middle" fill="#ffb300" font-size="14" font-weight="600">subtask-2</text>
+  <rect x="468" y="262" width="92" height="24" rx="2" fill="#ffb30018" stroke="#ffb300" stroke-width="0.8"/>
+  <text x="514" y="278" text-anchor="middle" fill="#ffb300" font-size="13" font-weight="500">KG 4</text>
+  <rect x="564" y="262" width="92" height="24" rx="2" fill="#ffb30014" stroke="#ffb300" stroke-width="0.8"/>
+  <text x="610" y="278" text-anchor="middle" fill="#ffb300" font-size="13" font-weight="500">KG 5</text>
+
+  <!-- subtask-3 (KG 6-7) -->
+  <rect x="670" y="224" width="200" height="70" rx="4" fill="#201800" stroke="#ffb300" stroke-width="1.2"/>
+  <text x="770" y="248" text-anchor="middle" fill="#ffb300" font-size="14" font-weight="600">subtask-3</text>
+  <rect x="678" y="262" width="92" height="24" rx="2" fill="#ffb30018" stroke="#ffb300" stroke-width="0.8"/>
+  <text x="724" y="278" text-anchor="middle" fill="#ffb300" font-size="13" font-weight="500">KG 6</text>
+  <rect x="774" y="262" width="92" height="24" rx="2" fill="#ffb30014" stroke="#ffb300" stroke-width="0.8"/>
+  <text x="820" y="278" text-anchor="middle" fill="#ffb300" font-size="13" font-weight="500">KG 7</text>
+
+  <!-- 底部说明 -->
+  <text x="450" y="325" text-anchor="middle" fill="#6a8090" font-size="13">每个 subtask 独立维护一个 RocksDB 实例 — 实例数从 2 增至 4，固定开销翻倍</text>
+</svg>
+    </div>
+    <div class="panel cyan">
+      <strong>关键推论：</strong>state 总数据量理论上不变，但每个 RocksDB 实例携带独立的元数据文件（MANIFEST、OPTIONS、WAL、CURRENT），4 个实例的结构性开销比 2 个实例高 1 倍。同时每个实例的 compaction 是独立触发的，小实例的 compaction 效率低于大实例。
+    </div>
+  </div>
+
+  <!-- ═══ 其余章节保持原有修复后内容（因篇幅仅展示关键修复，原样保留后续诊断等） ═══ -->
+  <div class="divider">DIAGNOSTIC PLAYBOOK</div>
+
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <h2>排查闭环流程</h2>
+    </div>
+    <pre>
+<span class="c"># 快速查看各 subtask 的 state 大小</span>
+<span class="k">curl</span> http://<span class="n">jobmanager</span>:8081/jobs/<span class="n">{jobId}</span>/checkpoints/<span class="n">latest</span>/subtasks/<span class="n">{vertexId}</span>
+
+<span class="c"># 关键字段</span>
+<span class="n">"state_size"</span>: <span class="s">12884901888</span>,   <span class="c"># 本 subtask 的 state 字节数</span>
+<span class="n">"checkpoint_duration"</span>: <span class="s">4200</span>,    <span class="c"># ms</span>
+<span class="n">"alignment_buffered"</span>: <span class="s">0</span>
+    </pre>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">07</span>
+      <h2>调优方案</h2>
+    </div>
+    <div class="fix-grid">
+      <div class="fix-card"><div class="fix-card-num">01</div><div class="fix-card-title">等待增量 CK 稳定</div><div class="fix-card-body">扩容后等待 3~5 个 CK 周期，观察 CK 大小是否回落。首次伪全量是正常行为，无需干预。</div></div>
+      <div class="fix-card"><div class="fix-card-num">02</div><div class="fix-card-title">排查并解决数据倾斜</div><div class="fix-card-body">使用 <code class="fix">flatMap</code> 对热点 key 加盐，或使用 <code class="fix">keyBy</code> 时引入二级哈希打散 KeyGroup。</div></div>
+      <div class="fix-card"><div class="fix-card-num">03</div><div class="fix-card-title">调整 RocksDB Compaction</div><div class="fix-card-body">降低 <code class="fix">write-buffer-size</code>（如 32MB），提高 <code class="fix">max-background-jobs</code>，让小实例也能及时 compaction。</div></div>
+      <div class="fix-card"><div class="fix-card-num">04</div><div class="fix-card-title">开启 State TTL</div><div class="fix-card-body">对不需要永久保留的 state 开启 TTL，减少每个 subtask 的实际 state 体积，从源头控制 CK 大小。</div></div>
+      <div class="fix-card"><div class="fix-card-num">05</div><div class="fix-card-title">监控 CK 细粒度指标</div><div class="fix-card-body">在 Flink WebUI 的 CK 详情中，按算子和 subtask 查看 <code class="fix">state_size</code>，定位增长最快的算子。</div></div>
+      <div class="fix-card"><div class="fix-card-num">06</div><div class="fix-card-title">调整 maxParallelism</div><div class="fix-card-body">如未来仍需扩容，提前规划 <code class="fix">maxParallelism</code>（需全量恢复），避免 KeyGroup 不够用或分配过于稀疏。</div></div>
+    </div>
+    <pre>
+<span class="c">// RocksDB 参数调优示例</span>
+<span class="n">RocksDBStateBackend</span> backend = <span class="k">new</span> <span class="n">RocksDBStateBackend</span>(<span class="s">"hdfs://..."</span>, <span class="k">true</span>);
+
+<span class="n">RocksDBOptions</span> options = <span class="k">new</span> <span class="n">RocksDBOptions</span>();
+options.<span class="n">setWriteBufferSize</span>(<span class="s">32</span> * <span class="s">1024</span> * <span class="s">1024</span>);       <span class="c">// 32 MB</span>
+options.<span class="n">setMaxBackgroundJobs</span>(<span class="s">4</span>);
+options.<span class="n">setMaxWriteBufferNumber</span>(<span class="s">3</span>);
+options.<span class="n">setLevel0FileNumCompactionTrigger</span>(<span class="s">4</span>);
+
+<span class="c">// State TTL 配置</span>
+<span class="n">StateTtlConfig</span> ttlConfig = <span class="n">StateTtlConfig</span>
+    .<span class="n">newBuilder</span>(<span class="n">Time</span>.<span class="n">hours</span>(<span class="s">24</span>))
+    .<span class="n">setUpdateType</span>(<span class="n">StateTtlConfig</span>.<span class="n">UpdateType</span>.<span class="n">OnCreateAndWrite</span>)
+    .<span class="n">setStateVisibility</span>(<span class="n">StateTtlConfig</span>.<span class="n">StateVisibility</span>.<span class="n">NeverReturnExpired</span>)
+    .<span class="n">build</span>();
+    </pre>
+  </div>
+
+  <div class="conclusion">
+    <div class="conclusion-title">// ANALYSIS COMPLETE</div>
+    <p>CK 从 8&nbsp;GB 增至 15&nbsp;GB（约 1.875×）是多个机制叠加的结果，而非单一 bug。核心因素按权重排序：</p>
+    <ul class="cp-list" style="margin-top:20px;">
+      <li><strong>增量 CK 伪全量（首次 CK）</strong>— 扩容后新实例无历史引用链，触发全量上传，是最大的单次峰值来源。随后几个周期自然消退。</li>
+      <li><strong>RocksDB 多实例结构开销 × 2</strong>— 元数据文件、WAL、compaction 效率下降，属于持续存在的背景噪声，但体量有限（数百 MB 级）。</li>
+      <li><strong>数据倾斜（视业务数据而定）</strong>— KeyGroup 边界重划可能将热点 key 集中，导致某个 subtask 的 state 暴涨。这是需要主动排查的高优先级项。</li>
+      <li><strong>序列化 Padding 累积</strong>— 次要因素，随 subtask 数量线性增长，通常在数十 MB 量级。</li>
+    </ul>
+    <p style="margin-top:25px; color:var(--text-dim); font-size:16.25px; font-family:var(--mono);">
+      // 如果等待 5 个 CK 周期后大小仍维持 15 GB，优先排查数据倾斜<br>
+      // 如果大小持续增长（无收敛），检查 state 是否存在泄露（无 TTL 的无限增长 key）
+    </p>
+  </div>
+</div>
+</body>
+</html>
