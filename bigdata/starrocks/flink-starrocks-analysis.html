@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flink → StarRocks Sink 延迟诊断手册</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap');
+
+  :root {
+    --cyan: #00fff9;
+    --magenta: #ff00aa;
+    --yellow: #f5e642;
+    --green: #00ff88;
+    --red: #ff3355;
+    --orange: #ff8800;
+    --bg: #030810;
+    --bg2: #060e1a;
+    --bg3: #0a1628;
+    --panel: #0d1f35;
+    --panel2: #071524;
+    --border: rgba(0,255,249,0.2);
+    --text: #c8e8f8;
+    --dim: #4a7090;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.15) 2px,
+      rgba(0,0,0,0.15) 4px
+    );
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  /* Grid background */
+  body::after {
+    content: '';
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      linear-gradient(rgba(0,255,249,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,249,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ─── HEADER ─── */
+  .header {
+    text-align: center;
+    padding: 60px 0 50px;
+    position: relative;
+  }
+  .header-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--magenta);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    animation: pulse 3s ease-in-out infinite;
+  }
+  .header h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(22px, 4vw, 42px);
+    font-weight: 900;
+    color: var(--cyan);
+    text-shadow: 0 0 30px rgba(0,255,249,0.6), 0 0 60px rgba(0,255,249,0.2);
+    letter-spacing: 2px;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+  .header h1 span { color: var(--magenta); text-shadow: 0 0 20px rgba(255,0,170,0.6); }
+  .header-sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    color: var(--dim);
+    letter-spacing: 2px;
+    margin-top: 16px;
+  }
+  .header-line {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), var(--magenta), transparent);
+    margin-top: 40px;
+    opacity: 0.6;
+  }
+
+  /* ─── SECTION ─── */
+  .section {
+    margin-bottom: 50px;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .section-num {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--bg);
+    background: var(--cyan);
+    padding: 3px 8px;
+    letter-spacing: 1px;
+  }
+  .section-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--cyan);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
+  }
+
+  /* ─── PANEL ─── */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--cyan);
+    padding: 24px 28px;
+    position: relative;
+    margin-bottom: 16px;
+  }
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, var(--cyan), transparent);
+    opacity: 0.4;
+  }
+  .panel.warn { border-left-color: var(--yellow); }
+  .panel.warn::before { background: linear-gradient(90deg, var(--yellow), transparent); }
+  .panel.danger { border-left-color: var(--red); }
+  .panel.danger::before { background: linear-gradient(90deg, var(--red), transparent); }
+  .panel.success { border-left-color: var(--green); }
+  .panel.success::before { background: linear-gradient(90deg, var(--green), transparent); }
+  .panel.magenta { border-left-color: var(--magenta); }
+  .panel.magenta::before { background: linear-gradient(90deg, var(--magenta), transparent); }
+
+  .panel-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    color: var(--cyan);
+  }
+  .panel.warn .panel-title { color: var(--yellow); }
+  .panel.danger .panel-title { color: var(--red); }
+  .panel.success .panel-title { color: var(--green); }
+  .panel.magenta .panel-title { color: var(--magenta); }
+
+  /* ─── FLOW DIAGRAM ─── */
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-wrap: wrap;
+    margin: 20px 0;
+  }
+  .flow-node {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    padding: 10px 16px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--cyan);
+    text-align: center;
+    min-width: 110px;
+    position: relative;
+    white-space: nowrap;
+  }
+  .flow-node.bad { border-color: rgba(255,51,85,0.5); color: var(--red); background: rgba(255,51,85,0.06); }
+  .flow-node.good { border-color: rgba(0,255,136,0.5); color: var(--green); background: rgba(0,255,136,0.06); }
+  .flow-node.warn { border-color: rgba(245,230,66,0.4); color: var(--yellow); background: rgba(245,230,66,0.04); }
+  .flow-node small { display: block; font-size: 10px; color: var(--dim); margin-top: 3px; }
+
+  .flow-arrow {
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--dim);
+    font-size: 18px;
+    padding: 0 6px;
+    flex-shrink: 0;
+  }
+  .flow-arrow.red { color: var(--red); }
+  .flow-arrow.green { color: var(--green); }
+
+  /* ─── GRID 2 COL ─── */
+  .grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 680px) { .grid2 { grid-template-columns: 1fr; } }
+
+  .grid3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 760px) { .grid3 { grid-template-columns: 1fr; } }
+
+  /* ─── CODE BLOCK ─── */
+  .code {
+    background: #020c18;
+    border: 1px solid rgba(0,255,249,0.1);
+    border-left: 2px solid var(--cyan);
+    padding: 16px 20px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    line-height: 1.8;
+    overflow-x: auto;
+    margin: 12px 0;
+    color: #8be4e8;
+  }
+  .code .cm { color: var(--dim); }
+  .code .kw { color: var(--cyan); }
+  .code .str { color: var(--yellow); }
+  .code .val { color: var(--magenta); }
+  .code .ok { color: var(--green); }
+  .code .err { color: var(--red); }
+
+  /* ─── TABLE ─── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 16px 0;
+  }
+  th {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--cyan);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 14px;
+    text-align: left;
+    background: rgba(0,255,249,0.04);
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(0,255,249,0.07);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 14px;
+    vertical-align: middle;
+  }
+  tr:hover td { background: rgba(0,255,249,0.03); }
+  .tag-red { color: var(--red); font-weight: 700; }
+  .tag-green { color: var(--green); font-weight: 700; }
+  .tag-yellow { color: var(--yellow); font-weight: 700; }
+  .tag-cyan { color: var(--cyan); }
+  .tag-dim { color: var(--dim); }
+
+  /* ─── BADGE ─── */
+  .badge {
+    display: inline-block;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    padding: 2px 8px;
+    border: 1px solid;
+    text-transform: uppercase;
+  }
+  .badge-red { color: var(--red); border-color: var(--red); background: rgba(255,51,85,0.08); }
+  .badge-green { color: var(--green); border-color: var(--green); background: rgba(0,255,136,0.08); }
+  .badge-cyan { color: var(--cyan); border-color: var(--cyan); background: rgba(0,255,249,0.08); }
+  .badge-yellow { color: var(--yellow); border-color: var(--yellow); background: rgba(245,230,66,0.08); }
+
+  /* ─── ARCHITECTURE DIAGRAM ─── */
+  .arch {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    padding: 28px;
+    margin: 16px 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .arch::before {
+    content: 'ARCHITECTURE';
+    position: absolute; top: 8px; right: 14px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--dim);
+    letter-spacing: 3px;
+  }
+  .arch-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 10px 0;
+  }
+  .arch-box {
+    border: 1px solid var(--border);
+    padding: 10px 18px;
+    text-align: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    min-width: 100px;
+    position: relative;
+  }
+  .arch-box.source { border-color: rgba(255,136,0,0.5); color: var(--orange); background: rgba(255,136,0,0.05); }
+  .arch-box.sink { border-color: rgba(0,255,249,0.4); color: var(--cyan); background: rgba(0,255,249,0.05); }
+  .arch-box.store { border-color: rgba(0,255,136,0.4); color: var(--green); background: rgba(0,255,136,0.05); }
+  .arch-box.bad-store { border-color: rgba(255,51,85,0.4); color: var(--red); background: rgba(255,51,85,0.05); }
+  .arch-box small { display: block; font-size: 10px; color: var(--dim); margin-top: 4px; }
+  .arch-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    color: var(--dim);
+    text-align: center;
+    letter-spacing: 2px;
+    margin: 8px 0 4px;
+    text-transform: uppercase;
+  }
+  .arch-divider {
+    border: none;
+    border-top: 1px dashed rgba(0,255,249,0.15);
+    margin: 16px 0;
+  }
+  .v-arrow {
+    text-align: center;
+    font-size: 20px;
+    color: var(--dim);
+    line-height: 1;
+    margin: 4px 0;
+  }
+
+  /* ─── HIGHLIGHT BOX ─── */
+  .highlight {
+    background: rgba(0,255,249,0.04);
+    border: 1px solid rgba(0,255,249,0.15);
+    padding: 16px 20px;
+    margin: 12px 0;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    line-height: 2;
+    color: #7dd8e0;
+  }
+  .highlight.red-bg { background: rgba(255,51,85,0.05); border-color: rgba(255,51,85,0.2); color: #e07d8a; }
+  .highlight.green-bg { background: rgba(0,255,136,0.05); border-color: rgba(0,255,136,0.2); color: #7de0aa; }
+
+  /* ─── TIMELINE ─── */
+  .timeline {
+    position: relative;
+    padding-left: 30px;
+    margin: 16px 0;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px; top: 0; bottom: 0;
+    width: 1px;
+    background: linear-gradient(180deg, var(--cyan), var(--magenta), transparent);
+    opacity: 0.4;
+  }
+  .tl-item {
+    position: relative;
+    margin-bottom: 16px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+  }
+  .tl-item::before {
+    content: '▶';
+    position: absolute;
+    left: -26px;
+    color: var(--cyan);
+    font-size: 10px;
+    top: 2px;
+  }
+  .tl-item.bad::before { color: var(--red); }
+  .tl-item.good::before { color: var(--green); }
+  .tl-time { color: var(--magenta); margin-right: 10px; }
+  .tl-text { color: var(--text); }
+  .tl-note { color: var(--dim); margin-left: 20px; display: block; font-size: 11px; }
+
+  /* ─── STAR RATING ─── */
+  .stars { color: var(--yellow); font-size: 12px; }
+
+  /* ─── CONCLUSION BOX ─── */
+  .conclusion {
+    background: linear-gradient(135deg, rgba(0,255,249,0.06), rgba(255,0,170,0.06));
+    border: 1px solid rgba(0,255,249,0.3);
+    padding: 30px 34px;
+    margin-top: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .conclusion::after {
+    content: '';
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(255,0,170,0.06), transparent 70%);
+    pointer-events: none;
+  }
+  .conclusion h2 {
+    font-family: 'Orbitron', monospace;
+    font-size: 16px;
+    color: var(--cyan);
+    letter-spacing: 3px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+  @keyframes flicker {
+    0%, 95%, 100% { opacity: 1; }
+    96% { opacity: 0.5; }
+    97% { opacity: 1; }
+    98% { opacity: 0.3; }
+  }
+
+  .glow-cyan { text-shadow: 0 0 8px rgba(0,255,249,0.8); color: var(--cyan); }
+  .glow-mag { text-shadow: 0 0 8px rgba(255,0,170,0.8); color: var(--magenta); }
+  .glow-green { text-shadow: 0 0 8px rgba(0,255,136,0.8); color: var(--green); }
+  .glow-red { text-shadow: 0 0 8px rgba(255,51,85,0.8); color: var(--red); }
+
+  p { margin-bottom: 10px; line-height: 1.7; }
+  ul { padding-left: 20px; margin-bottom: 10px; }
+  li { margin-bottom: 6px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-tag">// DIAGNOSTIC REPORT v2.5.1 · STREAM PROCESSING</div>
+    <h1>Flink <span>→</span> StarRocks<br>Sink 延迟诊断手册</h1>
+    <div class="header-sub">[ PARTIAL_UPDATE · EXACTLY-ONCE · COMPACTION · SINK ARCHITECTURE ]</div>
+    <div class="header-line"></div>
+  </div>
+
+  <!-- SECTION 1: 问题背景 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <div class="section-title">问题背景 · 场景描述</div>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="panel warn">
+      <div class="panel-title">⚠ 现象</div>
+      <p>将一个写入流（StarRocks）拆分为 <span class="glow-red">3个独立Sink</span>，每个Sink负责不同字段的部分更新（partial_update），主键相同。
+      实际运行发现比单流写入 <span class="glow-red">慢几分钟</span>。</p>
+    </div>
+
+    <div class="arch">
+      <div class="arch-label">问题架构</div>
+      <div class="arch-row">
+        <div class="arch-box source">Source<br><small>Kafka / CDC</small></div>
+      </div>
+      <div class="v-arrow">↓</div>
+      <div class="arch-row">
+        <div class="arch-box sink">Flink<br><small>拆分为3个流</small></div>
+      </div>
+      <div class="v-arrow">↓ &nbsp;&nbsp;↓ &nbsp;&nbsp;↓</div>
+      <div class="arch-row">
+        <div class="arch-box bad-store">Sink 1<br><small>字段组A</small></div>
+        <div class="arch-box bad-store">Sink 2<br><small>字段组B</small></div>
+        <div class="arch-box bad-store">Sink 3<br><small>字段组C</small></div>
+      </div>
+      <div class="v-arrow" style="color:var(--red)">↘ &nbsp;↓ &nbsp;↙</div>
+      <div class="arch-row">
+        <div class="arch-box bad-store">同一张 StarRocks 表<br><small>partial_update = true</small></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: 官方文档核心根因 - Flush策略 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <div class="section-title">🔑 核心根因 · Flush 策略差异（官方文档）</div>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="panel danger" style="border-left-color:#ff3355; border-width: 4px;">
+      <div class="panel-title" style="font-size:13px;">🔴 StarRocks 官方文档明确说明 · Flush 策略</div>
+      <div style="font-family:'Share Tech Mono',monospace; font-size:12px; line-height:2.2; background:#020c18; padding:18px 20px; border:1px solid rgba(255,51,85,0.2); margin-top:12px;">
+        <span style="color:var(--cyan)">at-least-once</span> &nbsp;→&nbsp;
+        <span style="color:var(--green)">buffer 满 / interval 到 / checkpoint 时</span>
+        &nbsp;<span style="color:var(--dim)">← 三种条件任一触发即 flush</span><br>
+        <span style="color:var(--red)">exactly-once &nbsp;</span> &nbsp;→&nbsp;
+        <span style="color:var(--red)">⚠ 仅在 checkpoint 触发时 flush！</span>
+        &nbsp;<span style="color:var(--dim)">← buffer-flush 参数全部失效！</span>
+      </div>
+      <p style="margin-top:14px; font-size:14px; color:#e07d8a;">
+        这意味着配置了 <code style="color:var(--yellow)">sink.buffer-flush.interval-ms = 1000</code>，
+        在 <code style="color:var(--red)">exactly-once</code> 模式下完全无效——
+        数据会一直积压在 buffer 中，<strong>直到下一次 checkpoint 才写入 StarRocks</strong>。
+      </p>
+    </div>
+
+    <div class="grid2" style="margin-top:16px;">
+      <div class="panel danger">
+        <div class="panel-title">exactly-once · Flush 时间线</div>
+        <div class="highlight red-bg" style="line-height:2.4;">
+          00:00 数据进入 buffer<br>
+          00:01 interval 到 → <span style="color:var(--red)">忽略！不 flush</span><br>
+          00:10 buffer 满 &nbsp;→ <span style="color:var(--red)">忽略！不 flush</span><br>
+          <span style="color:var(--yellow)">05:00 checkpoint 触发</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <span style="color:var(--red)">才开始 flush → 数据延迟 5 分钟！</span>
+        </div>
+      </div>
+      <div class="panel success">
+        <div class="panel-title">at-least-once · Flush 时间线</div>
+        <div class="highlight green-bg" style="line-height:2.4;">
+          00:00 数据进入 buffer<br>
+          00:01 interval 到 → <span style="color:var(--green)">立即 flush ✓</span><br>
+          00:01 数据写入 StarRocks<br>
+          00:01 <span style="color:var(--green)">数据对外可见 ✓</span><br>
+          <span style="color:var(--dim)">&nbsp;→ 延迟约等于 interval（1秒）</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:16px; border-left-color:var(--yellow);">
+      <div class="panel-title" style="color:var(--yellow);">⚙ Checkpoint 间隔 = 数据延迟下限（exactly-once）</div>
+      <div class="code">
+<span class="cm">-- 如果 checkpoint 间隔配置为 5 分钟</span>
+execution.checkpointing.interval = <span class="val">300000</span> <span class="cm">-- ms</span>
+
+<span class="cm">-- 则 exactly-once 模式下，数据最多延迟 5 分钟</span>
+<span class="err">数据延迟 ≈ checkpoint interval（与 buffer-flush 参数无关！）</span>
+
+<span class="cm">-- 这就是"慢几分钟"的直接原因</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: exactly-once 2PC额外开销 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <div class="section-title">根因二 · exactly-once 2PC 开销 × 3</div>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="panel danger">
+      <div class="panel-title">🔴 两阶段提交 (2PC) 机制</div>
+      <div class="flow" style="gap:4px; margin-bottom:16px;">
+        <div class="flow-node warn">Checkpoint 触发</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node bad">Pre-commit<br><small>数据不可见</small></div>
+        <div class="flow-arrow red">→</div>
+        <div class="flow-node bad">等待所有Sink<br><small>3个都完成</small></div>
+        <div class="flow-arrow red">→</div>
+        <div class="flow-node good">Commit<br><small>数据可见</small></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel">
+        <div class="panel-title">单流</div>
+        <div class="highlight green-bg">
+          Checkpoint N<br>
+          &nbsp;&nbsp;└→ 1次 2PC 提交<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└→ 数据立即可见 ✓
+        </div>
+      </div>
+      <div class="panel danger">
+        <div class="panel-title">3流拆分</div>
+        <div class="highlight red-bg">
+          Checkpoint N<br>
+          &nbsp;&nbsp;├→ Sink1 2PC ... 等待<br>
+          &nbsp;&nbsp;├→ Sink2 2PC ... 等待<br>
+          &nbsp;&nbsp;└→ Sink3 2PC ... 等待<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;= max(T1, T2, T3) ← 最慢决定延迟
+        </div>
+      </div>
+    </div>
+
+    <div class="panel success">
+      <div class="panel-title">✅ 解决方案</div>
+      <div class="code">
+<span class="cm">-- 改为 at-least-once，flush 不再依赖 checkpoint</span>
+<span class="kw">'sink.semantic'</span> = <span class="str">'at-least-once'</span>
+<span class="cm">-- buffer-flush 参数重新生效，数据秒级写入</span>
+<span class="kw">'sink.buffer-flush.interval-ms'</span> = <span class="str">'1000'</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: Compaction 问题 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <div class="section-title">根因三 · partial_update Compaction 堆积</div>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="panel danger">
+      <div class="panel-title">🔴 核心问题：数据完整性依赖 Compaction</div>
+      <p>3个Sink分别写入同一行的不同字段，每次写入产生独立 Rowset，<span class="glow-red">必须等 Compaction 合并后才得到完整一行</span>。</p>
+    </div>
+
+    <div class="timeline">
+      <div class="tl-item bad">
+        <span class="tl-time">T1</span>
+        <span class="tl-text">Sink1 写入 → order_no=001, model_code='X', model_name='Y'</span>
+        <span class="tl-note">→ Rowset_A 生成，字段不完整</span>
+      </div>
+      <div class="tl-item bad">
+        <span class="tl-time">T2</span>
+        <span class="tl-text">Sink2 写入 → order_no=001, car_style_id=1, car_style='SUV'</span>
+        <span class="tl-note">→ Rowset_B 生成，字段不完整</span>
+      </div>
+      <div class="tl-item bad">
+        <span class="tl-time">T3</span>
+        <span class="tl-text">Sink3 写入 → order_no=001, power_type='EV'</span>
+        <span class="tl-note">→ Rowset_C 生成，字段不完整</span>
+      </div>
+      <div class="tl-item good">
+        <span class="tl-time">T4+</span>
+        <span class="tl-text">Compaction 触发 → A+B+C 合并 → 完整一行</span>
+        <span class="tl-note" style="color:var(--green)">← 这段等待时间就是"慢几分钟"</span>
+      </div>
+    </div>
+
+    <div class="panel warn">
+      <div class="panel-title">⚠ Rowset 堆积速度</div>
+      <div class="code">
+<span class="cm">-- flush interval = 1秒</span>
+单Sink：1秒 → <span class="ok">1个 Rowset</span>
+3个Sink：1秒 → <span class="err">3个 Rowset</span>
+
+1分钟 → <span class="err">180个 Rowset</span> 堆积
+Compaction 线程根本追不上 → 延迟叠加
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Merge-on-Read 查询开销</div>
+      <div class="code">
+<span class="cm">-- Compaction 完成前，每次查询都需要实时 merge</span>
+SELECT * FROM table WHERE order_no = '001'
+<span class="cm">-- 内部执行：</span>
+merge(Rowset_A, Rowset_B, Rowset_C, ...) → <span class="err">CPU 开销大</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: Buffer Flush 分析 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <div class="section-title">根因四 · Buffer Flush 参数验证</div>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="panel magenta">
+      <div class="panel-title">⚠ 参数 Key 名称陷阱</div>
+      <div class="code">
+<span class="cm">-- 你配置的</span>
+<span class="kw">'sink.buffer-flush.interval-ms'</span> = <span class="str">'1000'</span>
+
+<span class="cm">-- 部分版本实际识别的 key</span>
+<span class="kw">'sink.buffer-flush.interval'</span> = <span class="str">'1000'</span>
+
+<span class="err">⚠ Key 名不对时，参数静默忽略 → 使用默认值 300s！</span>
+<span class="ok">✓ 检查方式：Flink WebUI → TaskManager → Logs 搜索 "buffer-flush"</span>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>你的参数</th>
+          <th>值</th>
+          <th>延迟影响</th>
+          <th>说明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="tag-cyan">sink.buffer-flush.interval-ms</td>
+          <td>1000ms</td>
+          <td><span class="stars">★★★★★</span></td>
+          <td><span class="tag-yellow">需确认 key 是否生效</span></td>
+        </tr>
+        <tr>
+          <td class="tag-cyan">sink.properties.partial_update</td>
+          <td>true</td>
+          <td><span class="stars">★★★★★</span></td>
+          <td><span class="tag-red">3流分写，Compaction 压力大</span></td>
+        </tr>
+        <tr>
+          <td class="tag-cyan">sink.properties.format</td>
+          <td>json</td>
+          <td><span class="stars">★★</span></td>
+          <td>JSON 解析比 CSV 慢，3倍开销</td>
+        </tr>
+        <tr>
+          <td class="tag-cyan">sink.max-retries</td>
+          <td>10</td>
+          <td><span class="stars">★</span></td>
+          <td>失败重试增加延迟</td>
+        </tr>
+        <tr>
+          <td class="tag-cyan">sink.semantic</td>
+          <td>未配置</td>
+          <td><span class="tag-green">✓</span></td>
+          <td>默认 at-least-once，正确</td>
+        </tr>
+        <tr>
+          <td class="tag-cyan">sink.buffer-flush.max-rows</td>
+          <td>未配置</td>
+          <td><span class="stars">★★★</span></td>
+          <td><span class="tag-yellow">使用默认值，可能提前 flush</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SECTION 6: 非partial_update双Sink -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">06</div>
+      <div class="section-title">对比场景 · 非 partial_update 双Sink</div>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="panel success">
+      <div class="panel-title">✅ 国内 + 海外订单 写入同表（非 partial_update）</div>
+      <p>两个Sink写入的是<span class="glow-green">不同主键的完整行</span>，不存在字段合并问题。</p>
+    </div>
+
+    <div class="arch">
+      <div class="arch-label">健康架构</div>
+      <div class="arch-row">
+        <div class="arch-box source">Source<br><small>订单流</small></div>
+      </div>
+      <div class="v-arrow">↓</div>
+      <div class="arch-row">
+        <div class="arch-box sink">Flink 分流</div>
+      </div>
+      <div class="v-arrow">↙ &nbsp;&nbsp;&nbsp;↘</div>
+      <div class="arch-row">
+        <div class="arch-box store">Sink 1<br><small>国内订单（完整行）</small></div>
+        <div class="flow-arrow" style="color:transparent">·</div>
+        <div class="arch-box store">Sink 2<br><small>海外订单（完整行）</small></div>
+      </div>
+      <div class="v-arrow" style="color:var(--green)">↘ &nbsp;&nbsp;&nbsp;↙</div>
+      <div class="arch-row">
+        <div class="arch-box store">同一张 StarRocks 表<br><small>写入即完整可见，无需等 Compaction</small></div>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>对比项</th>
+          <th>3流 partial_update</th>
+          <th>双流 非partial_update</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>数据完整性</td>
+          <td><span class="tag-red">依赖 Compaction 合并</span></td>
+          <td><span class="tag-green">写入即完整</span></td>
+        </tr>
+        <tr>
+          <td>Compaction 压力</td>
+          <td><span class="tag-red">极大（3倍 Rowset）</span></td>
+          <td><span class="tag-green">正常</span></td>
+        </tr>
+        <tr>
+          <td>查询 Merge 开销</td>
+          <td><span class="tag-red">高（多 Rowset 合并）</span></td>
+          <td><span class="tag-green">无</span></td>
+        </tr>
+        <tr>
+          <td>延迟来源</td>
+          <td><span class="tag-red">Compaction 等待</span></td>
+          <td><span class="tag-cyan">仅 flush interval</span></td>
+        </tr>
+        <tr>
+          <td>延迟程度</td>
+          <td><span class="tag-red">分钟级</span></td>
+          <td><span class="tag-green">秒级（≈1s）</span></td>
+        </tr>
+        <tr>
+          <td>资源消耗</td>
+          <td><span class="tag-red">高</span></td>
+          <td><span class="tag-yellow">略高于单Sink，可忽略</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SECTION 7: 解决方案闭环 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">07</div>
+      <div class="section-title">解决方案 · 优先级排序</div>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="grid3">
+      <div class="panel success">
+        <div class="panel-title">🥇 最优 · 合并单流</div>
+        <p style="font-size:13px;">将3个Sink合并为1个，SELECT全字段一次写入，彻底消除 Compaction 等待。</p>
+        <div class="code" style="font-size:11px;">
+<span class="cm">-- 一次写全部字段</span>
+INSERT INTO sink
+SELECT order_no,
+  <span class="ok">col_a, col_b,</span> <span class="cm">-- 原Sink1</span>
+  <span class="ok">col_c, col_d,</span> <span class="cm">-- 原Sink2</span>
+  <span class="ok">col_e, __op</span>  <span class="cm">-- 原Sink3</span>
+FROM source
+        </div>
+        <div class="badge badge-green">延迟降至秒级</div>
+      </div>
+
+      <div class="panel warn">
+        <div class="panel-title">🥈 快速生效 · 调整参数</div>
+        <p style="font-size:13px;">确认 flush 参数生效，配合 StarRocks 调整 Compaction 线程。</p>
+        <div class="code" style="font-size:11px;">
+<span class="kw">'sink.buffer-flush.interval'</span>
+  = <span class="str">'1000'</span>
+<span class="kw">'sink.buffer-flush.max-rows'</span>
+  = <span class="str">'100000'</span>
+<span class="kw">'sink.semantic'</span>
+  = <span class="str">'at-least-once'</span>
+        </div>
+        <div class="badge badge-yellow">延迟部分改善</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">🥉 StarRocks 侧调优</div>
+        <p style="font-size:13px;">增加 Compaction 线程，降低触发阈值，加快合并频率。</p>
+        <div class="code" style="font-size:11px;">
+<span class="cm">-- BE 配置</span>
+cumulative_compaction_num
+  _threads_per_disk = <span class="val">4</span>
+min_cumulative_compaction
+  _num_chunks = <span class="val">3</span>
+        </div>
+        <div class="badge badge-cyan">治标，非治本</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONCLUSION -->
+  <div class="conclusion">
+    <h2>// 闭环总结 · Root Cause Map</h2>
+
+    <div class="flow" style="flex-wrap:wrap; gap:6px; margin-bottom:24px;">
+      <div class="flow-node bad">3流 partial_update<br><small>同一张表</small></div>
+      <div class="flow-arrow red">→</div>
+      <div class="flow-node bad">3×Rowset/s<br><small>堆积</small></div>
+      <div class="flow-arrow red">→</div>
+      <div class="flow-node bad">Compaction<br><small>追不上</small></div>
+      <div class="flow-arrow red">→</div>
+      <div class="flow-node bad">数据不完整<br><small>分钟级延迟</small></div>
+    </div>
+
+    <div class="flow" style="flex-wrap:wrap; gap:6px; margin-bottom:28px;">
+      <div class="flow-node warn">exactly-once</div>
+      <div class="flow-arrow red">→</div>
+      <div class="flow-node bad">3×2PC</div>
+      <div class="flow-arrow red">→</div>
+      <div class="flow-node bad">最慢Sink<br><small>决定延迟</small></div>
+      <div class="flow-arrow red">→</div>
+      <div class="flow-node bad">Checkpoint<br><small>时长增加</small></div>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>根因</th><th>影响程度</th><th>解法</th></tr>
+      </thead>
+      <tbody>
+        <tr style="background:rgba(255,51,85,0.08);">
+          <td><span class="tag-red">🔑 exactly-once 仅 checkpoint 时 flush</span></td>
+          <td><span class="stars">★★★★★</span></td>
+          <td><span class="tag-green">改为 at-least-once（最直接）</span></td>
+        </tr>
+        <tr>
+          <td>partial_update Compaction 堆积</td>
+          <td><span class="stars">★★★★★</span></td>
+          <td><span class="tag-green">合并为单流写入</span></td>
+        </tr>
+        <tr>
+          <td>exactly-once 2PC × 3倍</td>
+          <td><span class="stars">★★★★</span></td>
+          <td><span class="tag-green">改为 at-least-once</span></td>
+        </tr>
+        <tr>
+          <td>Buffer flush 参数未生效</td>
+          <td><span class="stars">★★★</span></td>
+          <td><span class="tag-yellow">验证 key 名，双写兼容</span></td>
+        </tr>
+        <tr>
+          <td>Merge-on-Read 查询开销</td>
+          <td><span class="stars">★★★</span></td>
+          <td><span class="tag-yellow">增加 Compaction 线程</span></td>
+        </tr>
+        <tr>
+          <td>非partial双流（国内/海外）</td>
+          <td><span class="tag-green">✓ 无问题</span></td>
+          <td>写入即完整，放心使用</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top:20px; font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--dim); letter-spacing:2px;">
+      // REPORT END · FLINK-STARROCKS-SINK-LATENCY-ANALYSIS · 2025
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
