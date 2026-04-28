@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StarRocks External Catalog Query Tuning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-primary: #0b0f19;
+    --bg-secondary: #111827;
+    --bg-tertiary: #1a2236;
+    --bg-card: rgba(17, 24, 39, 0.7);
+    --bg-code: #0d1117;
+    --border-subtle: rgba(148, 163, 184, 0.1);
+    --border-medium: rgba(148, 163, 184, 0.15);
+    --border-accent: rgba(34, 211, 238, 0.3);
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent-cyan: #22d3ee;
+    --accent-cyan-glow: rgba(34, 211, 238, 0.15);
+    --accent-purple: #a855f7;
+    --accent-pink: #ec4899;
+    --accent-yellow: #fbbf24;
+    --accent-green: #34d399;
+    --accent-orange: #fb923c;
+    --accent-red: #f87171;
+    --gradient-hero: linear-gradient(135deg, #0b0f19 0%, #111827 50%, #1a1b3d 100%);
+    --gradient-accent: linear-gradient(135deg, #22d3ee 0%, #a855f7 50%, #ec4899 100%);
+    --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+    --shadow-glow: 0 0 20px rgba(34, 211, 238, 0.1);
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+    --font-display: 'Space Grotesk', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px;
+  }
+
+  body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.75;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Scroll Progress Bar */
+  .scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: var(--gradient-accent);
+    z-index: 9999;
+    transition: width 0.1s;
+    box-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+  }
+
+  /* Background ambient glow */
+  .ambient-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .ambient-bg::before {
+    content: '';
+    position: absolute;
+    top: -20%;
+    right: -10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(168, 85, 247, 0.08) 0%, transparent 70%);
+    animation: float 20s ease-in-out infinite;
+  }
+
+  .ambient-bg::after {
+    content: '';
+    position: absolute;
+    bottom: -10%;
+    left: -5%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(34, 211, 238, 0.06) 0%, transparent 70%);
+    animation: float 25s ease-in-out infinite reverse;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(30px, -30px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+  }
+
+  /* Grid pattern overlay */
+  .grid-pattern {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(34, 211, 238, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(34, 211, 238, 0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    padding: 80px 0 50px;
+    text-align: center;
+    position: relative;
+  }
+
+  .sys-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: var(--accent-cyan);
+    opacity: 0.8;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    background: rgba(34, 211, 238, 0.08);
+    border: 1px solid rgba(34, 211, 238, 0.15);
+    border-radius: 100px;
+  }
+
+  .sys-label::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--accent-cyan);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--accent-cyan);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 700;
+    letter-spacing: -1px;
+    line-height: 1.1;
+    color: #fff;
+    margin-bottom: 16px;
+  }
+
+  h1 .gradient-text {
+    background: var(--gradient-accent);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header-sub {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--text-secondary);
+    letter-spacing: 2px;
+    margin-top: 16px;
+  }
+
+  .header-line {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-cyan), var(--accent-purple), transparent);
+    margin: 32px auto;
+    max-width: 500px;
+    opacity: 0.6;
+  }
+
+  /* ── OVERVIEW PILLS ── */
+  .overview-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin: 32px 0 60px;
+  }
+
+  .pill {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 7px 16px;
+    border: 1px solid var(--border-medium);
+    color: var(--text-secondary);
+    letter-spacing: 1.5px;
+    border-radius: 6px;
+    background: var(--bg-card);
+    backdrop-filter: blur(10px);
+    transition: all 0.25s ease;
+    cursor: default;
+  }
+
+  .pill:hover {
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+    background: rgba(34, 211, 238, 0.08);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-glow);
+  }
+
+  /* ── STICKY TOC ── */
+  .toc-wrapper {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(11, 15, 25, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-subtle);
+    margin: 0 -24px 48px;
+    padding: 0 24px;
+  }
+
+  .toc-strip {
+    display: flex;
+    gap: 4px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 14px 0;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .toc-strip::-webkit-scrollbar { display: none; }
+
+  .toc-item {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
+    white-space: nowrap;
+    border: 1px solid transparent;
+  }
+
+  .toc-item:hover {
+    color: var(--accent-cyan);
+    background: rgba(34, 211, 238, 0.08);
+  }
+
+  .toc-item.active {
+    color: var(--accent-cyan);
+    background: rgba(34, 211, 238, 0.12);
+    border-color: rgba(34, 211, 238, 0.25);
+    font-weight: 500;
+  }
+
+  /* ── STATUS BAR ── */
+  .status-bar {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+    padding: 16px 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    margin-bottom: 40px;
+    backdrop-filter: blur(10px);
+  }
+
+  .status-bar span { display: flex; align-items: center; gap: 8px; }
+  .status-bar .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .dot.on { background: var(--accent-green); box-shadow: 0 0 8px rgba(52, 211, 153, 0.5); }
+  .dot.warn { background: var(--accent-orange); box-shadow: 0 0 8px rgba(251, 146, 60, 0.4); }
+  .dot.off { background: var(--text-muted); }
+
+  /* ── SECTION TITLES ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 72px 0 28px;
+    scroll-margin-top: 100px;
+  }
+
+  .section-num {
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent-pink);
+    letter-spacing: 2px;
+    white-space: nowrap;
+    padding: 4px 10px;
+    background: rgba(236, 72, 153, 0.1);
+    border: 1px solid rgba(236, 72, 153, 0.2);
+    border-radius: 6px;
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(18px, 2.5vw, 24px);
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.5px;
+  }
+
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border-accent), transparent);
+  }
+
+  /* ── PANELS ── */
+  .panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 24px;
+    position: relative;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-card);
+  }
+
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    border-radius: 16px 16px 0 0;
+  }
+
+  .panel:hover {
+    border-color: var(--border-medium);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), var(--shadow-glow);
+    transform: translateY(-2px);
+  }
+
+  .panel.warning {
+    border-color: rgba(251, 146, 60, 0.2);
+    background: linear-gradient(180deg, rgba(251, 146, 60, 0.05) 0%, var(--bg-card) 100%);
+  }
+  .panel.warning::before { background: linear-gradient(90deg, transparent, var(--accent-orange), transparent); }
+
+  .panel.critical {
+    border-color: rgba(248, 113, 113, 0.2);
+    background: linear-gradient(180deg, rgba(248, 113, 113, 0.05) 0%, var(--bg-card) 100%);
+  }
+  .panel.critical::before { background: linear-gradient(90deg, transparent, var(--accent-red), transparent); }
+
+  .panel.success {
+    border-color: rgba(52, 211, 153, 0.2);
+    background: linear-gradient(180deg, rgba(52, 211, 153, 0.05) 0%, var(--bg-card) 100%);
+  }
+  .panel.success::before { background: linear-gradient(90deg, transparent, var(--accent-green), transparent); }
+
+  .panel-title {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #fff;
+  }
+
+  .panel-title .tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 3px 10px;
+    background: rgba(34, 211, 238, 0.1);
+    border: 1px solid rgba(34, 211, 238, 0.25);
+    color: var(--accent-cyan);
+    letter-spacing: 1.5px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+
+  .panel-title .tag.hot { background: rgba(236, 72, 153, 0.1); border-color: rgba(236, 72, 153, 0.3); color: var(--accent-pink); }
+  .panel-title .tag.warn { background: rgba(251, 146, 60, 0.1); border-color: rgba(251, 146, 60, 0.3); color: var(--accent-orange); }
+  .panel-title .tag.ok { background: rgba(52, 211, 153, 0.1); border-color: rgba(52, 211, 153, 0.25); color: var(--accent-green); }
+
+  /* ── CODE BLOCKS ── */
+  pre {
+    background: var(--bg-code);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 20px 24px;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.7;
+    color: #c9d1d9;
+    margin: 16px 0;
+    position: relative;
+  }
+
+  pre::-webkit-scrollbar { height: 6px; }
+  pre::-webkit-scrollbar-track { background: transparent; }
+  pre::-webkit-scrollbar-thumb { background: var(--border-medium); border-radius: 3px; }
+
+  pre .kw { color: #ff7b72; font-weight: 600; }
+  pre .val { color: #7ee787; }
+  pre .cm { color: #8b949e; font-style: italic; }
+  pre .fn { color: #d2a8ff; }
+  pre .str { color: #a5d6ff; }
+  pre .num { color: #79c0ff; }
+
+  .code-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent-cyan);
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+    opacity: 0.8;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .code-label::before {
+    content: '›';
+    color: var(--accent-cyan);
+    font-weight: bold;
+  }
+
+  /* ── GRID LAYOUTS ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+
+  @media (max-width: 900px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  /* ── METRIC CARDS ── */
+  .metric-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 28px 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+  }
+
+  .metric-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--gradient-accent);
+    opacity: 0.6;
+  }
+
+  .metric-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--border-accent);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .metric-value {
+    font-family: var(--font-display);
+    font-size: 36px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+    margin-bottom: 8px;
+    background: var(--gradient-accent);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .metric-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  /* ── FLOW DIAGRAM ── */
+  .flow {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin: 24px 0;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+
+  .flow-step {
+    flex: 1;
+    min-width: 130px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-subtle);
+    padding: 18px 14px;
+    text-align: center;
+    position: relative;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+    border-radius: 10px;
+    margin-right: 24px;
+    transition: all 0.2s;
+  }
+
+  .flow-step:hover {
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+    background: rgba(34, 211, 238, 0.05);
+  }
+
+  .flow-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: -24px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 1px;
+    background: linear-gradient(90deg, var(--accent-cyan), transparent);
+  }
+
+  .flow-step:not(:last-child)::before {
+    content: '›';
+    position: absolute;
+    right: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent-cyan);
+    font-size: 18px;
+    font-weight: bold;
+  }
+
+  .flow-step .step-n {
+    display: block;
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* ── CHECKLIST ── */
+  .checklist {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 16px 0;
+  }
+
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 15px;
+    color: var(--text-primary);
+    line-height: 1.6;
+    padding: 10px 14px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 8px;
+    border-left: 3px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .checklist li:hover {
+    background: rgba(255,255,255,0.04);
+  }
+
+  .checklist li::before {
+    content: '◆';
+    color: var(--accent-cyan);
+    font-size: 12px;
+    margin-top: 4px;
+    flex-shrink: 0;
+  }
+
+  .checklist li.warn { border-left-color: var(--accent-orange); }
+  .checklist li.warn::before { color: var(--accent-orange); content: '⚠'; font-size: 14px; }
+  .checklist li.hot { border-left-color: var(--accent-pink); }
+  .checklist li.hot::before { color: var(--accent-pink); content: '★'; font-size: 14px; }
+  .checklist li.ok { border-left-color: var(--accent-green); }
+  .checklist li.ok::before { color: var(--accent-green); content: '✓'; font-size: 14px; }
+
+  /* ── BADGES ── */
+  .badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 3px 10px;
+    letter-spacing: 1px;
+    vertical-align: middle;
+    margin-left: 8px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+
+  .badge.new { background: rgba(251, 191, 36, 0.15); color: var(--accent-yellow); border: 1px solid rgba(251, 191, 36, 0.3); }
+  .badge.v35 { background: rgba(236, 72, 153, 0.15); color: var(--accent-pink); border: 1px solid rgba(236, 72, 153, 0.3); }
+
+  /* ── TABLE ── */
+  .table-wrapper {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid var(--border-subtle);
+    margin: 16px 0;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 14px;
+  }
+
+  thead tr {
+    background: var(--bg-tertiary);
+  }
+
+  th {
+    font-family: var(--font-display);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    color: var(--accent-cyan);
+    padding: 14px 18px;
+    text-align: left;
+    text-transform: uppercase;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  td {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+  tr:hover td { background: rgba(34, 211, 238, 0.04); }
+
+  td code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent-yellow);
+    background: rgba(251, 191, 36, 0.08);
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(251, 191, 36, 0.15);
+  }
+
+  /* ── HIGHLIGHT BOXES ── */
+  .highlight-box {
+    border-left: 3px solid var(--accent-yellow);
+    background: rgba(251, 191, 36, 0.05);
+    padding: 16px 20px;
+    margin: 18px 0;
+    font-size: 15px;
+    border-radius: 0 12px 12px 0;
+    line-height: 1.7;
+  }
+
+  .highlight-box.info {
+    border-color: var(--accent-cyan);
+    background: rgba(34, 211, 238, 0.05);
+  }
+
+  .highlight-box.danger {
+    border-color: var(--accent-red);
+    background: rgba(248, 113, 113, 0.05);
+  }
+
+  /* ── ARCHITECTURE DIAGRAM ── */
+  .arch-diagram {
+    background: var(--bg-code);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 24px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 2;
+    overflow-x: auto;
+    white-space: pre;
+    margin: 18px 0;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    margin-top: 100px;
+    text-align: center;
+    padding: 40px 0;
+    border-top: 1px solid var(--border-subtle);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+  }
+
+  /* ── BACK TO TOP ── */
+  .back-to-top {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    width: 48px;
+    height: 48px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-medium);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-cyan);
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    z-index: 200;
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-card);
+  }
+
+  .back-to-top.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .back-to-top:hover {
+    background: rgba(34, 211, 238, 0.1);
+    border-color: var(--accent-cyan);
+    box-shadow: var(--shadow-glow);
+    transform: translateY(-2px);
+  }
+
+  /* ── TYPOGRAPHY ── */
+  strong { color: #fff; font-weight: 600; }
+  em { color: var(--accent-yellow); font-style: normal; font-weight: 500; }
+  p { margin-bottom: 14px; color: var(--text-secondary); }
+  p:last-child { margin-bottom: 0; }
+
+  h3 {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--accent-cyan);
+    letter-spacing: 0.5px;
+    margin: 28px 0 12px;
+    padding-left: 12px;
+    border-left: 2px solid var(--accent-cyan);
+  }
+
+  a { color: var(--accent-cyan); text-decoration: none; transition: opacity 0.2s; }
+  a:hover { opacity: 0.8; text-decoration: underline; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .container { padding: 0 16px 60px; }
+    header { padding: 60px 0 40px; }
+    .panel { padding: 24px; }
+    .status-bar { gap: 12px; padding: 12px 16px; }
+    .flow-step { min-width: 110px; padding: 14px 10px; font-size: 11px; }
+    .metric-value { font-size: 28px; }
+    .toc-wrapper { margin: 0 -16px 40px; padding: 0 16px; }
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .panel {
+    animation: fadeInUp 0.6s ease both;
+  }
+
+  .panel:nth-child(1) { animation-delay: 0s; }
+  .panel:nth-child(2) { animation-delay: 0.08s; }
+  .panel:nth-child(3) { animation-delay: 0.16s; }
+  .panel:nth-child(4) { animation-delay: 0.24s; }
+</style>
+</head>
+<body>
+<div class="scroll-progress" id="scrollProgress"></div>
+<div class="ambient-bg"></div>
+<div class="grid-pattern"></div>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <div class="sys-label">StarRocks v3.5 · Query Engine Optimization Manual</div>
+    <h1>External Catalog<br><span class="gradient-text">Query Tuning</span></h1>
+    <div class="header-sub">HIVE · ICEBERG · HUDI · DELTA LAKE · PAIMON · JDBC</div>
+    <div class="header-line"></div>
+    <div class="overview-pills">
+      <span class="pill">CBO Statistics</span>
+      <span class="pill">Metadata Cache</span>
+      <span class="pill">Data Cache</span>
+      <span class="pill">Query Profile</span>
+      <span class="pill">Join Optimizer</span>
+      <span class="pill">Materialized View</span>
+      <span class="pill">Query Feedback</span>
+      <span class="pill">Predicate Pushdown</span>
+    </div>
+  </header>
+
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <span><span class="dot on"></span> Engine: Vectorized MPP</span>
+    <span><span class="dot on"></span> CBO: Enabled</span>
+    <span><span class="dot on"></span> Data Cache: Auto (v3.3+)</span>
+    <span><span class="dot on"></span> Metadata Cache: Active</span>
+    <span><span class="dot warn"></span> External Catalog: Latency Risk</span>
+  </div>
+
+  <!-- STICKY TOC -->
+  <div class="toc-wrapper">
+    <div class="toc-strip">
+      <a class="toc-item" href="#s1">01 架构与瓶颈</a>
+      <a class="toc-item" href="#s2">02 诊断工具链</a>
+      <a class="toc-item" href="#s3">03 元数据优化</a>
+      <a class="toc-item" href="#s4">04 CBO统计信息</a>
+      <a class="toc-item" href="#s5">05 Data Cache</a>
+      <a class="toc-item" href="#s6">06 Scan优化</a>
+      <a class="toc-item" href="#s7">07 Join优化</a>
+      <a class="toc-item" href="#s8">08 聚合优化</a>
+      <a class="toc-item" href="#s9">09 物化视图</a>
+      <a class="toc-item" href="#s10">10 Query Feedback</a>
+      <a class="toc-item" href="#s11">11 参数速查表</a>
+    </div>
+  </div>
+
+  <!-- ══════════ SECTION 1: 架构 ══════════ -->
+  <div id="s1" class="section-header">
+    <span class="section-num">// 01</span>
+    <span class="section-title">外部 CATALOG 查询架构与核心瓶颈</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">查询执行路径 <span class="tag">ARCHITECTURE</span></div>
+    <p>StarRocks 查询外部 Catalog 数据时，FE 负责生成执行计划，BE/CN 节点并行扫描远端存储。与内部表相比，外部 Catalog 引入了三个额外的性能敏感点：<strong>元数据检索延迟</strong>、<strong>远端 I/O 开销</strong>、<strong>统计信息缺失导致次优计划</strong>。</p>
+
+    <div class="arch-diagram">┌──────────────────────────────────────────────────────────────────┐
+│                        CLIENT / BI TOOL                          │
+└───────────────────────────┬──────────────────────────────────────┘
+                            │ SQL
+                ┌───────────▼───────────┐
+                │   FE  (Frontend)      │
+                │  ┌─────────────────┐  │
+                │  │  Parser / CBO   │  │ ◄── Metadata Cache (FE内存)
+                │  │  Plan Generator │  │     HMS / Glue / REST Catalog
+                │  └────────┬────────┘  │
+                └───────────┼───────────┘
+                            │ Physical Plan
+         ┌──────────────────┼──────────────────┐
+         │                  │                  │
+  ┌──────▼──────┐   ┌───────▼─────┐   ┌───────▼──────┐
+  │   BE Node1  │   │  BE Node2   │   │  BE Node3    │
+  │ ┌─────────┐ │   │ ┌─────────┐ │   │ ┌──────────┐ │
+  │ │DataCache│ │   │ │DataCache│ │   │ │DataCache │ │ ◄── NVMe/SSD
+  │ └────┬────┘ │   │ └────┬────┘ │   │ └─────┬────┘ │
+  └──────┼──────┘   └──────┼──────┘   └───────┼──────┘
+         └──────────────────┼──────────────────┘
+                            │ Cache MISS → Remote I/O
+         ┌──────────────────┼──────────────────┐
+         │                  │                  │
+   ┌─────▼─────┐    ┌───────▼────┐    ┌────────▼─────┐
+   │  HDFS     │    │  S3/OSS    │    │  Parquet/ORC │
+   └───────────┘    └────────────┘    └──────────────┘</div>
+  </div>
+
+  <div class="grid-3">
+    <div class="metric-card">
+      <div class="metric-value">3x</div>
+      <div class="metric-label">元数据冷查询延迟倍数</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">10x</div>
+      <div class="metric-label">DataCache命中后 I/O 加速</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">v3.4+</div>
+      <div class="metric-label">自动触发外表统计收集</div>
+    </div>
+  </div>
+
+  <!-- ══════════ SECTION 2: 诊断工具链 ══════════ -->
+  <div id="s2" class="section-header">
+    <span class="section-num">// 02</span>
+    <span class="section-title">诊断工具链：从慢查询到根因</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">TOP-DOWN 诊断流程 <span class="tag">WORKFLOW</span></div>
+    <div class="flow">
+      <div class="flow-step"><span class="step-n">STEP 1</span>发现慢查询<br>Audit Log</div>
+      <div class="flow-step"><span class="step-n">STEP 2</span>EXPLAIN<br>查看计划</div>
+      <div class="flow-step"><span class="step-n">STEP 3</span>开启 Profile<br>采集指标</div>
+      <div class="flow-step"><span class="step-n">STEP 4</span>定位热点<br>Operator</div>
+      <div class="flow-step"><span class="step-n">STEP 5</span>对症调优<br>变量/Hint</div>
+      <div class="flow-step"><span class="step-n">STEP 6</span>对比前后<br>验证效果</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-title">EXPLAIN 分析执行计划 <span class="tag">DIAGNOSE</span></div>
+      <div class="code-label">获取详细物理计划</div>
+      <pre><span class="kw">EXPLAIN VERBOSE</span>
+<span class="kw">SELECT</span> o.order_id, c.name, SUM(o.amount)
+<span class="kw">FROM</span> hive_catalog.sales.orders o
+<span class="kw">JOIN</span> hive_catalog.sales.customers c
+  <span class="kw">ON</span> o.cust_id = c.id
+<span class="kw">WHERE</span> o.dt = <span class="str">'2024-01-15'</span>
+<span class="kw">GROUP BY</span> <span class="num">1</span>, <span class="num">2</span>;
+
+<span class="cm">-- 关注以下关键指标：</span>
+<span class="cm">-- cardinality: 预估行数是否合理</span>
+<span class="cm">-- avgRowSize:  行宽影响网络传输</span>
+<span class="cm">-- numNodes:    并行度是否充足</span>
+<span class="cm">-- SCAN range partition pruning 是否生效</span></pre>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Query Profile 开启与分析 <span class="tag">PROFILE</span></div>
+      <div class="code-label">开启 profile（生产环境谨慎全局开启）</div>
+      <pre><span class="cm">-- 仅对当前 Session 开启</span>
+<span class="kw">SET</span> enable_profile = <span class="val">true</span>;
+
+<span class="cm">-- 执行查询后访问 WebUI 分析</span>
+<span class="cm">-- http://&lt;fe_ip&gt;:&lt;fe_http_port&gt;/queries</span>
+
+<span class="cm">-- 外部 Catalog 关键 Profile 指标：</span>
+<span class="cm">-- ScanTime / BytesRead     → 远端 IO</span>
+<span class="cm">-- DataCacheReadBytes        → 缓存命中</span>
+<span class="cm">-- DataCacheMissBytes        → 缓存缺失</span>
+<span class="cm">-- MetadataLoadLatency       → 元数据延迟</span>
+<span class="cm">-- PushdownPredicates        → 下推情况</span>
+<span class="cm">-- ExprFilterRows            → 本地过滤行数</span></pre>
+    </div>
+  </div>
+
+  <div class="panel warning">
+    <div class="panel-title">Profile 解读：外部 Catalog 特有信号 <span class="tag warn">WARNING</span></div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>指标模式</th><th>诊断含义</th><th>处理方向</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>DataCacheMissBytes</code> 占比高</td><td>热数据未命中缓存，大量远端 I/O</td><td>扩大 DataCache 容量，预热缓存</td></tr>
+          <tr><td><code>PushdownPredicates ≈ 0</code> 而 ExprFilterRows 高</td><td>谓词未下推到存储层</td><td>改写 SQL，避免函数包裹列</td></tr>
+          <tr><td><code>MetadataLoadLatency</code> 超过 500ms</td><td>元数据冷读，HMS/Glue 响应慢</td><td>配置元数据缓存刷新策略</td></tr>
+          <tr><td>Join 节点 <code>BuildTime</code> 异常高</td><td>CBO 选错了驱动表，大表 Broadcast</td><td>收集统计信息 / 使用 Join Hint</td></tr>
+          <tr><td><code>HashTableMemoryUsage</code> 接近内存上限</td><td>高基数 GROUP BY 内存压力</td><td>启用 Spill 或物化视图预聚合</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════ SECTION 3: 元数据优化 ══════════ -->
+  <div id="s3" class="section-header">
+    <span class="section-num">// 03</span>
+    <span class="section-title">元数据缓存优化 — 消灭冷查询延迟</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-title">Hive Catalog 元数据策略 <span class="tag">HIVE</span></div>
+      <p>StarRocks 默认对 Hive 使用<strong>懒加载 + 异步更新</strong>策略。命中分区后自动缓存，后台刷新保持元数据新鲜度。</p>
+      <div class="code-label">FE 动态配置 — 元数据缓存刷新</div>
+      <pre><span class="cm">-- 开启定时元数据刷新（HMS 访问量大时减少依赖）</span>
+<span class="kw">ADMIN SET FRONTEND CONFIG</span> (
+  <span class="str">"enable_background_refresh_connector_metadata"</span>
+    = <span class="str">"true"</span>
+);
+
+<span class="cm">-- 刷新间隔（毫秒）默认 600000 = 10分钟</span>
+<span class="kw">ADMIN SET FRONTEND CONFIG</span> (
+  <span class="str">"background_refresh_metadata_interval_millis"</span>
+    = <span class="str">"300000"</span>  <span class="cm">-- 5分钟更激进</span>
+);
+
+<span class="cm">-- 手动强制刷新分区元数据</span>
+<span class="kw">REFRESH EXTERNAL TABLE</span>
+  hive_catalog.sales.orders
+  <span class="kw">PARTITION</span> (<span class="str">'dt=2024-01-15'</span>);</pre>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Iceberg Catalog 元数据策略 <span class="tag">ICEBERG</span></div>
+      <p>StarRocks v3.3+ 重构了 Iceberg 元数据框架，支持<strong>分布式并行 Manifest 读取</strong>和<strong>Manifest 缓存</strong>，大幅降低大表首次查询延迟。</p>
+      <div class="code-label">系统变量 — 控制元数据读取策略</div>
+      <pre><span class="cm">-- 自动选择（推荐），系统根据节点数和</span>
+<span class="cm">-- Manifest 文件数自动决策</span>
+<span class="kw">SET</span> plan_mode = <span class="str">'auto'</span>;
+
+<span class="cm">-- 强制分布式元数据读取（超大 Iceberg 表）</span>
+<span class="kw">SET</span> plan_mode = <span class="str">'distributed'</span>;
+
+<span class="cm">-- 开启 Iceberg 定时缓存刷新</span>
+<span class="kw">ADMIN SET FRONTEND CONFIG</span> (
+  <span class="str">"enable_iceberg_metadata_cache"</span> = <span class="str">"true"</span>
+);
+
+<span class="cm">-- 停止访问后的元数据缓存保留时长（ms）</span>
+<span class="kw">ADMIN SET FRONTEND CONFIG</span> (
+  <span class="str">"iceberg_metadata_cache_expire_time"</span>
+    = <span class="str">"86400000"</span>  <span class="cm">-- 24小时</span>
+);</pre>
+    </div>
+  </div>
+
+  <div class="panel success">
+    <div class="panel-title">元数据新鲜度 vs 性能 — 三种模式选择 <span class="tag ok">BEST PRACTICE</span></div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>场景</th><th>推荐策略</th><th>关键配置</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>报表查询，可容忍分钟级延迟</td><td>默认自动缓存 + 后台刷新</td><td>无需额外配置（默认最优）</td></tr>
+          <tr><td>近实时，需感知上游写入</td><td>短间隔刷新 + 手动 REFRESH</td><td><code>background_refresh_metadata_interval_millis=60000</code></td></tr>
+          <tr><td>数据变更频繁，HMS 性能差</td><td>禁用自动增量更新，外部调度 REFRESH</td><td><code>enable_metastore_cache=false</code> 后定时调用 REFRESH</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════ SECTION 4: CBO 统计信息 ══════════ -->
+  <div id="s4" class="section-header">
+    <span class="section-num">// 04</span>
+    <span class="section-title">CBO 统计信息收集 — 让优化器做正确决策</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="panel critical">
+    <div class="panel-title">为什么外部 Catalog 统计信息至关重要 <span class="tag hot">CRITICAL</span></div>
+    <p>CBO 基于统计信息估算各算子代价，统计信息缺失或过期会导致：大表被 Broadcast Join、Join 顺序错误、并行度不足。对外部 Catalog 而言，StarRocks 无法像内部表一样自动感知数据变化，<em>必须主动收集</em>。</p>
+  </div>
+
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-title">手动统计信息收集 <span class="tag">ANALYZE</span></div>
+      <div class="code-label">在外部 Catalog 上下文中执行</div>
+      <pre><span class="kw">USE</span> hive_catalog.sales;
+
+<span class="cm">-- 全表全量统计（小表适用）</span>
+<span class="kw">ANALYZE TABLE</span> orders;
+
+<span class="cm">-- 指定列（推荐：只分析查询频繁列）</span>
+<span class="kw">ANALYZE TABLE</span> orders (dt, cust_id, amount);
+
+<span class="cm">-- 采样统计（大表推荐，权衡精度与开销）</span>
+<span class="kw">ANALYZE TABLE</span> orders <span class="kw">WITH</span> SYNC MODE
+  <span class="kw">PROPERTIES</span>(<span class="str">"sample_ratio"</span>=<span class="str">"0.1"</span>);
+
+<span class="cm">-- 直方图（高基数列，提升 Join 过滤估算精度）</span>
+<span class="kw">ANALYZE TABLE</span> orders
+  <span class="kw">UPDATE HISTOGRAM ON</span> amount, cust_id
+  <span class="kw">WITH</span> <span class="num">128</span> BUCKETS;
+
+<span class="cm">-- 查看统计状态</span>
+<span class="kw">SHOW ANALYZE STATUS</span>;</pre>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">自动统计收集 (v3.4+) <span class="badge v35">v3.4+</span></div>
+      <p>StarRocks v3.4 起支持<strong>查询触发式自动统计收集</strong>：查询 Hive/Iceberg/Hudi/Delta Lake 表时，系统在后台自动触发 ANALYZE，对本次查询涉及的列收集统计信息，供后续查询优化使用。</p>
+      <div class="code-label">开启自动统计收集</div>
+      <pre><span class="cm">-- 全局开启查询触发式自动统计</span>
+<span class="kw">SET GLOBAL</span>
+  enable_trigger_based_stat_collection = <span class="val">true</span>;
+
+<span class="cm">-- v3.5 新增: 记录查询谓词列，定向收集</span>
+<span class="cm">-- 系统自动识别高频过滤列优先收集</span>
+
+<span class="cm">-- v3.5 新增: 分区级基数估算</span>
+<span class="cm">-- 复用 _statistics_.column_statistics 视图</span>
+<span class="cm">-- 记录每个分区的 NDV，提升分区裁剪精度</span>
+
+<span class="cm">-- v3.5 新增: 多列联合 NDV 收集</span>
+<span class="cm">-- 解决列相关性导致的过滤率估算偏差</span>
+<span class="kw">ANALYZE TABLE</span> orders
+  <span class="kw">UPDATE HISTOGRAM ON</span> (dt, region);
+  <span class="cm">-- 多列联合直方图</span></pre>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Parquet 低基数全局字典优化 (v3.5) <span class="badge new">NEW v3.5</span></div>
+    <p>StarRocks v3.5 支持在查询 Parquet 格式的 Hive/Iceberg 表时，<strong>自动为低基数列创建全局字典</strong>，将字符串比较转换为整数比较，显著加速 GROUP BY 和过滤操作。</p>
+    <div class="code-label">控制低基数字典优化</div>
+    <pre><span class="cm">-- 默认开启，如遇异常可关闭</span>
+<span class="kw">SET GLOBAL</span> cbo_enable_low_cardinality_optimize = <span class="val">true</span>;
+
+<span class="cm">-- 手动触发字典收集（Hive/Iceberg 外部表）</span>
+<span class="kw">ANALYZE TABLE</span> iceberg_cat.dw.dim_product
+  <span class="kw">UPDATE HISTOGRAM ON</span> category, brand;
+<span class="cm">-- CBO 将自动识别并使用字典编码路径</span></pre>
+    <div class="highlight-box info">
+      <strong>适用场景：</strong>当 GROUP BY 列为 STRING 类型且 NDV &lt; 100,000 时效果最显著。可通过 EXPLAIN VERBOSE 输出中查看 <code>GlobalDictCache</code> 字样确认字典已生效。
+    </div>
+  </div>
+
+  <!-- ══════════ SECTION 5: DATA CACHE ══════════ -->
+  <div id="s5" class="section-header">
+    <span class="section-num">// 05</span>
+    <span class="section-title">Data Cache — 消灭远端 I/O 瓶颈</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="panel success">
+    <div class="panel-title">Data Cache 工作原理 <span class="tag ok">CORE FEATURE</span></div>
+    <p>Data Cache 将远端存储（S3/HDFS/OSS）的文件以固定大小 Block 分片缓存到 BE/CN 节点的本地磁盘（NVMe/SSD）。v3.3.0 起默认开启，v3.4 起外部 Catalog 与云原生表共享统一 Cache 实例。</p>
+    <ul class="checklist">
+      <li class="ok"><strong>热数据命中率高时</strong>，查询性能接近内部表，延迟降低 5-10x</li>
+      <li class="ok"><strong>冷读路径</strong>：v3.3+ 支持并行 tablet 扫描 + 小 I/O 自动合并，减少冷读延迟</li>
+      <li class="warn"><strong>JDBC Catalog</strong> 不支持 Data Cache（直接 JDBC 连接无文件块概念）</li>
+    </ul>
+  </div>
+
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-title">BE 节点 Data Cache 配置 <span class="tag">BE CONFIG</span></div>
+      <div class="code-label">be.conf 配置（重启生效）</div>
+      <pre><span class="cm"># 开启 DataCache（v3.3+ 默认 true）</span>
+<span class="fn">datacache_enable</span> = <span class="val">true</span>
+
+<span class="cm"># 磁盘缓存路径（建议 NVMe SSD）</span>
+<span class="fn">datacache_disk_path</span> = <span class="str">/nvme0/datacache</span>
+
+<span class="cm"># 磁盘缓存大小上限</span>
+<span class="fn">datacache_disk_size</span> = <span class="num">2T</span>
+
+<span class="cm"># 内存缓存（热点 Block 二级缓存）</span>
+<span class="fn">datacache_mem_size</span> = <span class="num">10G</span>
+
+<span class="cm"># Block 大小（默认 1MB，Parquet 列扫描</span>
+<span class="cm"># 建议调大至 4MB 减少元数据开销）</span>
+<span class="fn">datacache_block_size</span> = <span class="num">4194304</span></pre>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Session 级缓存控制 <span class="tag">SESSION</span></div>
+      <div class="code-label">查询时动态控制缓存行为</div>
+      <pre><span class="cm">-- 开启扫描时读 DataCache（Session级）</span>
+<span class="kw">SET</span> enable_scan_datacache = <span class="val">true</span>;
+
+<span class="cm">-- 开启扫描时填充 DataCache</span>
+<span class="kw">SET</span> enable_populate_datacache = <span class="val">true</span>;
+
+<span class="cm">-- 绕过缓存（调试/全量扫描场景）</span>
+<span class="kw">SET</span> enable_scan_datacache = <span class="val">false</span>;
+
+<span class="cm">-- 查看各 BE 节点 Cache 使用情况</span>
+<span class="kw">SHOW BACKENDS</span>\G
+<span class="cm">-- 关注 DataCacheMetrics 字段：</span>
+<span class="cm">-- DiskUsed / DiskCapacity / MemUsed</span>
+
+<span class="cm">-- 查询级 Cache 统计（Profile 中）：</span>
+<span class="cm">-- DataCacheReadBytes   ← 命中量</span>
+<span class="cm">-- DataCacheMissBytes   ← 未命中量</span>
+<span class="cm">-- DataCacheHitRate = Read/(Read+Miss)</span></pre>
+    </div>
+  </div>
+
+  <div class="panel warning">
+    <div class="panel-title">Data Cache 调优诊断树 <span class="tag warn">RECIPE</span></div>
+    <ul class="checklist">
+      <li class="warn"><strong>命中率 &lt; 50%</strong>：磁盘容量不足 → 扩大 <code>datacache_disk_size</code>，或识别并淘汰冷数据分区</li>
+      <li class="warn"><strong>ScanTime 高但命中率 &gt; 90%</strong>：Block 尺寸过小导致 IOPS 过高 → 调大 <code>datacache_block_size</code> 至 4-8MB</li>
+      <li><strong>冷启动后首次查询慢</strong>：预期行为，考虑用定时查询预热热分区数据</li>
+      <li class="ok"><strong>持续高命中率 + 低延迟</strong>：缓存策略已最优，关注 Join 和聚合算子</li>
+    </ul>
+  </div>
+
+  <!-- ══════════ SECTION 6: SCAN 优化 ══════════ -->
+  <div id="s6" class="section-header">
+    <span class="section-num">// 06</span>
+    <span class="section-title">Scan 算子优化 — 减少数据读取量</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-title">分区裁剪 (Partition Pruning) <span class="tag">PUSHDOWN</span></div>
+      <p>外部 Catalog 分区裁剪依赖 FE 元数据和<strong>谓词形式</strong>。写法不当会导致全分区扫描。</p>
+      <div class="code-label">✗ 错误写法 — 函数包裹导致无法下推</div>
+      <pre><span class="kw">SELECT</span> * <span class="kw">FROM</span> hive.sales.orders
+<span class="kw">WHERE</span> <span class="fn">DATE_FORMAT</span>(dt, <span class="str">'%Y-%m'</span>) = <span class="str">'2024-01'</span>;
+<span class="cm">-- ✗ 函数包裹分区列 → 全分区扫描</span>
+<span class="cm">-- ✗ LIKE '%...' → 无法使用 ZonemapIndex</span></pre>
+
+      <div class="code-label">✓ 正确写法 — 裸列比较保证下推</div>
+      <pre><span class="kw">SELECT</span> * <span class="kw">FROM</span> hive.sales.orders
+<span class="kw">WHERE</span> dt >= <span class="str">'2024-01-01'</span>
+  <span class="kw">AND</span> dt <  <span class="str">'2024-02-01'</span>;
+<span class="cm">-- ✓ 裸列范围比较 → 精准分区裁剪</span>
+<span class="cm">-- ✓ Parquet Row Group ZonemapIndex 生效</span></pre>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">列裁剪与 Parquet 优化 <span class="tag">COLUMN PRUNE</span></div>
+      <p>StarRocks 向量化引擎对 Parquet/ORC 做列式读取，只读取 SQL 引用的列。额外优化点：</p>
+      <ul class="checklist">
+        <li><strong>SELECT 指定列</strong>，避免 SELECT *（宽表开销巨大）</li>
+        <li><strong>Parquet Bloom Filter</strong>（v3.5+）：对高基数等值过滤列在 Parquet Writer 侧建立 Bloom Filter，StarRocks 可在文件级跳过不命中的 Row Group</li>
+        <li><strong>ORC / Parquet 压缩格式</strong>：优先选 Zstd（压缩率 + 解压速度均衡）或 LZ4（低延迟场景）</li>
+        <li><strong>小文件合并</strong>：Iceberg/Hive 小文件过多会导致元数据爆炸，建议定期 COMPACTION</li>
+      </ul>
+      <div class="code-label">v3.5 Parquet Bloom Filter 查询加速</div>
+      <pre><span class="cm">-- 确认 Bloom Filter 下推生效（Profile）：</span>
+<span class="cm">-- BloomfilterFilterRows > 0 表示已过滤</span>
+<span class="kw">EXPLAIN ANALYZE</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> iceberg.dw.events
+<span class="kw">WHERE</span> user_id = <span class="str">'U123456'</span>;</pre>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Parquet / ORC 文件 I/O 并行控制 <span class="tag">PARALLELISM</span></div>
+    <div class="code-label">Session 变量 — 控制扫描并发</div>
+    <pre><span class="cm">-- 调整单查询 Scan 线程并行度（默认根据 CPU 自动）</span>
+<span class="kw">SET</span> pipeline_dop = <span class="num">8</span>;  <span class="cm">-- 并行度 = 8</span>
+
+<span class="cm">-- 外部表 Scan 最大并行任务数</span>
+<span class="kw">SET</span> connector_io_tasks_per_scan_operator = <span class="num">16</span>;
+
+<span class="cm">-- 启用自适应 Sink 并行（v3.2+）</span>
+<span class="kw">SET</span> enable_adaptive_sink_dop = <span class="val">true</span>;
+
+<span class="cm">-- 大查询：避免 CPU 争抢，启用资源组隔离</span>
+<span class="kw">SET</span> resource_group = <span class="str">'lake_query_rg'</span>;</pre>
+  </div>
+
+  <!-- ══════════ SECTION 7: JOIN 优化 ══════════ -->
+  <div id="s7" class="section-header">
+    <span class="section-num">// 07</span>
+    <span class="section-title">Join 优化 — 最高频的外部 Catalog 性能杀手</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="panel critical">
+    <div class="panel-title">Join 类型与选择策略 <span class="tag hot">HIGH IMPACT</span></div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>Join 类型</th><th>适用场景</th><th>外部 Catalog 注意点</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Broadcast Join</strong></td><td>小表 &lt; 100MB（CBO 自动判断）</td><td>统计信息准确时自动选择；统计缺失可能误选大表 Broadcast → 内存爆炸</td></tr>
+          <tr><td><strong>Shuffle Join</strong></td><td>两表均较大，均匀分布</td><td>网络传输开销大，需足够带宽；外部 Catalog 场景已有 I/O 压力，应先减少数据量</td></tr>
+          <tr><td><strong>Bucket Shuffle Join</strong></td><td>内部表 + 外部表，内部表有 Hash 分布</td><td>外部 Catalog 表无 bucket 概念，仅适用于内外表混合查询</td></tr>
+          <tr><td><strong>Colocate Join</strong></td><td>纯内部表</td><td>不适用于外部 Catalog</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-title">Join Hint 强制指定策略 <span class="tag">HINT</span></div>
+      <div class="code-label">当 CBO 因统计缺失选错 Join 类型时</div>
+      <pre><span class="cm">-- 强制 Broadcast Join（右表确定是小表）</span>
+<span class="kw">SELECT</span> o.*, c.name
+<span class="kw">FROM</span> hive.sales.orders o
+<span class="kw">JOIN</span> [<span class="fn">BROADCAST</span>] hive.sales.customers c
+  <span class="kw">ON</span> o.cust_id = c.id;
+
+<span class="cm">-- 强制 Shuffle Join（避免大表被 Broadcast）</span>
+<span class="kw">SELECT</span> a.*, b.*
+<span class="kw">FROM</span> iceberg.dw.fact_orders a
+<span class="kw">JOIN</span> [<span class="fn">SHUFFLE</span>] iceberg.dw.fact_returns b
+  <span class="kw">ON</span> a.order_id = b.order_id;
+
+<span class="cm">-- SET 变量临时限制 Broadcast 阈值</span>
+<span class="kw">SET</span> broadcast_row_limit = <span class="num">10000000</span>;
+<span class="cm">-- 右表估算行数超此值时不选 Broadcast</span></pre>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Join Reorder 与 Runtime Filter <span class="tag">OPTIMIZER</span></div>
+      <p>StarRocks CBO 自动进行 Join Reorder，但外部 Catalog 统计缺失时可能选错顺序。同时 Runtime Filter 可在 Probe 端提前过滤数据，减少扫描量。</p>
+      <div class="code-label">Runtime Filter 优化控制</div>
+      <pre><span class="cm">-- 开启 Runtime Filter（默认 true）</span>
+<span class="kw">SET</span> enable_runtime_filter = <span class="val">true</span>;
+
+<span class="cm">-- Runtime Filter 等待超时（ms）</span>
+<span class="kw">SET</span> runtime_filter_wait_timeout_ms = <span class="num">1000</span>;
+
+<span class="cm">-- 开启 Global Runtime Filter（跨 Fragment）</span>
+<span class="kw">SET</span> enable_global_runtime_filter = <span class="val">true</span>;
+
+<span class="cm">-- SETVAR Hint 针对单条查询</span>
+<span class="kw">SELECT</span> <span class="cm">/*+ SET_VAR(</span>
+  <span class="fn">enable_runtime_filter</span>=<span class="val">true</span>,
+  <span class="fn">broadcast_row_limit</span>=<span class="num">5000000</span>
+<span class="cm">) */</span> ...
+<span class="kw">FROM</span> hive.sales.orders o
+<span class="kw">JOIN</span> hive.sales.regions r <span class="kw">ON</span> o.region_id = r.id;</pre>
+    </div>
+  </div>
+
+  <!-- ══════════ SECTION 8: 聚合优化 ══════════ -->
+  <div id="s8" class="section-header">
+    <span class="section-num">// 08</span>
+    <span class="section-title">聚合算子优化 — 高基数与内存管理</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">分布式聚合执行阶段 <span class="tag">AGGREGATE</span></div>
+    <pre class="arch-diagram" style="font-size:12px; padding:20px; white-space:pre; font-family:var(--font-mono);">┌──────────┐   本地    ┌──────────┐  Shuffle  ┌──────────┐  Gather  ┌──────────┐
+│ Stage 0  │ ────────► │ Stage 1  │ ─────────► │ Stage 2  │ ────────► │ Stage 3  │
+│  Local   │           │  Update  │            │  Merge   │           │ Finalize │
+│ Partial  │           │          │            │          │           │  Output  │
+└──────────┘           └──────────┘            └──────────┘           └──────────┘</pre>
+
+    <div class="grid-2">
+      <div>
+        <div class="code-label">高基数 GROUP BY 优化</div>
+        <pre><span class="cm">-- 症状：HashTableMemoryUsage 接近上限</span>
+<span class="cm">-- 方案1: 开启 Streaming 预聚合</span>
+<span class="kw">SET</span> enable_streaming_preaggregation = <span class="val">true</span>;
+
+<span class="cm">-- 方案2: 开启溢写（大内存时谨慎）</span>
+<span class="kw">SET</span> spill_mode = <span class="str">'auto'</span>;
+<span class="kw">SET</span> spillable_operator_threshold = <span class="num">2147483648</span>;
+<span class="cm">-- 2GB 以上自动 Spill 到磁盘</span>
+
+<span class="cm">-- 方案3: STRING 聚合键转 INT</span>
+<span class="cm">-- 使用低基数字典编码（v3.5 自动）</span></pre>
+      </div>
+      <div>
+        <div class="code-label">COUNT DISTINCT 优化</div>
+        <pre><span class="cm">-- 大数据量精确 COUNT DISTINCT</span>
+<span class="cm">-- 使用多阶段聚合避免数据集中</span>
+<span class="kw">SET</span> count_distinct_column_buckets = <span class="num">1024</span>;
+<span class="kw">SET</span> new_planner_agg_stage = <span class="num">4</span>;
+
+<span class="cm">-- 近似场景使用 HLL / NDV 函数</span>
+<span class="kw">SELECT</span>
+  dt,
+  <span class="fn">approx_count_distinct</span>(user_id) AS uv,
+  <span class="fn">hll_union_agg</span>(<span class="fn">hll_hash</span>(user_id)) AS hll_uv
+<span class="kw">FROM</span> hive.ods.events
+<span class="kw">GROUP BY</span> dt;</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ SECTION 9: 物化视图 ══════════ -->
+  <div id="s9" class="section-header">
+    <span class="section-num">// 09</span>
+    <span class="section-title">异步物化视图 — 数据湖查询加速王器</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="panel success">
+    <div class="panel-title">外部 Catalog 物化视图加速策略 <span class="tag ok">RECOMMENDED</span></div>
+    <p>对于高频访问的外部 Catalog 报表查询，异步物化视图是<em>最强力</em>的加速手段：将计算结果持久化到 StarRocks 内部存储，查询时透明改写，完全绕开远端 I/O。</p>
+    <p>支持的外部 Catalog 类型：<strong>Hive、Iceberg、Hudi、Delta Lake、JDBC、Paimon</strong></p>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">物化视图创建与刷新策略 <span class="tag">MV</span></div>
+    <div class="code-label">基于 Iceberg Catalog 创建物化视图</div>
+    <pre><span class="kw">CREATE MATERIALIZED VIEW</span> dw_daily_sales_mv
+<span class="kw">PARTITION BY</span> (dt)
+<span class="kw">DISTRIBUTED BY HASH</span>(region_id) <span class="kw">BUCKETS</span> <span class="num">32</span>
+<span class="kw">REFRESH ASYNC</span>
+<span class="kw">EVERY</span>(<span class="kw">INTERVAL</span> <span class="num">1</span> <span class="kw">HOUR</span>)
+<span class="kw">PROPERTIES</span>(
+  <span class="str">"replication_num"</span> = <span class="str">"1"</span>,
+  <span class="str">"partition_refresh_number"</span> = <span class="str">"3"</span>  <span class="cm">-- 每次刷新最近3个分区</span>
+)
+<span class="kw">AS</span>
+<span class="kw">SELECT</span>
+  dt,
+  region_id,
+  product_category,
+  SUM(amount)       <span class="kw">AS</span> total_sales,
+  COUNT(DISTINCT order_id) <span class="kw">AS</span> order_cnt,
+  <span class="fn">approx_count_distinct</span>(cust_id) <span class="kw">AS</span> uv
+<span class="kw">FROM</span> iceberg_catalog.dw.fact_orders
+<span class="kw">WHERE</span> status = <span class="str">'COMPLETED'</span>
+<span class="kw">GROUP BY</span> dt, region_id, product_category;
+
+<span class="cm">-- 对 Hive Catalog 开启分区级感知刷新</span>
+<span class="kw">ADMIN SET FRONTEND CONFIG</span> (
+  <span class="str">"enable_hive_partition_refresh"</span> = <span class="str">"true"</span>
+);
+
+<span class="cm">-- 查看物化视图状态</span>
+<span class="kw">SHOW MATERIALIZED VIEWS</span>;
+<span class="kw">SELECT</span> * <span class="kw">FROM</span>
+  information_schema.task_runs
+<span class="kw">WHERE</span> task_name = <span class="str">'dw_daily_sales_mv'</span>;</pre>
+  </div>
+
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-title">查询透明改写 (Query Rewrite) <span class="tag">REWRITE</span></div>
+      <p>物化视图创建后，StarRocks CBO 自动检测并改写符合条件的查询，无需修改业务 SQL。</p>
+      <div class="code-label">验证改写是否生效</div>
+      <pre><span class="kw">EXPLAIN</span>
+<span class="kw">SELECT</span> dt, region_id, SUM(amount)
+<span class="kw">FROM</span> iceberg_catalog.dw.fact_orders
+<span class="kw">WHERE</span> status = <span class="str">'COMPLETED'</span>
+  <span class="kw">AND</span> dt >= <span class="str">'2024-01-01'</span>
+<span class="kw">GROUP BY</span> dt, region_id;
+
+<span class="cm">-- 计划中出现 OlapScanNode 且 table 为</span>
+<span class="cm">-- dw_daily_sales_mv 则改写成功</span>
+
+<span class="cm">-- 强制开启/关闭改写（调试用）</span>
+<span class="kw">SET</span> enable_materialized_view_rewrite = <span class="val">true</span>;</pre>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Hive 分区感知刷新 <span class="tag">HIVE</span></div>
+      <p>为 Hive Catalog 物化视图配置分区级感知，StarRocks 周期性检查 HMS 感知新增分区，<strong>只刷新变更分区</strong>，避免全量重算。</p>
+      <ul class="checklist">
+        <li class="ok">设置 <code>enable_hive_partition_refresh=true</code> 开启感知</li>
+        <li class="ok">物化视图分区键与 Hive 表分区键对齐（如 <code>dt</code>）</li>
+        <li class="ok">配合 <code>partition_refresh_number</code> 控制每批刷新分区数，避免 FE 压力</li>
+        <li class="warn">HMS 性能较差时，调大 <code>background_refresh_metadata_interval_millis</code></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ══════════ SECTION 10: Query Feedback ══════════ -->
+  <div id="s10" class="section-header">
+    <span class="section-num">// 10</span>
+    <span class="section-title">Query Feedback — 自适应计划修正 (v3.4+)</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Query Feedback 工作原理 <span class="badge v35">v3.4+</span></div>
+    <p>Query Feedback 是 CBO 的自我修正框架：记录查询实际执行统计（真实行数、真实 NDV），当 CBO 估算与实际偏差超阈值时，生成 <strong>Tuning Guide</strong> 并在后续相似查询中自动修正执行计划。</p>
+    <p>典型修正场景：<em>大表被误判为小表广播</em>、<em>Join 顺序因统计偏差选错</em>、<em>分区裁剪估算不准</em>。</p>
+
+    <div class="code-label">查看当前 FE 的 Tuning Guides</div>
+    <pre><span class="kw">SHOW QUERY FEEDBACK</span>;
+
+<span class="cm">-- 输出示例：</span>
+<span class="cm">-- 1: LeftChildEstimationErrorTuningGuide</span>
+<span class="cm">-- Reason: left child of JoinNode overestimated</span>
+<span class="cm">-- Advice: Adjust distribution join type</span>
+
+<span class="cm">-- EXPLAIN 时看到 "Plan had been tuned by Plan Advisor"</span>
+<span class="cm">-- 即表示 Feedback 已介入修正</span>
+<span class="kw">EXPLAIN</span>
+<span class="kw">SELECT</span> COUNT(*) <span class="kw">FROM</span>
+  hive.sales.large_orders t1
+  <span class="kw">JOIN</span> hive.sales.small_ref t2 <span class="kw">ON</span> t1.id = t2.id;
+
+<span class="cm">-- 清除所有 Tuning Guides（测试环境）</span>
+<span class="kw">ADMIN RESET FRONTEND CONFIG</span>(<span class="str">"query_feedback_enabled"</span>);</pre>
+
+    <div class="highlight-box">
+      <strong>最佳实践：</strong>Query Feedback 与 ANALYZE 互补。短期内先依靠 Feedback 自动纠偏，同时规划 ANALYZE 任务完善统计信息，使 CBO 从源头做出正确决策。
+    </div>
+  </div>
+
+  <!-- ══════════ SECTION 11: 参数速查表 ══════════ -->
+  <div id="s11" class="section-header">
+    <span class="section-num">// 11</span>
+    <span class="section-title">关键参数速查表 — 外部 Catalog 调优全景</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">FE 配置参数 <span class="tag">FE CONFIG</span></div>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>参数</th><th>推荐值</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td><code>enable_background_refresh_connector_metadata</code></td><td><code>true</code></td><td>开启元数据后台刷新</td></tr>
+          <tr><td><code>background_refresh_metadata_interval_millis</code></td><td><code>300000</code></td><td>刷新间隔（ms），默认10分钟，可调小</td></tr>
+          <tr><td><code>enable_hive_partition_refresh</code></td><td><code>true</code></td><td>Hive 分区级元数据感知</td></tr>
+          <tr><td><code>enable_iceberg_metadata_cache</code></td><td><code>true</code></td><td>Iceberg 元数据缓存（v3.3+ 自动）</td></tr>
+          <tr><td><code>iceberg_metadata_cache_expire_time</code></td><td><code>86400000</code></td><td>非活跃 Iceberg catalog 缓存保留时间（ms）</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Session 变量速查 <span class="tag">SESSION VARS</span></div>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>变量</th><th>推荐值</th><th>效果</th></tr></thead>
+        <tbody>
+          <tr><td><code>enable_profile</code></td><td><code>true</code>（按需）</td><td>开启 Query Profile 采集</td></tr>
+          <tr><td><code>enable_scan_datacache</code></td><td><code>true</code></td><td>查询时读 Data Cache</td></tr>
+          <tr><td><code>enable_populate_datacache</code></td><td><code>true</code></td><td>查询时填充 Data Cache</td></tr>
+          <tr><td><code>enable_runtime_filter</code></td><td><code>true</code></td><td>Runtime Filter 过滤下推</td></tr>
+          <tr><td><code>enable_global_runtime_filter</code></td><td><code>true</code></td><td>跨 Fragment Global Runtime Filter</td></tr>
+          <tr><td><code>plan_mode</code></td><td><code>auto</code></td><td>Iceberg 元数据读取策略（auto/distributed）</td></tr>
+          <tr><td><code>broadcast_row_limit</code></td><td><code>15000000</code></td><td>Broadcast Join 行数上限</td></tr>
+          <tr><td><code>pipeline_dop</code></td><td>按 CPU 核数</td><td>Pipeline 并行度</td></tr>
+          <tr><td><code>connector_io_tasks_per_scan_operator</code></td><td><code>16</code></td><td>外部表 Scan I/O 任务并发</td></tr>
+          <tr><td><code>enable_streaming_preaggregation</code></td><td><code>true</code></td><td>Streaming 预聚合减少内存峰值</td></tr>
+          <tr><td><code>spill_mode</code></td><td><code>auto</code></td><td>聚合/Join 超内存时 Spill 到磁盘</td></tr>
+          <tr><td><code>enable_materialized_view_rewrite</code></td><td><code>true</code></td><td>透明物化视图改写</td></tr>
+          <tr><td><code>cbo_enable_low_cardinality_optimize</code></td><td><code>true</code></td><td>低基数字典优化（v3.5 外表自动）</td></tr>
+          <tr><td><code>enable_trigger_based_stat_collection</code></td><td><code>true</code></td><td>查询触发自动统计收集（v3.4+）</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">BE 配置速查（be.conf）<span class="tag">BE CONFIG</span></div>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>参数</th><th>推荐值</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td><code>datacache_enable</code></td><td><code>true</code></td><td>开启 Data Cache（v3.3+ 默认）</td></tr>
+          <tr><td><code>datacache_disk_path</code></td><td>NVMe SSD 路径</td><td>建议专用 NVMe 磁盘</td></tr>
+          <tr><td><code>datacache_disk_size</code></td><td>磁盘容量 80%</td><td>预留系统空间</td></tr>
+          <tr><td><code>datacache_mem_size</code></td><td>10-30G</td><td>内存级热点二级缓存</td></tr>
+          <tr><td><code>datacache_block_size</code></td><td><code>4194304</code>（4MB）</td><td>Parquet 列式扫描建议 4-8MB</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CHECKLIST SUMMARY -->
+  <div class="section-header">
+    <span class="section-num">// SUM</span>
+    <span class="section-title">外部 Catalog 查询调优 TOP-10 优先级清单</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="panel success">
+    <div class="panel-title">按优先级排序的调优行动清单 <span class="tag ok">ACTION LIST</span></div>
+    <ul class="checklist">
+      <li class="ok"><strong>[P0] 收集 CBO 统计信息</strong> — <code>ANALYZE TABLE</code> 外部表，v3.4+ 开启自动收集，这是一切优化的前提</li>
+      <li class="ok"><strong>[P0] 确认 Data Cache 已启用</strong> — 检查 BE <code>datacache_enable=true</code>，Session <code>enable_scan_datacache=true</code></li>
+      <li class="ok"><strong>[P1] 开启 Query Profile 分析瓶颈</strong> — 找到最热的 Operator（Scan/Join/Agg）再对症下药</li>
+      <li class="hot"><strong>[P1] 检查谓词下推是否生效</strong> — Profile 中 <code>PushdownPredicates=0</code> 且过滤行数高则必须改写 SQL</li>
+      <li class="hot"><strong>[P1] 元数据缓存刷新配置</strong> — 避免每次查询都冷读 HMS/Glue，配置后台刷新间隔</li>
+      <li><strong>[P2] 高频报表创建异步物化视图</strong> — 绕开远端 I/O，查询性能提升 10x+ </li>
+      <li><strong>[P2] Join 类型验证</strong> — <code>EXPLAIN</code> 确认 CBO 选择正确，必要时使用 Hint 强制</li>
+      <li class="warn"><strong>[P2] 启用 Query Feedback（v3.4+）</strong> — 让系统自动纠正统计偏差导致的次优计划</li>
+      <li class="warn"><strong>[P3] 小文件合并与分区设计</strong> — Iceberg COMPACTION，Hive 分区粒度与查询模式对齐</li>
+      <li><strong>[P3] 资源组隔离</strong> — 大查询与高并发短查询分离，避免资源争抢</li>
+    </ul>
+  </div>
+
+  <footer>
+    STARROCKS 3.5 // EXTERNAL CATALOG OPTIMIZATION MANUAL<br>
+    REF: docs.starrocks.io/docs/3.5/category/query-tuning/ · docs.starrocks.io/docs/data_source/
+  </footer>
+
+</div>
+
+<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">↑</button>
+
+<script>
+  // Scroll progress bar
+  window.addEventListener('scroll', () => {
+    const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+    const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    const progress = (scrollTop / scrollHeight) * 100;
+    document.getElementById('scrollProgress').style.width = progress + '%';
+
+    // Back to top button
+    const btn = document.getElementById('backToTop');
+    if (scrollTop > 500) {
+      btn.classList.add('visible');
+    } else {
+      btn.classList.remove('visible');
+    }
+  });
+
+  // Active TOC highlighting
+  const sections = document.querySelectorAll('.section-header');
+  const tocItems = document.querySelectorAll('.toc-item');
+
+  const observerOptions = {
+    root: null,
+    rootMargin: '-100px 0px -60% 0px',
+    threshold: 0
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        tocItems.forEach(item => {
+          item.classList.remove('active');
+          if (item.getAttribute('href') === '#' + id) {
+            item.classList.add('active');
+          }
+        });
+      }
+    });
+  }, observerOptions);
+
+  sections.forEach(section => observer.observe(section));
+
+  // Smooth scroll for TOC clicks
+  tocItems.forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = document.querySelector(item.getAttribute('href'));
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
