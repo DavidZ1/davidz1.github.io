@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B 树深度解析 · 精密架构手册</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-primary: #0b0f19;
+    --bg-secondary: #111827;
+    --bg-tertiary: #1a2236;
+    --bg-card: rgba(17,24,39,0.7);
+    --bg-code: #0d1117;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent-cyan: #22d3ee;
+    --accent-purple: #a855f7;
+    --accent-pink: #ec4899;
+    --accent-yellow: #fbbf24;
+    --accent-green: #34d399;
+    --accent-orange: #fb923c;
+    --accent-red: #f87171;
+    --border-subtle: rgba(148,163,184,0.1);
+    --border-medium: rgba(148,163,184,0.15);
+    --border-accent: rgba(34,211,238,0.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    line-height: 1.8;
+    overflow-x: hidden;
+  }
+
+  /* Background texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 20% 20%, rgba(168,85,247,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(34,211,238,0.05) 0%, transparent 60%),
+      linear-gradient(rgba(148,163,184,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148,163,184,0.03) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 32px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HEADER */
+  header {
+    padding: 80px 0 60px;
+    border-bottom: 1px solid var(--border-subtle);
+    margin-bottom: 72px;
+  }
+
+  .tag-line {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent-cyan);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    opacity: 0.8;
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(42px, 7vw, 72px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    background: linear-gradient(135deg, #f1f5f9 0%, #94a3b8 60%, var(--accent-cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 24px;
+  }
+
+  .subtitle {
+    font-size: 17px;
+    color: var(--text-secondary);
+    max-width: 620px;
+    line-height: 1.7;
+  }
+
+  .meta-bar {
+    display: flex;
+    gap: 32px;
+    margin-top: 36px;
+    flex-wrap: wrap;
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .meta-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 8px var(--accent-cyan);
+  }
+
+  /* TOC */
+  .toc {
+    background: var(--bg-card);
+    border: 1px solid var(--border-medium);
+    border-left: 3px solid var(--accent-purple);
+    backdrop-filter: blur(12px);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 72px;
+  }
+
+  .toc-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent-purple);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .toc ol { padding-left: 0; list-style: none; }
+  .toc li {
+    padding: 4px 0;
+    font-size: 14px;
+    color: var(--text-secondary);
+    counter-increment: toc-counter;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .toc li::before {
+    content: counter(toc-counter, decimal-leading-zero);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent-cyan);
+    opacity: 0.6;
+    min-width: 24px;
+  }
+  .toc ol { counter-reset: toc-counter; }
+  .toc a { color: var(--text-secondary); text-decoration: none; transition: color 0.2s; }
+  .toc a:hover { color: var(--accent-cyan); }
+
+  /* SECTIONS */
+  section { margin-bottom: 80px; }
+
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--accent-cyan);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    opacity: 0.7;
+  }
+
+  h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(24px, 4vw, 36px);
+    font-weight: 700;
+    letter-spacing: -1px;
+    color: var(--text-primary);
+    margin-bottom: 24px;
+    line-height: 1.2;
+  }
+
+  h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 36px 0 14px;
+  }
+
+  p { color: var(--text-secondary); margin-bottom: 18px; font-size: 15.5px; }
+
+  strong { color: var(--text-primary); font-weight: 500; }
+
+  /* CARDS */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-medium);
+    backdrop-filter: blur(12px);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin: 28px 0;
+  }
+
+  .insight-card {
+    background: rgba(168,85,247,0.06);
+    border: 1px solid rgba(168,85,247,0.2);
+    border-left: 3px solid var(--accent-purple);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 24px 0;
+  }
+
+  .insight-card .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--accent-purple);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .insight-card p { color: var(--text-primary); margin: 0; font-size: 15px; }
+
+  .tip-card {
+    background: rgba(34,211,238,0.05);
+    border: 1px solid rgba(34,211,238,0.15);
+    border-left: 3px solid var(--accent-cyan);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 24px 0;
+  }
+
+  .tip-card .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--accent-cyan);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .tip-card p { color: var(--text-primary); margin: 0; font-size: 15px; }
+
+  .warning-card {
+    background: rgba(251,191,36,0.05);
+    border: 1px solid rgba(251,191,36,0.15);
+    border-left: 3px solid var(--accent-yellow);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 24px 0;
+  }
+
+  .warning-card .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--accent-yellow);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .warning-card p { color: var(--text-primary); margin: 0; font-size: 15px; }
+
+  /* SVG CONTAINER */
+  .svg-container {
+    background: #0f1117;
+    border: 1px solid var(--border-medium);
+    border-radius: 16px;
+    padding: 32px 20px;
+    margin: 32px 0;
+    overflow-x: auto;
+    position: relative;
+  }
+
+  .svg-caption {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: 16px;
+    letter-spacing: 1px;
+  }
+
+  /* CODE BLOCKS */
+  .code-block {
+    background: var(--bg-code);
+    border: 1px solid var(--border-medium);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 28px 0;
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .code-lang {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent-cyan);
+    letter-spacing: 2px;
+  }
+
+  .code-dots { display: flex; gap: 6px; }
+  .code-dots span { width: 10px; height: 10px; border-radius: 50%; }
+  .code-dots span:nth-child(1) { background: #f87171; }
+  .code-dots span:nth-child(2) { background: #fbbf24; }
+  .code-dots span:nth-child(3) { background: #34d399; }
+
+  pre {
+    padding: 24px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #e2e8f0;
+  }
+
+  .kw { color: #c084fc; }
+  .fn { color: #67e8f9; }
+  .str { color: #86efac; }
+  .num { color: #fbbf24; }
+  .cm { color: #64748b; font-style: italic; }
+  .type { color: #fb923c; }
+  .op { color: #94a3b8; }
+  .var { color: #f1f5f9; }
+
+  /* COMPARISON TABLE */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 24px 0;
+    font-size: 14px;
+  }
+
+  .compare-table th {
+    background: var(--bg-tertiary);
+    color: var(--accent-cyan);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 14px 20px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-medium);
+  }
+
+  .compare-table td {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    vertical-align: top;
+  }
+
+  .compare-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .badge-green { background: rgba(52,211,153,0.1); color: var(--accent-green); border: 1px solid rgba(52,211,153,0.2); }
+  .badge-red { background: rgba(248,113,113,0.1); color: var(--accent-red); border: 1px solid rgba(248,113,113,0.2); }
+  .badge-yellow { background: rgba(251,191,36,0.1); color: var(--accent-yellow); border: 1px solid rgba(251,191,36,0.2); }
+  .badge-cyan { background: rgba(34,211,238,0.1); color: var(--accent-cyan); border: 1px solid rgba(34,211,238,0.2); }
+  .badge-purple { background: rgba(168,85,247,0.1); color: var(--accent-purple); border: 1px solid rgba(168,85,247,0.2); }
+
+  /* DIVIDER */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border-medium), transparent);
+    margin: 64px 0;
+  }
+
+  /* FORMULA */
+  .formula {
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(34,211,238,0.06);
+    border: 1px solid rgba(34,211,238,0.15);
+    border-radius: 8px;
+    padding: 16px 24px;
+    text-align: center;
+    color: var(--accent-cyan);
+    font-size: 15px;
+    margin: 20px 0;
+    letter-spacing: 1px;
+  }
+
+  /* SCROLL reveal animation */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  section { animation: fadeUp 0.6s ease both; }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border-subtle);
+    padding: 48px 0;
+    text-align: center;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<!-- HEADER -->
+<header>
+  <div class="tag-line">精密架构手册 · Vol.03</div>
+  <h1>B 树深度解析</h1>
+  <p class="subtitle">从磁盘 I/O 的本质出发，理解 B 树如何成为数据库索引的基石——不只是数据结构，而是一套与硬件特性深度耦合的工程哲学。</p>
+  <div class="meta-bar">
+    <div class="meta-item"><div class="meta-dot"></div> 数据结构 / 存储引擎</div>
+    <div class="meta-item"><div class="meta-dot" style="background:var(--accent-purple);box-shadow:0 0 8px var(--accent-purple)"></div> 适合有编程基础的工程师</div>
+    <div class="meta-item"><div class="meta-dot" style="background:var(--accent-green);box-shadow:0 0 8px var(--accent-green)"></div> 预计阅读 25 分钟</div>
+  </div>
+</header>
+
+<!-- TOC -->
+<div class="toc">
+  <div class="toc-title">目录</div>
+  <ol>
+    <li><a href="#s1">设计背景：为什么磁盘逼出了 B 树</a></li>
+    <li><a href="#s2">整体架构：B 树的全景图</a></li>
+    <li><a href="#s3">核心机制一：节点结构与阶（Order）</a></li>
+    <li><a href="#s4">核心机制二：查找路径</a></li>
+    <li><a href="#s5">核心机制三：插入与节点分裂</a></li>
+    <li><a href="#s6">核心机制四：删除与节点合并/借键</a></li>
+    <li><a href="#s7">B 树 vs B+ 树：新老对比</a></li>
+    <li><a href="#s8">生产实战：MySQL InnoDB 索引配置与排障</a></li>
+  </ol>
+</div>
+
+<!-- SECTION 1 -->
+<section id="s1">
+  <div class="section-label">Section 01</div>
+  <h2>设计背景：为什么磁盘逼出了 B 树</h2>
+
+  <p>在理解 B 树之前，先思考一个问题：<strong>二叉搜索树（BST）哪里出了问题？</strong></p>
+
+  <p>BST 在内存中表现优秀，时间复杂度 O(log n)。但当数据量超过 RAM 容量，数据必须存在磁盘上时，一切都变了。</p>
+
+  <div class="insight-card">
+    <div class="label">核心认知</div>
+    <p>磁盘 I/O 不是按字节读取，而是按<strong>页（Page）</strong>读取，通常 4KB 或 16KB。访问磁盘的延迟是访问内存的 <strong>10 万倍</strong>。BST 每次比较访问一个节点，一棵百万节点的 BST 最坏需要 20 次磁盘 I/O——这是灾难性的。</p>
+  </div>
+
+  <p>类比：想象你在图书馆查书。BST 的方式是：每次只能拿出一本书看一个字，放回去，再找下一本。而 B 树的方式是：每次拿出一整箱书（一个磁盘页），在箱子里找——I/O 次数从几十次降到 3~4 次。</p>
+
+  <p>B 树由 Rudolf Bayer 和 Ed McCreight 在 1972 年提出，核心思想只有一句话：</p>
+
+  <div class="formula">
+    让每个节点尽可能"胖"，使树尽可能"矮"，从而最小化磁盘 I/O 次数
+  </div>
+
+  <div class="svg-container">
+    <svg viewBox="0 0 860 340" xmlns="http://www.w3.org/2000/svg" width="100%">
+      <defs>
+        <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#94a3b8"/>
+        </marker>
+        <marker id="arr-red" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#f87171"/>
+        </marker>
+        <marker id="arr-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#34d399"/>
+        </marker>
+      </defs>
+
+      <!-- Left: BST -->
+      <text x="180" y="28" fill="#94a3b8" font-family="JetBrains Mono" font-size="11" text-anchor="middle" letter-spacing="2" opacity="0.8">BST（二叉搜索树）</text>
+
+      <!-- BST nodes -->
+      <circle cx="180" cy="60" r="18" fill="none" stroke="#f87171" stroke-width="1.5"/>
+      <text x="180" y="65" fill="#f87171" font-family="JetBrains Mono" font-size="12" text-anchor="middle">50</text>
+
+      <circle cx="120" cy="110" r="18" fill="none" stroke="#f87171" stroke-width="1.5"/>
+      <text x="120" y="115" fill="#f87171" font-family="JetBrains Mono" font-size="12" text-anchor="middle">25</text>
+
+      <circle cx="240" cy="110" r="18" fill="none" stroke="#f87171" stroke-width="1.5"/>
+      <text x="240" y="115" fill="#f87171" font-family="JetBrains Mono" font-size="12" text-anchor="middle">75</text>
+
+      <circle cx="90" cy="160" r="18" fill="none" stroke="#f87171" stroke-width="1.5"/>
+      <text x="90" y="165" fill="#f87171" font-family="JetBrains Mono" font-size="12" text-anchor="middle">12</text>
+
+      <circle cx="150" cy="160" r="18" fill="none" stroke="#f87171" stroke-width="1.5"/>
+      <text x="150" y="165" fill="#f87171" font-family="JetBrains Mono" font-size="12" text-anchor="middle">37</text>
+
+      <circle cx="210" cy="160" r="18" fill="none" stroke="#f87171" stroke-width="1.5"/>
+      <text x="210" y="165" fill="#f87171" font-family="JetBrains Mono" font-size="12" text-anchor="middle">63</text>
+
+      <circle cx="270" cy="160" r="18" fill="none" stroke="#f87171" stroke-width="1.5"/>
+      <text x="270" y="165" fill="#f87171" font-family="JetBrains Mono" font-size="12" text-anchor="middle">88</text>
+
+      <!-- BST edges -->
+      <line x1="164" y1="72" x2="136" y2="98" stroke="#f87171" stroke-width="1" opacity="0.4"/>
+      <line x1="196" y1="72" x2="224" y2="98" stroke="#f87171" stroke-width="1" opacity="0.4"/>
+      <line x1="108" y1="122" x2="98" y2="148" stroke="#f87171" stroke-width="1" opacity="0.4"/>
+      <line x1="132" y1="122" x2="142" y2="148" stroke="#f87171" stroke-width="1" opacity="0.4"/>
+      <line x1="228" y1="122" x2="218" y2="148" stroke="#f87171" stroke-width="1" opacity="0.4"/>
+      <line x1="252" y1="122" x2="262" y2="148" stroke="#f87171" stroke-width="1" opacity="0.4"/>
+
+      <!-- IO labels for BST -->
+      <text x="180" y="215" fill="#f87171" font-family="JetBrains Mono" font-size="11" text-anchor="middle" opacity="0.9">每次比较 = 1 次磁盘 I/O</text>
+      <text x="180" y="233" fill="#94a3b8" font-family="JetBrains Mono" font-size="10" text-anchor="middle" opacity="0.7">高度 = log₂N → 百万条记录需 ~20 次 I/O</text>
+      <rect x="60" y="248" width="240" height="28" rx="6" fill="rgba(248,113,113,0.08)" stroke="rgba(248,113,113,0.2)" stroke-width="1"/>
+      <text x="180" y="267" fill="#f87171" font-family="JetBrains Mono" font-size="11" text-anchor="middle">❌ 高度太高，I/O 代价极大</text>
+
+      <!-- Divider -->
+      <line x1="360" y1="20" x2="360" y2="300" stroke="rgba(148,163,184,0.1)" stroke-width="1" stroke-dasharray="4,4"/>
+
+      <!-- Right: B-tree -->
+      <text x="600" y="28" fill="#94a3b8" font-family="JetBrains Mono" font-size="11" text-anchor="middle" letter-spacing="2" opacity="0.8">B 树（阶 = 5，每节点最多 4 键）</text>
+
+      <!-- B-tree Root -->
+      <rect x="430" y="44" width="340" height="36" rx="8" fill="rgba(168,85,247,0.12)" stroke="#a855f7" stroke-width="1.5"/>
+      <text x="450" y="67" fill="#a855f7" font-family="JetBrains Mono" font-size="13" text-anchor="middle">20</text>
+      <line x1="470" y1="44" x2="470" y2="80" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+      <text x="510" y="67" fill="#a855f7" font-family="JetBrains Mono" font-size="13" text-anchor="middle">40</text>
+      <line x1="540" y1="44" x2="540" y2="80" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+      <text x="575" y="67" fill="#a855f7" font-family="JetBrains Mono" font-size="13" text-anchor="middle">60</text>
+      <line x1="610" y1="44" x2="610" y2="80" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+      <text x="650" y="67" fill="#a855f7" font-family="JetBrains Mono" font-size="13" text-anchor="middle">80</text>
+      <text x="750" y="67" fill="#64748b" font-family="JetBrains Mono" font-size="10" text-anchor="middle">= 1 页</text>
+
+      <!-- B-tree Level 2 -->
+      <rect x="385" y="120" width="140" height="32" rx="6" fill="rgba(34,211,238,0.08)" stroke="#22d3ee" stroke-width="1"/>
+      <text x="415" y="141" fill="#22d3ee" font-family="JetBrains Mono" font-size="12" text-anchor="middle">5</text>
+      <line x1="430" y1="120" x2="430" y2="152" stroke="rgba(34,211,238,0.3)" stroke-width="1"/>
+      <text x="455" y="141" fill="#22d3ee" font-family="JetBrains Mono" font-size="12" text-anchor="middle">12</text>
+      <line x1="475" y1="120" x2="475" y2="152" stroke="rgba(34,211,238,0.3)" stroke-width="1"/>
+      <text x="500" y="141" fill="#22d3ee" font-family="JetBrains Mono" font-size="12" text-anchor="middle">17</text>
+
+      <rect x="545" y="120" width="130" height="32" rx="6" fill="rgba(34,211,238,0.08)" stroke="#22d3ee" stroke-width="1"/>
+      <text x="574" y="141" fill="#22d3ee" font-family="JetBrains Mono" font-size="12" text-anchor="middle">25</text>
+      <line x1="595" y1="120" x2="595" y2="152" stroke="rgba(34,211,238,0.3)" stroke-width="1"/>
+      <text x="620" y="141" fill="#22d3ee" font-family="JetBrains Mono" font-size="12" text-anchor="middle">33</text>
+      <line x1="645" y1="120" x2="645" y2="152" stroke="rgba(34,211,238,0.3)" stroke-width="1"/>
+      <text x="665" y="141" fill="#22d3ee" font-family="JetBrains Mono" font-size="12" text-anchor="middle">...</text>
+
+      <!-- Connector lines root to L2 -->
+      <line x1="480" y1="80" x2="455" y2="120" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+      <line x1="600" y1="80" x2="610" y2="120" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+
+      <!-- IO count labels -->
+      <text x="600" y="205" fill="#34d399" font-family="JetBrains Mono" font-size="11" text-anchor="middle" opacity="0.9">每节点包含数百个键 → 树高 ≤ 4</text>
+      <text x="600" y="223" fill="#94a3b8" font-family="JetBrains Mono" font-size="10" text-anchor="middle" opacity="0.7">百万条记录仅需 3~4 次 I/O</text>
+      <rect x="460" y="238" width="280" height="28" rx="6" fill="rgba(52,211,153,0.08)" stroke="rgba(52,211,153,0.2)" stroke-width="1"/>
+      <text x="600" y="257" fill="#34d399" font-family="JetBrains Mono" font-size="11" text-anchor="middle">✓ 极矮，I/O 代价最小化</text>
+    </svg>
+    <div class="svg-caption">图 1-1 · BST vs B 树：树高与 I/O 次数的根本差异</div>
+  </div>
+
+  <div class="tip-card">
+    <div class="label">实战口诀</div>
+    <p>B 树是为磁盘而生的数据结构。<strong>树越矮，I/O 越少，性能越好。</strong>每增加一层树高，I/O 成本翻数百倍。</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 2 -->
+<section id="s2">
+  <div class="section-label">Section 02</div>
+  <h2>整体架构：B 树的全景图</h2>
+
+  <p>B 树（Balance Tree）是一种自平衡的多路搜索树。在深入细节前，先建立整体认知：B 树的每个节点就是一个磁盘页，每个节点可以存储多个键和多个子指针。</p>
+
+  <p>一棵阶为 <strong>t</strong>（最小度数）的 B 树满足以下性质：</p>
+
+  <div class="card">
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>性质</th>
+          <th>描述</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong style="color:var(--accent-cyan)">键数约束</strong></td>
+          <td>每个非根节点最少 t-1 个键，最多 2t-1 个键</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--accent-cyan)">子节点约束</strong></td>
+          <td>每个内部节点最少 t 个子节点，最多 2t 个子节点</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--accent-green)">有序性</strong></td>
+          <td>节点内键有序，子树键范围由父节点键划分</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--accent-purple)">平衡性</strong></td>
+          <td>所有叶子节点在同一深度（自平衡）</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--accent-yellow)">树高上界</strong></td>
+          <td>高度 h ≤ log<sub>t</sub>( (n+1)/2 )，n 为总键数</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="svg-container">
+    <svg viewBox="0 0 860 420" xmlns="http://www.w3.org/2000/svg" width="100%">
+      <defs>
+        <marker id="ptr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#a855f7" opacity="0.7"/>
+        </marker>
+        <marker id="ptr2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#22d3ee" opacity="0.7"/>
+        </marker>
+      </defs>
+
+      <!-- Level Labels -->
+      <text x="20" y="84" fill="#64748b" font-family="JetBrains Mono" font-size="10" opacity="0.8">Level 0</text>
+      <text x="20" y="84" fill="#64748b" font-family="JetBrains Mono" font-size="10" opacity="0.8">Level 0</text>
+      <text x="20" y="174" fill="#64748b" font-family="JetBrains Mono" font-size="10" opacity="0.8">Level 1</text>
+      <text x="20" y="274" fill="#64748b" font-family="JetBrains Mono" font-size="10" opacity="0.8">Level 2</text>
+      <text x="20" y="374" fill="#64748b" font-family="JetBrains Mono" font-size="10" opacity="0.8">Level 3</text>
+
+      <!-- Root node (Level 0) -->
+      <rect x="270" y="52" width="320" height="48" rx="10" fill="rgba(168,85,247,0.15)" stroke="#a855f7" stroke-width="2"/>
+      <text x="298" y="82" fill="#a855f7" font-family="JetBrains Mono" font-size="15" text-anchor="middle" font-weight="500">30</text>
+      <line x1="316" y1="52" x2="316" y2="100" stroke="rgba(168,85,247,0.35)" stroke-width="1"/>
+      <text x="356" y="82" fill="#a855f7" font-family="JetBrains Mono" font-size="15" text-anchor="middle" font-weight="500">60</text>
+      <line x1="376" y1="52" x2="376" y2="100" stroke="rgba(168,85,247,0.35)" stroke-width="1"/>
+      <text x="430" y="82" fill="#a855f7" font-family="JetBrains Mono" font-size="15" text-anchor="middle" font-weight="500">90</text>
+      <line x1="446" y1="52" x2="446" y2="100" stroke="rgba(168,85,247,0.35)" stroke-width="1"/>
+      <text x="508" y="82" fill="#a855f7" font-family="JetBrains Mono" font-size="15" text-anchor="middle" font-weight="500">120</text>
+      <line x1="526" y1="52" x2="526" y2="100" stroke="rgba(168,85,247,0.35)" stroke-width="1"/>
+      <text x="562" y="82" fill="#a855f7" font-family="JetBrains Mono" font-size="15" text-anchor="middle" font-weight="500">150</text>
+      <text x="430" y="28" fill="#a855f7" font-family="JetBrains Mono" font-size="10" text-anchor="middle" letter-spacing="2" opacity="0.8">ROOT NODE</text>
+
+      <!-- Child pointers from root (5 children for 5 keys shown) -->
+      <line x1="280" y1="100" x2="152" y2="142" stroke="#a855f7" stroke-width="1" opacity="0.4" marker-end="url(#ptr)"/>
+      <line x1="346" y1="100" x2="328" y2="142" stroke="#a855f7" stroke-width="1" opacity="0.4" marker-end="url(#ptr)"/>
+      <line x1="410" y1="100" x2="430" y2="142" stroke="#a855f7" stroke-width="1" opacity="0.4" marker-end="url(#ptr)"/>
+      <line x1="486" y1="100" x2="556" y2="142" stroke="#a855f7" stroke-width="1" opacity="0.4" marker-end="url(#ptr)"/>
+      <line x1="578" y1="100" x2="708" y2="142" stroke="#a855f7" stroke-width="1" opacity="0.4" marker-end="url(#ptr)"/>
+
+      <!-- Level 1 Nodes -->
+      <rect x="80" y="142" width="144" height="40" rx="8" fill="rgba(34,211,238,0.1)" stroke="#22d3ee" stroke-width="1.5"/>
+      <text x="118" y="167" fill="#22d3ee" font-family="JetBrains Mono" font-size="13" text-anchor="middle">10</text>
+      <line x1="136" y1="142" x2="136" y2="182" stroke="rgba(34,211,238,0.3)" stroke-width="1"/>
+      <text x="168" y="167" fill="#22d3ee" font-family="JetBrains Mono" font-size="13" text-anchor="middle">20</text>
+      <line x1="186" y1="142" x2="186" y2="182" stroke="rgba(34,211,238,0.3)" stroke-width="1"/>
+      <text x="210" y="167" fill="#22d3ee" font-family="JetBrains Mono" font-size="13" text-anchor="middle">25</text>
+
+      <rect x="256" y="142" width="144" height="40" rx="8" fill="rgba(34,211,238,0.1)" stroke="#22d3ee" stroke-width="1.5"/>
+      <text x="293" y="167" fill="#22d3ee" font-family="JetBrains Mono" font-size="13" text-anchor="middle">33</text>
+      <line x1="312" y1="142" x2="312" y2="182" stroke="rgba(34,211,238,0.3)" stroke-width="1"/>
+      <text x="346" y="167" fill="#22d3ee" font-family="JetBrains Mono" font-size="13" text-anchor="middle">45</text>
+      <line x1="362" y1="142" x2="362" y2="182" stroke="rgba(34,211,238,0.3)" stroke-width="1"/>
+      <text x="392" y="167" fill="#22d3ee" font-family="JetBrains Mono" font-size="13" text-anchor="middle">55</text>
+
+      <rect x="360" y="142" width="140" height="40" rx="8" fill="rgba(34,211,238,0.1)" stroke="#22d3ee" stroke-width="1.5"/>
+
+      <rect x="430" y="142" width="130" height="40" rx="8" fill="rgba(34,211,238,0.1)" stroke="#22d3ee" stroke-width="1.5"/>
+      <text x="458" y="167" fill="#22d3ee" font-family="JetBrains Mono" font-size="13" text-anchor="middle">65</text>
+      <line x1="476" y1="142" x2="476" y2="182" stroke="rgba(34,211,238,0.3)" stroke-width="1"/>
+      <text x="510" y="167" fill="#22d3ee" font-family="JetBrains Mono" font-size="13" text-anchor="middle">75</text>
+      <line x1="526" y1="142" x2="526" y2="182" stroke="rgba(34,211,238,0.3)" stroke-width="1"/>
+      <text x="548" y="167" fill="#22d3ee" font-family="JetBrains Mono" font-size="13" text-anchor="middle">85</text>
+
+      <rect x="580" y="142" width="130" height="40" rx="8" fill="rgba(34,211,238,0.1)" stroke="#22d3ee" stroke-width="1.5"/>
+      <text x="608" y="167" fill="#22d3ee" font-family="JetBrains Mono" font-size="13" text-anchor="middle">95</text>
+      <line x1="626" y1="142" x2="626" y2="182" stroke="rgba(34,211,238,0.3)" stroke-width="1"/>
+      <text x="660" y="167" fill="#22d3ee" font-family="JetBrains Mono" font-size="13" text-anchor="middle">105</text>
+
+      <rect x="730" y="142" width="110" height="40" rx="8" fill="rgba(34,211,238,0.1)" stroke="#22d3ee" stroke-width="1.5"/>
+      <text x="758" y="167" fill="#22d3ee" font-family="JetBrains Mono" font-size="13" text-anchor="middle">125</text>
+      <line x1="778" y1="142" x2="778" y2="182" stroke="rgba(34,211,238,0.3)" stroke-width="1"/>
+      <text x="812" y="167" fill="#22d3ee" font-family="JetBrains Mono" font-size="13" text-anchor="middle">140</text>
+
+      <!-- Leaf level indicator -->
+      <line x1="80" y1="182" x2="840" y2="182" stroke="rgba(148,163,184,0.08)" stroke-width="1" stroke-dasharray="6,4"/>
+
+      <!-- Level 2 Leaf nodes (simplified) -->
+      <rect x="60" y="242" width="72" height="32" rx="6" fill="rgba(52,211,153,0.1)" stroke="#34d399" stroke-width="1"/>
+      <text x="96" y="263" fill="#34d399" font-family="JetBrains Mono" font-size="11" text-anchor="middle">1,5,8</text>
+
+      <rect x="142" y="242" width="72" height="32" rx="6" fill="rgba(52,211,153,0.1)" stroke="#34d399" stroke-width="1"/>
+      <text x="178" y="263" fill="#34d399" font-family="JetBrains Mono" font-size="11" text-anchor="middle">11,15</text>
+
+      <rect x="224" y="242" width="72" height="32" rx="6" fill="rgba(52,211,153,0.1)" stroke="#34d399" stroke-width="1"/>
+      <text x="260" y="263" fill="#34d399" font-family="JetBrains Mono" font-size="11" text-anchor="middle">21,28</text>
+
+      <rect x="306" y="242" width="72" height="32" rx="6" fill="rgba(52,211,153,0.1)" stroke="#34d399" stroke-width="1"/>
+      <text x="342" y="263" fill="#34d399" font-family="JetBrains Mono" font-size="11" text-anchor="middle">31,32</text>
+
+      <rect x="388" y="242" width="72" height="32" rx="6" fill="rgba(52,211,153,0.1)" stroke="#34d399" stroke-width="1"/>
+      <text x="424" y="263" fill="#34d399" font-family="JetBrains Mono" font-size="11" text-anchor="middle">37,42</text>
+
+      <rect x="470" y="242" width="72" height="32" rx="6" fill="rgba(52,211,153,0.1)" stroke="#34d399" stroke-width="1"/>
+      <text x="506" y="263" fill="#34d399" font-family="JetBrains Mono" font-size="11" text-anchor="middle">47,52</text>
+
+      <rect x="552" y="242" width="72" height="32" rx="6" fill="rgba(52,211,153,0.1)" stroke="#34d399" stroke-width="1"/>
+      <text x="588" y="263" fill="#34d399" font-family="JetBrains Mono" font-size="11" text-anchor="middle">57,58</text>
+
+      <rect x="634" y="242" width="72" height="32" rx="6" fill="rgba(52,211,153,0.1)" stroke="#34d399" stroke-width="1"/>
+      <text x="670" y="263" fill="#34d399" font-family="JetBrains Mono" font-size="11" text-anchor="middle">...</text>
+
+      <rect x="716" y="242" width="72" height="32" rx="6" fill="rgba(52,211,153,0.1)" stroke="#34d399" stroke-width="1"/>
+      <text x="752" y="263" fill="#34d399" font-family="JetBrains Mono" font-size="11" text-anchor="middle">...</text>
+
+      <text x="430" y="320" fill="#64748b" font-family="JetBrains Mono" font-size="10" text-anchor="middle" opacity="0.8">叶子节点 — 同一深度，自平衡</text>
+
+      <!-- Legend -->
+      <rect x="60" y="360" width="16" height="10" rx="2" fill="rgba(168,85,247,0.3)" stroke="#a855f7" stroke-width="1"/>
+      <text x="84" y="370" fill="#94a3b8" font-family="JetBrains Mono" font-size="10">根节点（Root）</text>
+      <rect x="220" y="360" width="16" height="10" rx="2" fill="rgba(34,211,238,0.15)" stroke="#22d3ee" stroke-width="1"/>
+      <text x="244" y="370" fill="#94a3b8" font-family="JetBrains Mono" font-size="10">内部节点（Internal）</text>
+      <rect x="420" y="360" width="16" height="10" rx="2" fill="rgba(52,211,153,0.15)" stroke="#34d399" stroke-width="1"/>
+      <text x="444" y="370" fill="#94a3b8" font-family="JetBrains Mono" font-size="10">叶子节点（Leaf）</text>
+      <text x="600" y="370" fill="#94a3b8" font-family="JetBrains Mono" font-size="10">t=3，高度=3，百万键仅需 3 次 I/O</text>
+    </svg>
+    <div class="svg-caption">图 2-1 · B 树整体架构全景（阶 t=3，3层树可索引数百万条记录）</div>
+  </div>
+
+  <p>上图展示了一棵 <strong>最小度数 t=3</strong> 的 B 树。观察几个关键特征：紫色根节点、青色内部节点、绿色叶子节点分别对应控制流、普通路径、数据存储三个语义层次。<strong>所有叶子节点都在同一深度</strong>——这是 B 树自平衡的核心保证。</p>
+
+  <div class="insight-card">
+    <div class="label">核心结论</div>
+    <p>① B 树的高度是有严格上界的：h ≤ log_t(n)，t 越大，树越矮。② 每次磁盘 I/O 读取一个节点，因此查找一个键最多需要 h+1 次 I/O。③ <strong>InnoDB 默认页大小 16KB，t 约为数百，三层 B+ 树可索引数千万行</strong>——这就是为什么说"InnoDB 索引高度通常不超过 3"。</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 3 -->
+<section id="s3">
+  <div class="section-label">Section 03</div>
+  <h2>核心机制一：节点结构与阶</h2>
+
+  <p>每个 B 树节点对应磁盘上的一个页（Page）。理解节点的内部结构，是理解所有后续操作的前提。</p>
+
+  <p>一个包含 <strong>k 个键</strong>的内部节点，有 <strong>k+1 个子指针</strong>。键和指针交替排列：</p>
+
+  <div class="formula">
+    [ P₀ | K₁ | P₁ | K₂ | P₂ | ... | Kₖ | Pₖ ]
+  </div>
+
+  <p>其中 P_i 指向的子树，所有键均满足：K_i &lt; 子树中所有键 &lt; K_{i+1}。这就是 BST 的有序性在多路情况下的推广。</p>
+
+  <div class="svg-container">
+    <svg viewBox="0 0 860 300" xmlns="http://www.w3.org/2000/svg" width="100%">
+      <!-- Node structure detailed -->
+      <text x="430" y="32" fill="#94a3b8" font-family="JetBrains Mono" font-size="11" text-anchor="middle" letter-spacing="2" opacity="0.8">节点内存布局（磁盘页）</text>
+
+      <!-- Page boundary -->
+      <rect x="60" y="52" width="740" height="80" rx="10" fill="rgba(251,191,36,0.05)" stroke="rgba(251,191,36,0.25)" stroke-width="1.5" stroke-dasharray="6,3"/>
+      <text x="810" y="48" fill="#fbbf24" font-family="JetBrains Mono" font-size="10" text-anchor="end" opacity="0.7">一个磁盘页 = 16KB</text>
+
+      <!-- is_leaf flag -->
+      <rect x="70" y="62" width="80" height="60" rx="6" fill="rgba(168,85,247,0.12)" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+      <text x="110" y="85" fill="#a855f7" font-family="JetBrains Mono" font-size="10" text-anchor="middle">is_leaf</text>
+      <text x="110" y="103" fill="#a855f7" font-family="JetBrains Mono" font-size="13" text-anchor="middle" font-weight="500">0/1</text>
+      <text x="110" y="135" fill="#64748b" font-family="JetBrains Mono" font-size="9" text-anchor="middle">元数据</text>
+
+      <!-- n keys -->
+      <rect x="158" y="62" width="80" height="60" rx="6" fill="rgba(168,85,247,0.12)" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+      <text x="198" y="85" fill="#a855f7" font-family="JetBrains Mono" font-size="10" text-anchor="middle">n_keys</text>
+      <text x="198" y="103" fill="#a855f7" font-family="JetBrains Mono" font-size="13" text-anchor="middle" font-weight="500">k</text>
+      <text x="198" y="135" fill="#64748b" font-family="JetBrains Mono" font-size="9" text-anchor="middle">当前键数</text>
+
+      <!-- pointer 0 -->
+      <rect x="246" y="62" width="60" height="60" rx="6" fill="rgba(34,211,238,0.1)" stroke="rgba(34,211,238,0.25)" stroke-width="1"/>
+      <text x="276" y="88" fill="#22d3ee" font-family="JetBrains Mono" font-size="10" text-anchor="middle">ptr[0]</text>
+      <text x="276" y="110" fill="#22d3ee" font-family="JetBrains Mono" font-size="9" text-anchor="middle">→ 子树</text>
+
+      <!-- key 1 -->
+      <rect x="314" y="62" width="70" height="60" rx="6" fill="rgba(52,211,153,0.12)" stroke="rgba(52,211,153,0.3)" stroke-width="1"/>
+      <text x="349" y="88" fill="#34d399" font-family="JetBrains Mono" font-size="10" text-anchor="middle">key[1]</text>
+      <text x="349" y="106" fill="#34d399" font-family="JetBrains Mono" font-size="14" text-anchor="middle" font-weight="600">30</text>
+
+      <!-- pointer 1 -->
+      <rect x="392" y="62" width="60" height="60" rx="6" fill="rgba(34,211,238,0.1)" stroke="rgba(34,211,238,0.25)" stroke-width="1"/>
+      <text x="422" y="88" fill="#22d3ee" font-family="JetBrains Mono" font-size="10" text-anchor="middle">ptr[1]</text>
+      <text x="422" y="110" fill="#22d3ee" font-family="JetBrains Mono" font-size="9" text-anchor="middle">→ 子树</text>
+
+      <!-- key 2 -->
+      <rect x="460" y="62" width="70" height="60" rx="6" fill="rgba(52,211,153,0.12)" stroke="rgba(52,211,153,0.3)" stroke-width="1"/>
+      <text x="495" y="88" fill="#34d399" font-family="JetBrains Mono" font-size="10" text-anchor="middle">key[2]</text>
+      <text x="495" y="106" fill="#34d399" font-family="JetBrains Mono" font-size="14" text-anchor="middle" font-weight="600">60</text>
+
+      <!-- pointer 2 -->
+      <rect x="538" y="62" width="60" height="60" rx="6" fill="rgba(34,211,238,0.1)" stroke="rgba(34,211,238,0.25)" stroke-width="1"/>
+      <text x="568" y="88" fill="#22d3ee" font-family="JetBrains Mono" font-size="10" text-anchor="middle">ptr[2]</text>
+      <text x="568" y="110" fill="#22d3ee" font-family="JetBrains Mono" font-size="9" text-anchor="middle">→ 子树</text>
+
+      <!-- key 3 -->
+      <rect x="606" y="62" width="70" height="60" rx="6" fill="rgba(52,211,153,0.12)" stroke="rgba(52,211,153,0.3)" stroke-width="1"/>
+      <text x="641" y="88" fill="#34d399" font-family="JetBrains Mono" font-size="10" text-anchor="middle">key[3]</text>
+      <text x="641" y="106" fill="#34d399" font-family="JetBrains Mono" font-size="14" text-anchor="middle" font-weight="600">90</text>
+
+      <!-- pointer 3 -->
+      <rect x="684" y="62" width="60" height="60" rx="6" fill="rgba(34,211,238,0.1)" stroke="rgba(34,211,238,0.25)" stroke-width="1"/>
+      <text x="714" y="88" fill="#22d3ee" font-family="JetBrains Mono" font-size="10" text-anchor="middle">ptr[3]</text>
+      <text x="714" y="110" fill="#22d3ee" font-family="JetBrains Mono" font-size="9" text-anchor="middle">→ 子树</text>
+
+      <!-- Range labels below -->
+      <text x="276" y="155" fill="#64748b" font-family="JetBrains Mono" font-size="10" text-anchor="middle">(&lt;30)</text>
+      <text x="422" y="155" fill="#64748b" font-family="JetBrains Mono" font-size="10" text-anchor="middle">(30~60)</text>
+      <text x="568" y="155" fill="#64748b" font-family="JetBrains Mono" font-size="10" text-anchor="middle">(60~90)</text>
+      <text x="714" y="155" fill="#64748b" font-family="JetBrains Mono" font-size="10" text-anchor="middle">(&gt;90)</text>
+
+      <!-- Arrows down -->
+      <line x1="276" y1="142" x2="276" y2="162" stroke="#22d3ee" stroke-width="1" opacity="0.4" marker-end="url(#ptr2)"/>
+      <line x1="422" y1="142" x2="422" y2="162" stroke="#22d3ee" stroke-width="1" opacity="0.4" marker-end="url(#ptr2)"/>
+      <line x1="568" y1="142" x2="568" y2="162" stroke="#22d3ee" stroke-width="1" opacity="0.4" marker-end="url(#ptr2)"/>
+      <line x1="714" y1="142" x2="714" y2="162" stroke="#22d3ee" stroke-width="1" opacity="0.4" marker-end="url(#ptr2)"/>
+
+      <!-- Degree labels -->
+      <text x="430" y="210" fill="#94a3b8" font-family="JetBrains Mono" font-size="11" text-anchor="middle">此节点: k=3 个键，4 个子指针 — 满足 t-1 ≤ k ≤ 2t-1 (t=2 → 1≤k≤3 ✓)</text>
+
+      <!-- Constraint bar -->
+      <rect x="200" y="228" width="460" height="40" rx="8" fill="rgba(17,24,39,0.8)" stroke="var(--border-medium)" stroke-width="1"/>
+      <text x="260" y="252" fill="#64748b" font-family="JetBrains Mono" font-size="11">最少键数 (t-1):</text>
+      <text x="390" y="252" fill="#fbbf24" font-family="JetBrains Mono" font-size="11">t-1</text>
+      <line x1="420" y1="244" x2="560" y2="244" stroke="#34d399" stroke-width="8" stroke-linecap="round" opacity="0.3"/>
+      <line x1="420" y1="244" x2="480" y2="244" stroke="#34d399" stroke-width="8" stroke-linecap="round" opacity="0.8"/>
+      <text x="580" y="252" fill="#fbbf24" font-family="JetBrains Mono" font-size="11">2t-1 :最多键数</text>
+    </svg>
+    <div class="svg-caption">图 3-1 · B 树节点内存布局：键与子指针交替，每 k 个键对应 k+1 个指针</div>
+  </div>
+
+  <h3>「阶」与「最小度数」的命名混乱</h3>
+
+  <p>B 树有两种常见的参数定义方式，工程师经常被混淆：</p>
+
+  <div class="card">
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>参数</th>
+          <th>定义方式</th>
+          <th>最大键数</th>
+          <th>最小键数（非根）</th>
+          <th>常见场景</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge badge-cyan">阶 m（Order）</span></td>
+          <td>最大子节点数</td>
+          <td>m-1</td>
+          <td>⌈m/2⌉ - 1</td>
+          <td>教材（Knuth）</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-purple">最小度数 t</span></td>
+          <td>最小子节点数</td>
+          <td>2t-1</td>
+          <td>t-1</td>
+          <td>CLRS 算法导论</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>两者的换算关系：<strong>m = 2t</strong>（当 t 为整数时）。MySQL InnoDB 的"页大小"本质上决定了每个节点能容纳多少键——16KB 页面可以放数百个整数键，这使得 B+ 树的阶高达几百。</p>
+
+  <div class="tip-card">
+    <div class="label">实战口诀</div>
+    <p>看到 <strong>Order/阶</strong> 就是最大孩子数；看到 <strong>degree/t</strong> 就是最小孩子数。换算：order = 2 × degree。记住这一个等式，永远不会搞混。</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 4 -->
+<section id="s4">
+  <div class="section-label">Section 04</div>
+  <h2>核心机制二：查找路径</h2>
+
+  <p>B 树的查找类比"在图书馆的楼层索引牌中找书"：每一层都有范围指示牌，根据区间走对应通道，一直到书架（叶子节点）取出书。</p>
+
+  <p>算法步骤：从根开始，在当前节点内<strong>二分查找</strong>目标键 k，若找到则返回；否则根据键范围选择对应子指针，加载下一节点（一次磁盘 I/O），递归。</p>
+
+  <div class="svg-container">
+    <svg viewBox="0 0 860 380" xmlns="http://www.w3.org/2000/svg" width="100%">
+      <defs>
+        <marker id="search-arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#34d399"/>
+        </marker>
+        <marker id="grey-arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#475569"/>
+        </marker>
+      </defs>
+
+      <text x="430" y="26" fill="#34d399" font-family="JetBrains Mono" font-size="11" text-anchor="middle" letter-spacing="2" opacity="0.9">查找 KEY = 47 的路径</text>
+
+      <!-- Root -->
+      <rect x="240" y="48" width="380" height="46" rx="10" fill="rgba(168,85,247,0.12)" stroke="#a855f7" stroke-width="2"/>
+      <text x="290" y="76" fill="#a855f7" font-family="JetBrains Mono" font-size="15" text-anchor="middle">20</text>
+      <line x1="318" y1="48" x2="318" y2="94" stroke="rgba(168,85,247,0.35)" stroke-width="1"/>
+      <text x="360" y="76" fill="#a855f7" font-family="JetBrains Mono" font-size="15" text-anchor="middle">50</text>
+      <line x1="398" y1="48" x2="398" y2="94" stroke="rgba(168,85,247,0.35)" stroke-width="1"/>
+      <text x="450" y="76" fill="#a855f7" font-family="JetBrains Mono" font-size="15" text-anchor="middle">80</text>
+      <line x1="480" y1="48" x2="480" y2="94" stroke="rgba(168,85,247,0.35)" stroke-width="1"/>
+      <text x="558" y="76" fill="#a855f7" font-family="JetBrains Mono" font-size="15" text-anchor="middle">110</text>
+
+      <!-- Step 1 annotation -->
+      <rect x="634" y="48" width="196" height="46" rx="8" fill="rgba(52,211,153,0.06)" stroke="rgba(52,211,153,0.2)" stroke-width="1"/>
+      <text x="644" y="68" fill="#34d399" font-family="JetBrains Mono" font-size="10">Step 1: 根节点</text>
+      <text x="644" y="84" fill="#34d399" font-family="JetBrains Mono" font-size="10">47 ∈ (20, 50) → P[1]</text>
+
+      <!-- I/O bubble -->
+      <circle cx="222" cy="71" r="14" fill="rgba(168,85,247,0.2)" stroke="#a855f7" stroke-width="1"/>
+      <text x="222" y="75" fill="#a855f7" font-family="JetBrains Mono" font-size="9" text-anchor="middle">I/O 1</text>
+
+      <!-- Arrow to Level 1 -->
+      <line x1="380" y1="94" x2="380" y2="158" stroke="#34d399" stroke-width="2" marker-end="url(#search-arr)"/>
+
+      <!-- Other pointers greyed -->
+      <line x1="268" y1="94" x2="190" y2="158" stroke="#475569" stroke-width="1" marker-end="url(#grey-arr)" opacity="0.4"/>
+      <line x1="475" y1="94" x2="560" y2="158" stroke="#475569" stroke-width="1" marker-end="url(#grey-arr)" opacity="0.4"/>
+      <line x1="590" y1="94" x2="680" y2="158" stroke="#475569" stroke-width="1" marker-end="url(#grey-arr)" opacity="0.4"/>
+
+      <!-- Level 1 - target node highlighted -->
+      <!-- Other nodes greyed -->
+      <rect x="140" y="158" width="120" height="40" rx="8" fill="rgba(71,85,105,0.1)" stroke="#475569" stroke-width="1" opacity="0.5"/>
+      <text x="200" y="183" fill="#475569" font-family="JetBrains Mono" font-size="12" text-anchor="middle">5, 12, 17</text>
+
+      <!-- TARGET L1 node -->
+      <rect x="310" y="158" width="160" height="40" rx="8" fill="rgba(52,211,153,0.12)" stroke="#34d399" stroke-width="2"/>
+      <text x="355" y="183" fill="#34d399" font-family="JetBrains Mono" font-size="14" text-anchor="middle">30</text>
+      <line x1="370" y1="158" x2="370" y2="198" stroke="rgba(52,211,153,0.4)" stroke-width="1.5"/>
+      <text x="440" y="183" fill="#34d399" font-family="JetBrains Mono" font-size="14" text-anchor="middle">45</text>
+      <line x1="455" y1="158" x2="455" y2="198" stroke="rgba(52,211,153,0.4)" stroke-width="1.5"/>
+      <text x="464" y="183" fill="#64748b" font-family="JetBrains Mono" font-size="11" text-anchor="middle">...</text>
+
+      <rect x="510" y="158" width="120" height="40" rx="8" fill="rgba(71,85,105,0.1)" stroke="#475569" stroke-width="1" opacity="0.5"/>
+      <text x="570" y="183" fill="#475569" font-family="JetBrains Mono" font-size="12" text-anchor="middle">55, 70</text>
+
+      <rect x="670" y="158" width="120" height="40" rx="8" fill="rgba(71,85,105,0.1)" stroke="#475569" stroke-width="1" opacity="0.5"/>
+      <text x="730" y="183" fill="#475569" font-family="JetBrains Mono" font-size="12" text-anchor="middle">90, 100</text>
+
+      <rect x="634" y="158" width="196" height="40" rx="8" fill="rgba(52,211,153,0.06)" stroke="rgba(52,211,153,0.2)" stroke-width="1"/>
+      <text x="644" y="174" fill="#34d399" font-family="JetBrains Mono" font-size="10">Step 2: 47 ∈ (45, ∞)</text>
+      <text x="644" y="190" fill="#34d399" font-family="JetBrains Mono" font-size="10">→ P[2] (45 之后)</text>
+
+      <circle cx="298" cy="178" r="14" fill="rgba(52,211,153,0.15)" stroke="#34d399" stroke-width="1"/>
+      <text x="298" y="182" fill="#34d399" font-family="JetBrains Mono" font-size="9" text-anchor="middle">I/O 2</text>
+
+      <!-- Arrow to Level 2 -->
+      <line x1="453" y1="198" x2="430" y2="258" stroke="#34d399" stroke-width="2" marker-end="url(#search-arr)"/>
+
+      <!-- Level 2 Leaf node -->
+      <rect x="310" y="258" width="240" height="46" rx="8" fill="rgba(52,211,153,0.12)" stroke="#34d399" stroke-width="2"/>
+      <text x="348" y="286" fill="#34d399" font-family="JetBrains Mono" font-size="15" text-anchor="middle">46</text>
+      <line x1="365" y1="258" x2="365" y2="304" stroke="rgba(52,211,153,0.4)" stroke-width="1.5"/>
+      <!-- KEY 47 found, highlighted -->
+      <rect x="366" y="260" width="60" height="42" rx="6" fill="rgba(52,211,153,0.25)" stroke="#34d399" stroke-width="2"/>
+      <text x="396" y="286" fill="#34d399" font-family="JetBrains Mono" font-size="15" text-anchor="middle" font-weight="700">47 ✓</text>
+      <line x1="426" y1="258" x2="426" y2="304" stroke="rgba(52,211,153,0.4)" stroke-width="1.5"/>
+      <text x="490" y="286" fill="#34d399" font-family="JetBrains Mono" font-size="15" text-anchor="middle">49</text>
+
+      <rect x="560" y="258" width="270" height="46" rx="8" fill="rgba(52,211,153,0.06)" stroke="rgba(52,211,153,0.2)" stroke-width="1"/>
+      <text x="570" y="278" fill="#34d399" font-family="JetBrains Mono" font-size="10">Step 3: 叶子节点</text>
+      <text x="570" y="293" fill="#34d399" font-family="JetBrains Mono" font-size="10">找到 47 → 返回数据</text>
+      <text x="570" y="308" fill="#fbbf24" font-family="JetBrains Mono" font-size="10">共 3 次 I/O ✓</text>
+
+      <circle cx="298" cy="281" r="14" fill="rgba(52,211,153,0.15)" stroke="#34d399" stroke-width="1"/>
+      <text x="298" y="285" fill="#34d399" font-family="JetBrains Mono" font-size="9" text-anchor="middle">I/O 3</text>
+
+      <!-- Complexity -->
+      <text x="430" y="340" fill="#64748b" font-family="JetBrains Mono" font-size="11" text-anchor="middle">时间复杂度: O(log_t · n)  ·  I/O 次数: 树高 h = O(log_t n)</text>
+    </svg>
+    <div class="svg-caption">图 4-1 · B 树查找 key=47 的完整路径（绿色高亮路径，灰色为排除路径）</div>
+  </div>
+
+  <div class="insight-card">
+    <div class="label">核心结论</div>
+    <p>① 查找的 I/O 次数恰好等于树的高度 h，与节点内部键的数量无关（节点内二分查找在内存中完成，极快）。② 灰色的"排除路径"是 B 树效率的来源：每次比较一个节点的多个键，一口气排除掉多个子树。③ <strong>找不到的查找（Range Miss）</strong>和找到的代价完全相同，都是 h 次 I/O。</p>
+  </div>
+
+  <div class="tip-card">
+    <div class="label">实战口诀</div>
+    <p>B 树查找 = <strong>楼层导引牌 + 最后一层找书架</strong>。每层一次 I/O，树高决定查找代价，而树高由数据量和节点容量共同决定。</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 5 -->
+<section id="s5">
+  <div class="section-label">Section 05</div>
+  <h2>核心机制三：插入与节点分裂</h2>
+
+  <p>插入是 B 树最复杂的操作，因为它可能<strong>破坏节点的键数约束</strong>（超过 2t-1 个键），需要通过"节点分裂"来恢复平衡。</p>
+
+  <p>类比：你在一个书柜（节点）里放书，柜子满了，就把书柜从中间劈开，各自放半边书，并把中间那本书的书名牌推给上层管理员——这本书就"升级"到父节点了。</p>
+
+  <p>插入步骤：先查找插入位置，如果目标叶子节点已满（键数 = 2t-1），则执行<strong>分裂</strong>，分裂会将中间键提升到父节点，然后递归判断父节点是否也需要分裂。</p>
+
+  <div class="svg-container">
+    <svg viewBox="0 0 860 440" xmlns="http://www.w3.org/2000/svg" width="100%">
+      <defs>
+        <marker id="split-arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#fb923c"/>
+        </marker>
+      </defs>
+
+      <text x="430" y="24" fill="#94a3b8" font-family="JetBrains Mono" font-size="11" text-anchor="middle" letter-spacing="2" opacity="0.8">插入 KEY=35 触发节点分裂（t=3，最大 5 键）</text>
+
+      <!-- BEFORE -->
+      <text x="210" y="52" fill="#64748b" font-family="JetBrains Mono" font-size="10" text-anchor="middle" letter-spacing="2">BEFORE — 待插入节点已满</text>
+
+      <!-- Root before -->
+      <rect x="80" y="64" width="260" height="44" rx="8" fill="rgba(168,85,247,0.12)" stroke="#a855f7" stroke-width="1.5"/>
+      <text x="120" y="91" fill="#a855f7" font-family="JetBrains Mono" font-size="14" text-anchor="middle">10</text>
+      <line x1="143" y1="64" x2="143" y2="108" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+      <text x="200" y="91" fill="#a855f7" font-family="JetBrains Mono" font-size="14" text-anchor="middle">50</text>
+      <line x1="233" y1="64" x2="233" y2="108" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+      <text x="310" y="91" fill="#64748b" font-family="JetBrains Mono" font-size="12" text-anchor="middle">...</text>
+
+      <!-- Full node before -->
+      <rect x="80" y="148" width="260" height="44" rx="8" fill="rgba(248,113,113,0.1)" stroke="#f87171" stroke-width="2"/>
+      <text x="108" y="174" fill="#f87171" font-family="JetBrains Mono" font-size="13" text-anchor="middle">20</text>
+      <line x1="126" y1="148" x2="126" y2="192" stroke="rgba(248,113,113,0.35)" stroke-width="1"/>
+      <text x="148" y="174" fill="#f87171" font-family="JetBrains Mono" font-size="13" text-anchor="middle">25</text>
+      <line x1="170" y1="148" x2="170" y2="192" stroke="rgba(248,113,113,0.35)" stroke-width="1"/>
+      <text x="198" y="174" fill="#fbbf24" font-family="JetBrains Mono" font-size="13" text-anchor="middle" font-weight="600">30</text>
+      <line x1="216" y1="148" x2="216" y2="192" stroke="rgba(248,113,113,0.35)" stroke-width="1"/>
+      <text x="238" y="174" fill="#f87171" font-family="JetBrains Mono" font-size="13" text-anchor="middle">40</text>
+      <line x1="256" y1="148" x2="256" y2="192" stroke="rgba(248,113,113,0.35)" stroke-width="1"/>
+      <text x="310" y="174" fill="#f87171" font-family="JetBrains Mono" font-size="13" text-anchor="middle">45</text>
+      <text x="198" y="213" fill="#f87171" font-family="JetBrains Mono" font-size="10" text-anchor="middle" opacity="0.8">节点已满 (5/5 键) — 不能直接插入！</text>
+
+      <!-- Insert 35 label -->
+      <rect x="90" y="230" width="220" height="32" rx="6" fill="rgba(251,191,36,0.07)" stroke="rgba(251,191,36,0.2)" stroke-width="1"/>
+      <text x="200" y="250" fill="#fbbf24" font-family="JetBrains Mono" font-size="11" text-anchor="middle">插入 35 → 先分裂，再插入</text>
+
+      <!-- ARROW in between -->
+      <text x="430" y="170" fill="#fb923c" font-family="JetBrains Mono" font-size="28" text-anchor="middle">→</text>
+      <text x="430" y="190" fill="#fb923c" font-family="JetBrains Mono" font-size="10" text-anchor="middle">SPLIT</text>
+
+      <!-- AFTER -->
+      <text x="660" y="52" fill="#64748b" font-family="JetBrains Mono" font-size="10" text-anchor="middle" letter-spacing="2">AFTER — 分裂完成</text>
+
+      <!-- Root after (30 promoted) -->
+      <rect x="480" y="64" width="360" height="44" rx="8" fill="rgba(168,85,247,0.15)" stroke="#a855f7" stroke-width="2"/>
+      <text x="520" y="91" fill="#a855f7" font-family="JetBrains Mono" font-size="14" text-anchor="middle">10</text>
+      <line x1="543" y1="64" x2="543" y2="108" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+      <!-- Promoted key 30 -->
+      <rect x="550" y="66" width="60" height="40" rx="4" fill="rgba(251,191,36,0.15)" stroke="#fbbf24" stroke-width="1.5"/>
+      <text x="580" y="91" fill="#fbbf24" font-family="JetBrains Mono" font-size="14" text-anchor="middle" font-weight="600">30↑</text>
+      <line x1="613" y1="64" x2="613" y2="108" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+      <text x="660" y="91" fill="#a855f7" font-family="JetBrains Mono" font-size="14" text-anchor="middle">50</text>
+      <line x1="700" y1="64" x2="700" y2="108" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+      <text x="810" y="91" fill="#64748b" font-family="JetBrains Mono" font-size="12" text-anchor="middle">...</text>
+
+      <!-- Left child after split -->
+      <rect x="480" y="148" width="140" height="44" rx="8" fill="rgba(52,211,153,0.1)" stroke="#34d399" stroke-width="1.5"/>
+      <text x="512" y="174" fill="#34d399" font-family="JetBrains Mono" font-size="13" text-anchor="middle">20</text>
+      <line x1="530" y1="148" x2="530" y2="192" stroke="rgba(52,211,153,0.3)" stroke-width="1"/>
+      <text x="568" y="174" fill="#34d399" font-family="JetBrains Mono" font-size="13" text-anchor="middle">25</text>
+      <text x="550" y="213" fill="#34d399" font-family="JetBrains Mono" font-size="10" text-anchor="middle">左半部分</text>
+
+      <!-- Right child after split (with 35 inserted) -->
+      <rect x="640" y="148" width="200" height="44" rx="8" fill="rgba(52,211,153,0.1)" stroke="#34d399" stroke-width="1.5"/>
+      <text x="668" y="174" fill="#34d399" font-family="JetBrains Mono" font-size="13" text-anchor="middle">40</text>
+      <line x1="685" y1="148" x2="685" y2="192" stroke="rgba(52,211,153,0.3)" stroke-width="1"/>
+      <!-- 35 inserted here -->
+      <rect x="686" y="150" width="44" height="40" rx="4" fill="rgba(52,211,153,0.2)" stroke="#34d399" stroke-width="1.5"/>
+      <text x="708" y="174" fill="#34d399" font-family="JetBrains Mono" font-size="13" text-anchor="middle" font-weight="700">35</text>
+      <line x1="730" y1="148" x2="730" y2="192" stroke="rgba(52,211,153,0.3)" stroke-width="1"/>
+      <text x="762" y="174" fill="#34d399" font-family="JetBrains Mono" font-size="13" text-anchor="middle">45</text>
+      <text x="740" y="213" fill="#34d399" font-family="JetBrains Mono" font-size="10" text-anchor="middle">右半部分（含新插入 35）</text>
+
+      <!-- Lines from root to children -->
+      <line x1="545" y1="108" x2="550" y2="148" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+      <line x1="614" y1="108" x2="700" y2="148" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+
+      <!-- Step annotations -->
+      <text x="430" y="300" fill="#94a3b8" font-family="JetBrains Mono" font-size="11" text-anchor="middle">分裂步骤：① 找中间键（第 t 个）= 30   ② 30 提升到父节点   ③ 原节点一分为二   ④ 插入 35 到右半部分</text>
+
+      <!-- Complexity -->
+      <rect x="240" y="326" width="380" height="64" rx="8" fill="rgba(17,24,39,0.8)" stroke="var(--border-medium)" stroke-width="1"/>
+      <text x="430" y="350" fill="#94a3b8" font-family="JetBrains Mono" font-size="11" text-anchor="middle">分裂复杂度：O(t) 时间（移动半个节点的键）</text>
+      <text x="430" y="368" fill="#94a3b8" font-family="JetBrains Mono" font-size="11" text-anchor="middle">分裂最多沿树向上传播 h 次（最坏情况根节点也分裂）</text>
+      <text x="430" y="386" fill="#fbbf24" font-family="JetBrains Mono" font-size="11" text-anchor="middle">插入总体：O(h) 次 I/O = O(log_t n)</text>
+    </svg>
+    <div class="svg-caption">图 5-1 · B 树节点分裂过程：中间键 30 上浮到父节点，节点一分为二</div>
+  </div>
+
+  <div class="insight-card">
+    <div class="label">核心结论</div>
+    <p>① 分裂的"中间键"是第 t 个键（1-indexed），它被"提升"而非复制到父节点——这与 B+ 树不同。② 分裂自下向上传播，最坏情况下根节点分裂，<strong>这是 B 树唯一增加高度的方式</strong>，所以它保持完美平衡。③ 为了避免回溯，可以在查找路径上预先分裂满节点（自顶向下的变体），代价是多一些不必要的分裂。</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 6 -->
+<section id="s6">
+  <div class="section-label">Section 06</div>
+  <h2>核心机制四：删除与合并/借键</h2>
+
+  <p>删除比插入更复杂，因为要处理三种情况：键在叶子节点、键在内部节点、以及删除后节点键数不足（下溢）的修复。</p>
+
+  <div class="svg-container">
+    <svg viewBox="0 0 860 380" xmlns="http://www.w3.org/2000/svg" width="100%">
+      <defs>
+        <marker id="del-arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#f87171"/>
+        </marker>
+      </defs>
+
+      <text x="430" y="22" fill="#94a3b8" font-family="JetBrains Mono" font-size="11" text-anchor="middle" letter-spacing="2" opacity="0.8">删除的三种场景</text>
+
+      <!-- CASE 1: Leaf delete -->
+      <rect x="30" y="36" width="240" height="32" rx="6" fill="rgba(34,211,238,0.08)" stroke="rgba(34,211,238,0.2)" stroke-width="1"/>
+      <text x="150" y="57" fill="#22d3ee" font-family="JetBrains Mono" font-size="10" text-anchor="middle">CASE 1: 叶子节点，键数足够</text>
+
+      <rect x="50" y="82" width="200" height="38" rx="8" fill="rgba(52,211,153,0.1)" stroke="#34d399" stroke-width="1.5"/>
+      <rect x="51" y="83" width="56" height="36" rx="6" fill="rgba(248,113,113,0.2)" stroke="#f87171" stroke-width="1.5"/>
+      <text x="79" y="106" fill="#f87171" font-family="JetBrains Mono" font-size="13" text-anchor="middle" font-weight="600">15✗</text>
+      <line x1="108" y1="82" x2="108" y2="120" stroke="rgba(52,211,153,0.3)" stroke-width="1"/>
+      <text x="148" y="106" fill="#34d399" font-family="JetBrains Mono" font-size="13" text-anchor="middle">22</text>
+      <line x1="180" y1="82" x2="180" y2="120" stroke="rgba(52,211,153,0.3)" stroke-width="1"/>
+      <text x="220" y="106" fill="#34d399" font-family="JetBrains Mono" font-size="13" text-anchor="middle">28</text>
+
+      <text x="90" y="138" fill="#22d3ee" font-family="JetBrains Mono" font-size="10" text-anchor="middle">→ 直接删除 15</text>
+
+      <rect x="50" y="152" width="160" height="38" rx="8" fill="rgba(52,211,153,0.1)" stroke="#34d399" stroke-width="1.5"/>
+      <text x="100" y="176" fill="#34d399" font-family="JetBrains Mono" font-size="13" text-anchor="middle">22</text>
+      <line x1="120" y1="152" x2="120" y2="190" stroke="rgba(52,211,153,0.3)" stroke-width="1"/>
+      <text x="160" y="176" fill="#34d399" font-family="JetBrains Mono" font-size="13" text-anchor="middle">28</text>
+      <text x="130" y="208" fill="#34d399" font-family="JetBrains Mono" font-size="9" text-anchor="middle">✓ 仍满足最少键数</text>
+
+      <!-- CASE 2: Borrow from sibling -->
+      <rect x="300" y="36" width="240" height="32" rx="6" fill="rgba(251,191,36,0.08)" stroke="rgba(251,191,36,0.2)" stroke-width="1"/>
+      <text x="420" y="57" fill="#fbbf24" font-family="JetBrains Mono" font-size="10" text-anchor="middle">CASE 2: 下溢 → 向兄弟借键</text>
+
+      <!-- Parent -->
+      <rect x="330" y="82" width="180" height="38" rx="8" fill="rgba(168,85,247,0.12)" stroke="#a855f7" stroke-width="1.5"/>
+      <text x="390" y="106" fill="#a855f7" font-family="JetBrains Mono" font-size="14" text-anchor="middle">40</text>
+      <line x1="420" y1="82" x2="420" y2="120" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+      <text x="450" y="106" fill="#a855f7" font-family="JetBrains Mono" font-size="14" text-anchor="middle">60</text>
+
+      <!-- Left child underflow -->
+      <rect x="310" y="152" width="100" height="38" rx="8" fill="rgba(248,113,113,0.1)" stroke="#f87171" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <text x="360" y="176" fill="#f87171" font-family="JetBrains Mono" font-size="13" text-anchor="middle">42</text>
+      <text x="360" y="205" fill="#f87171" font-family="JetBrains Mono" font-size="9" text-anchor="middle">仅 1 键（下溢）</text>
+
+      <!-- Right sibling -->
+      <rect x="430" y="152" width="130" height="38" rx="8" fill="rgba(52,211,153,0.1)" stroke="#34d399" stroke-width="1.5"/>
+      <text x="460" y="176" fill="#34d399" font-family="JetBrains Mono" font-size="13" text-anchor="middle">52</text>
+      <line x1="475" y1="152" x2="475" y2="190" stroke="rgba(52,211,153,0.3)" stroke-width="1"/>
+      <text x="510" y="176" fill="#34d399" font-family="JetBrains Mono" font-size="13" text-anchor="middle">56</text>
+      <text x="478" y="205" fill="#34d399" font-family="JetBrains Mono" font-size="9" text-anchor="middle">兄弟有富余</text>
+
+      <!-- Borrow arrow -->
+      <path d="M 420 86 Q 390 120 365 152" stroke="#fbbf24" fill="none" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <text x="370" y="130" fill="#fbbf24" font-family="JetBrains Mono" font-size="9">父键 40 下沉</text>
+      <path d="M 454 152 Q 438 120 422 86" stroke="#fbbf24" fill="none" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <text x="438" y="118" fill="#fbbf24" font-family="JetBrains Mono" font-size="9">兄弟键 52 上升</text>
+
+      <!-- CASE 3: Merge -->
+      <rect x="570" y="36" width="260" height="32" rx="6" fill="rgba(248,113,113,0.08)" stroke="rgba(248,113,113,0.2)" stroke-width="1"/>
+      <text x="700" y="57" fill="#f87171" font-family="JetBrains Mono" font-size="10" text-anchor="middle">CASE 3: 两侧兄弟也不足 → 合并节点</text>
+
+      <!-- Parent with sep key -->
+      <rect x="600" y="82" width="200" height="38" rx="8" fill="rgba(168,85,247,0.12)" stroke="#a855f7" stroke-width="1.5"/>
+      <text x="650" y="106" fill="#a855f7" font-family="JetBrains Mono" font-size="14" text-anchor="middle">40</text>
+      <line x1="680" y1="82" x2="680" y2="120" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+      <text x="740" y="106" fill="#a855f7" font-family="JetBrains Mono" font-size="14" text-anchor="middle">70</text>
+
+      <!-- Left -->
+      <rect x="590" y="152" width="90" height="38" rx="8" fill="rgba(248,113,113,0.1)" stroke="#f87171" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <text x="635" y="176" fill="#f87171" font-family="JetBrains Mono" font-size="13" text-anchor="middle">42</text>
+
+      <!-- Right -->
+      <rect x="700" y="152" width="90" height="38" rx="8" fill="rgba(248,113,113,0.1)" stroke="#f87171" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <text x="745" y="176" fill="#f87171" font-family="JetBrains Mono" font-size="13" text-anchor="middle">55</text>
+
+      <!-- Merge arrow down -->
+      <text x="700" y="220" fill="#f87171" font-family="JetBrains Mono" font-size="10" text-anchor="middle">合并：40 下沉 + 两子合并</text>
+
+      <!-- Merged node -->
+      <rect x="590" y="240" width="220" height="38" rx="8" fill="rgba(34,211,238,0.1)" stroke="#22d3ee" stroke-width="1.5"/>
+      <text x="635" y="264" fill="#22d3ee" font-family="JetBrains Mono" font-size="13" text-anchor="middle">42</text>
+      <line x1="658" y1="240" x2="658" y2="278" stroke="rgba(34,211,238,0.3)" stroke-width="1"/>
+      <rect x="660" y="242" width="44" height="34" rx="4" fill="rgba(34,211,238,0.2)" stroke="#22d3ee" stroke-width="1.5"/>
+      <text x="682" y="264" fill="#22d3ee" font-family="JetBrains Mono" font-size="13" text-anchor="middle" font-weight="700">40↓</text>
+      <line x1="706" y1="240" x2="706" y2="278" stroke="rgba(34,211,238,0.3)" stroke-width="1"/>
+      <text x="756" y="264" fill="#22d3ee" font-family="JetBrains Mono" font-size="13" text-anchor="middle">55</text>
+      <text x="700" y="295" fill="#22d3ee" font-family="JetBrains Mono" font-size="9" text-anchor="middle">合并后节点：[42, 40, 55]（父节点减少一键）</text>
+
+      <!-- Delete Summary -->
+      <rect x="60" y="318" width="740" height="46" rx="8" fill="rgba(17,24,39,0.8)" stroke="var(--border-medium)" stroke-width="1"/>
+      <text x="430" y="340" fill="#94a3b8" font-family="JetBrains Mono" font-size="11" text-anchor="middle">删除决策树：删除目标键 → 检查节点是否下溢（&lt;t-1）→ 兄弟够富余则借键，否则合并</text>
+      <text x="430" y="358" fill="#64748b" font-family="JetBrains Mono" font-size="10" text-anchor="middle">合并向上传播，可能导致父节点也需要合并（最终可能降低树高）</text>
+    </svg>
+    <div class="svg-caption">图 6-1 · B 树删除的三种情形：直接删除 / 向兄弟借键 / 节点合并</div>
+  </div>
+
+  <div class="warning-card">
+    <div class="label">注意</div>
+    <p>删除内部节点的键时，需要用<strong>前驱键</strong>（左子树最大值）或<strong>后继键</strong>（右子树最小值）替换，然后转化为删除叶子节点的问题——这是一个递归问题。实际数据库引擎（如 InnoDB）对删除有惰性策略，标记为"已删除"后批量合并，而非立即重组。</p>
+  </div>
+
+  <div class="tip-card">
+    <div class="label">实战口诀</div>
+    <p>删除三步走：<strong>够就删，不够就借，借不到就合并</strong>。合并一定会让父节点少一个键，所以可能向上连锁。</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 7 -->
+<section id="s7">
+  <div class="section-label">Section 07</div>
+  <h2>B 树 vs B+ 树：新老对比</h2>
+
+  <p>现实中，数据库几乎不用原始 B 树，而是用 <strong>B+ 树</strong>。两者的本质区别只有一点：<strong>B+ 树的数据只存在叶子节点，内部节点只存索引键</strong>。</p>
+
+  <div class="svg-container">
+    <svg viewBox="0 0 860 360" xmlns="http://www.w3.org/2000/svg" width="100%">
+      <!-- B-Tree side -->
+      <text x="200" y="28" fill="#94a3b8" font-family="JetBrains Mono" font-size="11" text-anchor="middle" letter-spacing="2" opacity="0.8">B 树</text>
+
+      <!-- B-Tree root has data -->
+      <rect x="80" y="48" width="240" height="46" rx="8" fill="rgba(168,85,247,0.12)" stroke="#a855f7" stroke-width="1.5"/>
+      <text x="160" y="73" fill="#a855f7" font-family="JetBrains Mono" font-size="13" text-anchor="middle">30</text>
+      <text x="160" y="87" fill="#64748b" font-family="JetBrains Mono" font-size="9" text-anchor="middle">data→row</text>
+      <line x1="200" y1="48" x2="200" y2="94" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+      <text x="255" y="73" fill="#a855f7" font-family="JetBrains Mono" font-size="13" text-anchor="middle">60</text>
+      <text x="255" y="87" fill="#64748b" font-family="JetBrains Mono" font-size="9" text-anchor="middle">data→row</text>
+
+      <rect x="60" y="140" width="120" height="42" rx="8" fill="rgba(34,211,238,0.1)" stroke="#22d3ee" stroke-width="1.5"/>
+      <text x="120" y="164" fill="#22d3ee" font-family="JetBrains Mono" font-size="13" text-anchor="middle">15</text>
+      <text x="120" y="177" fill="#64748b" font-family="JetBrains Mono" font-size="9" text-anchor="middle">data→row</text>
+
+      <rect x="200" y="140" width="120" height="42" rx="8" fill="rgba(34,211,238,0.1)" stroke="#22d3ee" stroke-width="1.5"/>
+      <text x="260" y="164" fill="#22d3ee" font-family="JetBrains Mono" font-size="13" text-anchor="middle">45</text>
+      <text x="260" y="177" fill="#64748b" font-family="JetBrains Mono" font-size="9" text-anchor="middle">data→row</text>
+
+      <line x1="150" y1="94" x2="120" y2="140" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+      <line x1="240" y1="94" x2="260" y2="140" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+
+      <text x="200" y="220" fill="#f87171" font-family="JetBrains Mono" font-size="10" text-anchor="middle">内部节点含数据 → 每节点放更少键</text>
+      <text x="200" y="236" fill="#f87171" font-family="JetBrains Mono" font-size="10" text-anchor="middle">范围查询需回溯 → 性能差</text>
+
+      <!-- Divider -->
+      <line x1="430" y1="20" x2="430" y2="330" stroke="rgba(148,163,184,0.1)" stroke-width="1" stroke-dasharray="4,4"/>
+
+      <!-- B+ Tree side -->
+      <text x="650" y="28" fill="#94a3b8" font-family="JetBrains Mono" font-size="11" text-anchor="middle" letter-spacing="2" opacity="0.8">B+ 树（数据库实际使用）</text>
+
+      <!-- B+ Root - keys only -->
+      <rect x="510" y="48" width="280" height="44" rx="8" fill="rgba(168,85,247,0.12)" stroke="#a855f7" stroke-width="1.5"/>
+      <text x="610" y="74" fill="#a855f7" font-family="JetBrains Mono" font-size="14" text-anchor="middle">30</text>
+      <text x="620" y="88" fill="#a855f7" font-family="JetBrains Mono" font-size="9" text-anchor="middle" opacity="0.6">仅索引</text>
+      <line x1="666" y1="48" x2="666" y2="92" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+      <text x="726" y="74" fill="#a855f7" font-family="JetBrains Mono" font-size="14" text-anchor="middle">60</text>
+      <text x="736" y="88" fill="#a855f7" font-family="JetBrains Mono" font-size="9" text-anchor="middle" opacity="0.6">仅索引</text>
+
+      <!-- B+ Leaves with data AND linked -->
+      <rect x="470" y="148" width="120" height="44" rx="8" fill="rgba(52,211,153,0.1)" stroke="#34d399" stroke-width="1.5"/>
+      <text x="530" y="166" fill="#34d399" font-family="JetBrains Mono" font-size="13" text-anchor="middle">15</text>
+      <text x="530" y="182" fill="#64748b" font-family="JetBrains Mono" font-size="9" text-anchor="middle">data→row</text>
+
+      <rect x="602" y="148" width="120" height="44" rx="8" fill="rgba(52,211,153,0.1)" stroke="#34d399" stroke-width="1.5"/>
+      <text x="662" y="166" fill="#34d399" font-family="JetBrains Mono" font-size="13" text-anchor="middle">30</text>
+      <text x="662" y="182" fill="#64748b" font-family="JetBrains Mono" font-size="9" text-anchor="middle">data→row</text>
+
+      <rect x="734" y="148" width="120" height="44" rx="8" fill="rgba(52,211,153,0.1)" stroke="#34d399" stroke-width="1.5"/>
+      <text x="794" y="166" fill="#34d399" font-family="JetBrains Mono" font-size="13" text-anchor="middle">60</text>
+      <text x="794" y="182" fill="#64748b" font-family="JetBrains Mono" font-size="9" text-anchor="middle">data→row</text>
+
+      <!-- Linked list arrows between leaves -->
+      <line x1="590" y1="170" x2="602" y2="170" stroke="#34d399" stroke-width="1.5" marker-end="url(#search-arr)"/>
+      <line x1="722" y1="170" x2="734" y2="170" stroke="#34d399" stroke-width="1.5" marker-end="url(#search-arr)"/>
+
+      <line x1="560" y1="92" x2="530" y2="148" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+      <line x1="666" y1="92" x2="662" y2="148" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+      <line x1="756" y1="92" x2="794" y2="148" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+
+      <text x="662" y="218" fill="#34d399" font-family="JetBrains Mono" font-size="10" text-anchor="middle">叶子节点双向链表 → O(1) 范围扫描</text>
+
+      <!-- Advantages vs B tree -->
+      <text x="650" y="248" fill="#34d399" font-family="JetBrains Mono" font-size="10" text-anchor="middle">内部节点更"瘦" → 同一页放更多键 → 树更矮</text>
+
+      <!-- Comparison table below -->
+      <rect x="60" y="272" width="740" height="70" rx="8" fill="rgba(17,24,39,0.6)" stroke="var(--border-medium)" stroke-width="1"/>
+      <text x="300" y="292" fill="#64748b" font-family="JetBrains Mono" font-size="10" text-anchor="middle">B 树</text>
+      <text x="660" y="292" fill="#64748b" font-family="JetBrains Mono" font-size="10" text-anchor="middle">B+ 树</text>
+      <line x1="430" y1="278" x2="430" y2="336" stroke="rgba(148,163,184,0.1)" stroke-width="1"/>
+      <text x="120" y="310" fill="#94a3b8" font-family="JetBrains Mono" font-size="10">点查询：可能在内部节点找到 O(logN)</text>
+      <text x="120" y="328" fill="#f87171" font-family="JetBrains Mono" font-size="10">范围查询：需 O(k·logN)（k 为结果数）</text>
+      <text x="120" y="344" fill="#f87171" font-family="JetBrains Mono" font-size="10">顺序遍历：无链表，效率低</text>
+      <text x="460" y="310" fill="#94a3b8" font-family="JetBrains Mono" font-size="10">点查询：必须到叶子 O(logN)</text>
+      <text x="460" y="328" fill="#34d399" font-family="JetBrains Mono" font-size="10">范围查询：叶子链表 O(logN + k)</text>
+      <text x="460" y="344" fill="#34d399" font-family="JetBrains Mono" font-size="10">顺序遍历：链表 O(N)，性能极优</text>
+    </svg>
+    <div class="svg-caption">图 7-1 · B 树 vs B+ 树：数据存储位置与叶子链表是核心差异</div>
+  </div>
+
+  <div class="card">
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>特性</th>
+          <th>B 树</th>
+          <th>B+ 树</th>
+          <th>胜者</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>数据位置</td>
+          <td>所有节点都存数据</td>
+          <td>仅叶子节点存数据</td>
+          <td><span class="badge badge-green">B+ 树</span> 内部节点更紧凑</td>
+        </tr>
+        <tr>
+          <td>点查询</td>
+          <td>O(log n)，可能提前结束</td>
+          <td>O(log n)，必须到叶子</td>
+          <td><span class="badge badge-yellow">持平</span> 实际差异忽略不计</td>
+        </tr>
+        <tr>
+          <td>范围查询</td>
+          <td>O(k · log n)，需回溯</td>
+          <td>O(log n + k)，链表扫描</td>
+          <td><span class="badge badge-green">B+ 树</span> 数量级优势</td>
+        </tr>
+        <tr>
+          <td>全表扫描</td>
+          <td>需遍历整棵树</td>
+          <td>遍历叶子链表 O(n)</td>
+          <td><span class="badge badge-green">B+ 树</span> 性能极优</td>
+        </tr>
+        <tr>
+          <td>内部节点容量</td>
+          <td>较小（含数据指针）</td>
+          <td>较大（仅含键）</td>
+          <td><span class="badge badge-green">B+ 树</span> 树高更低</td>
+        </tr>
+        <tr>
+          <td>使用场景</td>
+          <td>文件系统（HFS+）</td>
+          <td>数据库索引（MySQL/PG）</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="insight-card">
+    <div class="label">核心结论</div>
+    <p>B+ 树赢在<strong>范围查询</strong>。数据库 90% 的查询是范围查询（WHERE age BETWEEN 20 AND 30，ORDER BY，GROUP BY），而 B+ 树的叶子链表让范围查询降到 O(log n + k)。这就是为什么 MySQL InnoDB、PostgreSQL、SQLite 都选择 B+ 树而非 B 树。</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 8 -->
+<section id="s8">
+  <div class="section-label">Section 08</div>
+  <h2>生产实战：MySQL InnoDB 索引配置与排障</h2>
+
+  <p>理论落地到实际：MySQL InnoDB 使用 B+ 树实现所有索引（包括主键和二级索引）。理解 B 树原理，才能看懂 InnoDB 的行为和调优参数。</p>
+
+  <h3>关键配置参数</h3>
+
+  <div class="card">
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>参数</th>
+          <th>默认值</th>
+          <th>B 树意义</th>
+          <th>调优建议</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code style="color:var(--accent-cyan)">innodb_page_size</code></td>
+          <td>16384 (16KB)</td>
+          <td>每个 B+ 树节点的大小</td>
+          <td>NVMe SSD 可考虑 32KB/64KB</td>
+        </tr>
+        <tr>
+          <td><code style="color:var(--accent-cyan)">innodb_buffer_pool_size</code></td>
+          <td>128MB</td>
+          <td>缓存热点 B+ 树节点（页）</td>
+          <td>通常设为可用内存的 70-80%</td>
+        </tr>
+        <tr>
+          <td><code style="color:var(--accent-cyan)">innodb_fill_factor</code></td>
+          <td>100</td>
+          <td>页填充率（留空间减少分裂）</td>
+          <td>写入密集场景设 80，减少分裂</td>
+        </tr>
+        <tr>
+          <td><code style="color:var(--accent-cyan)">key_block_size</code></td>
+          <td>0 (默认)</td>
+          <td>压缩后每块大小（B+ 节点）</td>
+          <td>压缩表用 8，减少 I/O</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>完整生产级代码示例</h3>
+
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-dots"><span></span><span></span><span></span></div>
+      <div class="code-lang">SQL · MySQL InnoDB B+ 树索引实战</div>
+    </div>
+    <pre><span class="cm">-- ============================================================
+-- B+ 树索引实战：电商订单表
+-- 演示: 索引设计、覆盖索引、范围查询、避免索引失效
+-- ============================================================</span>
+
+<span class="cm">-- 1. 建表：主键 = 聚簇索引（B+ 树，叶子存完整行）</span>
+<span class="kw">CREATE TABLE</span> <span class="var">orders</span> (
+  <span class="var">id</span>          <span class="type">BIGINT</span>       <span class="kw">NOT NULL AUTO_INCREMENT</span>,
+  <span class="var">user_id</span>     <span class="type">BIGINT</span>       <span class="kw">NOT NULL</span>,
+  <span class="var">status</span>      <span class="type">TINYINT</span>      <span class="kw">NOT NULL DEFAULT</span> <span class="num">0</span>,  <span class="cm">-- 0=待付款 1=已付款 2=已发货</span>
+  <span class="var">amount</span>      <span class="type">DECIMAL</span>(<span class="num">12</span>,<span class="num">2</span>) <span class="kw">NOT NULL</span>,
+  <span class="var">created_at</span>  <span class="type">DATETIME</span>     <span class="kw">NOT NULL</span>,
+  <span class="var">updated_at</span>  <span class="type">DATETIME</span>     <span class="kw">NOT NULL</span>,
+  
+  <span class="kw">PRIMARY KEY</span> (<span class="var">id</span>),                          <span class="cm">-- 聚簇索引：叶子存完整行数据</span>
+  
+  <span class="cm">-- 二级索引（叶子存 primary key，查询需"回表"）</span>
+  <span class="kw">INDEX</span> <span class="fn">idx_user_status_time</span> (<span class="var">user_id</span>, <span class="var">status</span>, <span class="var">created_at</span>)
+  <span class="cm">--  ↑ 联合索引：B+ 树先按 user_id 排，再按 status，再按 created_at</span>
+  <span class="cm">--  符合"最左前缀"原则，满足以下查询无需回表：</span>
+  <span class="cm">--  WHERE user_id=?</span>
+  <span class="cm">--  WHERE user_id=? AND status=?</span>
+  <span class="cm">--  WHERE user_id=? AND status=? AND created_at BETWEEN ? AND ?</span>
+) <span class="kw">ENGINE</span>=<span class="type">InnoDB</span>
+  <span class="var">innodb_fill_factor</span>=<span class="num">80</span>    <span class="cm">-- 每页只填 80%，给插入留余量，减少页分裂频率</span>
+  <span class="var">ROW_FORMAT</span>=<span class="type">DYNAMIC</span>       <span class="cm">-- 支持大字段外存（off-page），不影响索引节点大小</span>
+  <span class="var">CHARSET</span>=<span class="var">utf8mb4</span>;
+
+<span class="cm">-- ============================================================
+-- 2. 范围查询利用 B+ 叶子链表扫描
+-- ============================================================</span>
+<span class="cm">-- ✓ 正确：命中 (user_id, status, created_at) 联合索引，利用叶子链表</span>
+<span class="kw">SELECT</span> <span class="var">id</span>, <span class="var">amount</span>
+<span class="kw">FROM</span>   <span class="var">orders</span>
+<span class="kw">WHERE</span>  <span class="var">user_id</span>  = <span class="num">10086</span>
+  <span class="kw">AND</span>  <span class="var">status</span>   = <span class="num">1</span>
+  <span class="kw">AND</span>  <span class="var">created_at</span> <span class="kw">BETWEEN</span> <span class="str">'2024-01-01'</span> <span class="kw">AND</span> <span class="str">'2024-12-31'</span>
+<span class="kw">ORDER BY</span> <span class="var">created_at</span>;  <span class="cm">-- created_at 已在索引中有序，无需额外排序</span>
+
+<span class="cm">-- ✗ 错误：函数破坏 B+ 树有序性，导致全索引扫描</span>
+<span class="cm">-- SELECT * FROM orders WHERE YEAR(created_at) = 2024;</span>
+<span class="cm">-- ↑ 对 created_at 套了 YEAR()，索引从 B+ 树点查退化为全扫</span>
+
+<span class="cm">-- ============================================================
+-- 3. 覆盖索引：避免"回表"（B+ 二级索引→主键→聚簇索引）
+-- ============================================================</span>
+<span class="cm">-- 回表场景：二级索引叶子只有 id，还要再走一次聚簇索引取 amount</span>
+<span class="kw">EXPLAIN SELECT</span> <span class="var">id</span>, <span class="var">user_id</span>, <span class="var">status</span>, <span class="var">amount</span>  <span class="cm">-- amount 不在联合索引中 → 回表</span>
+<span class="kw">FROM</span> <span class="var">orders</span> <span class="kw">WHERE</span> <span class="var">user_id</span> = <span class="num">10086</span>;
+<span class="cm">-- Extra: NULL （未覆盖，需回表）</span>
+
+<span class="cm">-- ✓ 覆盖索引：所有查询列均在索引叶子中，无需回表</span>
+<span class="kw">EXPLAIN SELECT</span> <span class="var">id</span>, <span class="var">user_id</span>, <span class="var">status</span>, <span class="var">created_at</span>  <span class="cm">-- 均在索引中</span>
+<span class="kw">FROM</span> <span class="var">orders</span> <span class="kw">WHERE</span> <span class="var">user_id</span> = <span class="num">10086</span>;
+<span class="cm">-- Extra: Using index （覆盖索引，只走一次 B+ 树）</span>
+
+<span class="cm">-- ============================================================
+-- 4. 排障：观察 B+ 树分裂频率（页分裂过多 → 写入性能下降）
+-- ============================================================</span>
+<span class="kw">SELECT</span>
+  <span class="var">INDEX_NAME</span>,
+  <span class="fn">ROUND</span>(<span class="var">STAT_VALUE</span> * @@<span class="var">innodb_page_size</span> / <span class="num">1024</span> / <span class="num">1024</span>, <span class="num">2</span>) <span class="kw">AS</span> <span class="var">size_mb</span>,
+  <span class="var">STAT_VALUE</span> <span class="kw">AS</span> <span class="var">num_pages</span>
+<span class="kw">FROM</span>   <span class="var">mysql</span>.<span class="var">innodb_index_stats</span>
+<span class="kw">WHERE</span>  <span class="var">database_name</span> = <span class="str">'your_db'</span>
+  <span class="kw">AND</span>  <span class="var">table_name</span>    = <span class="str">'orders'</span>
+  <span class="kw">AND</span>  <span class="var">stat_name</span>     = <span class="str">'n_leaf_pages'</span>;
+<span class="cm">-- 若叶子页数量异常多（相对数据量），说明分裂后存在大量空洞</span>
+<span class="cm">-- 解决：OPTIMIZE TABLE orders; （重建 B+ 树，消除碎片）</span>
+
+<span class="cm">-- ============================================================
+-- 5. 强制使用/不使用某个 B+ 树索引（调试用）
+-- ============================================================</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="var">orders</span>
+  <span class="kw">USE INDEX</span> (<span class="var">idx_user_status_time</span>)   <span class="cm">-- 强制走此索引</span>
+<span class="kw">WHERE</span> <span class="var">user_id</span> = <span class="num">10086</span>;
+
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="var">orders</span>
+  <span class="kw">IGNORE INDEX</span> (<span class="var">idx_user_status_time</span>)  <span class="cm">-- 忽略此索引</span>
+<span class="kw">WHERE</span> <span class="var">user_id</span> = <span class="num">10086</span>;</pre>
+  </div>
+
+  <h3>常见错误配置 vs 正确写法</h3>
+
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-dots"><span></span><span></span><span></span></div>
+      <div class="code-lang">SQL · 反模式对比</div>
+    </div>
+    <pre><span class="cm">-- ❌ 错误 1：NOT IN / != 导致 B+ 树无法使用范围扫描</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="var">orders</span> <span class="kw">WHERE</span> <span class="var">status</span> != <span class="num">0</span>;
+<span class="cm">-- B+ 树不知道"不等于"对应哪段连续区间，退化为全扫</span>
+
+<span class="cm">-- ✓ 正确：改为 IN 或多个 = 条件，让优化器选择 B+ 树叶子扫描</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="var">orders</span> <span class="kw">WHERE</span> <span class="var">status</span> <span class="kw">IN</span> (<span class="num">1</span>, <span class="num">2</span>);
+
+<span class="cm">-- ❌ 错误 2：隐式类型转换破坏 B+ 树有序性</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="var">orders</span> <span class="kw">WHERE</span> <span class="var">user_id</span> = <span class="str">'10086'</span>;
+<span class="cm">-- user_id 是 BIGINT，字符串'10086'触发隐式转换 → 索引失效</span>
+
+<span class="cm">-- ✓ 正确：类型严格匹配</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="var">orders</span> <span class="kw">WHERE</span> <span class="var">user_id</span> = <span class="num">10086</span>;
+
+<span class="cm">-- ❌ 错误 3：违背最左前缀，跳过中间列</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="var">orders</span>
+<span class="kw">WHERE</span> <span class="var">user_id</span> = <span class="num">10086</span>
+  <span class="kw">AND</span> <span class="var">created_at</span> = <span class="str">'2024-06-01'</span>;
+<span class="cm">-- 跳过了 status，B+ 树只能用到 user_id 部分，created_at 无法走索引</span>
+
+<span class="cm">-- ✓ 正确：要么加上 status，要么建新索引 (user_id, created_at)</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="var">orders</span>
+<span class="kw">WHERE</span> <span class="var">user_id</span> = <span class="num">10086</span>
+  <span class="kw">AND</span> <span class="var">status</span>   = <span class="num">1</span>
+  <span class="kw">AND</span> <span class="var">created_at</span> = <span class="str">'2024-06-01'</span>;
+
+<span class="cm">-- ❌ 错误 4：对索引列做运算</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="var">orders</span> <span class="kw">WHERE</span> <span class="var">id</span> + <span class="num">1</span> = <span class="num">100</span>;  <span class="cm">-- 全表扫描！</span>
+
+<span class="cm">-- ✓ 正确：把运算移到右边</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="var">orders</span> <span class="kw">WHERE</span> <span class="var">id</span> = <span class="num">99</span>;</pre>
+  </div>
+
+  <h3>排障速查表</h3>
+
+  <div class="card">
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>症状</th>
+          <th>B 树根因</th>
+          <th>排查命令</th>
+          <th>解决方案</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>慢查询，EXPLAIN 显示 type=ALL</td>
+          <td>未走 B+ 树，全表扫描</td>
+          <td><code style="color:var(--accent-cyan)">EXPLAIN SELECT ...</code></td>
+          <td>检查索引是否存在，排查最左前缀/类型转换</td>
+        </tr>
+        <tr>
+          <td>写入变慢，磁盘 I/O 飙升</td>
+          <td>B+ 树页分裂过于频繁</td>
+          <td><code style="color:var(--accent-cyan)">innodb_index_stats</code></td>
+          <td>调低 fill_factor，或用 UUID→ULID 避免随机插入</td>
+        </tr>
+        <tr>
+          <td>索引存在但未被使用</td>
+          <td>优化器选择全扫（数据量少时正常）</td>
+          <td><code style="color:var(--accent-cyan)">SHOW INDEX FROM ...</code></td>
+          <td><code style="color:var(--accent-yellow)">ANALYZE TABLE</code> 更新统计信息</td>
+        </tr>
+        <tr>
+          <td>范围查询返回大量数据仍慢</td>
+          <td>二级索引大量回表</td>
+          <td><code style="color:var(--accent-cyan)">EXPLAIN ... Extra</code></td>
+          <td>改为覆盖索引，把查询列加入索引定义</td>
+        </tr>
+        <tr>
+          <td>表数据删除后空间未释放</td>
+          <td>B+ 树叶子页标记删除但未回收</td>
+          <td><code style="color:var(--accent-cyan)">information_schema.TABLES</code></td>
+          <td><code style="color:var(--accent-yellow)">OPTIMIZE TABLE</code> 重建 B+ 树</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="insight-card">
+    <div class="label">最终核心结论</div>
+    <p>B 树（B+ 树）的所有工程决策都源自同一个哲学：<strong>最小化磁盘 I/O 次数</strong>。理解了这个原点，你就理解了为什么要选择性高的列放索引（减少扫描节点数），为什么最左前缀失效（B+ 树按列顺序排序，跳过中间列就无法二分），为什么 fill_factor 影响写入性能（留余量减少分裂），为什么覆盖索引快（少一次 B+ 树遍历）。</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<footer>
+  <div class="container">
+    <p style="margin:0; font-size:12px; color:var(--text-muted)">精密架构手册 · B 树深度解析 · 2024</p>
+    <p style="margin:8px 0 0; font-size:11px; color:#334155">参考：CLRS《算法导论》第 18 章 · MySQL 8.0 Reference Manual · InnoDB Architecture Documentation</p>
+  </div>
+</footer>
+
+</div>
+</body>
+</html>

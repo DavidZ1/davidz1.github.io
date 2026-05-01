@@ -1,0 +1,514 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0b0f19;color:#f1f5f9;font-family:"Anthropic Sans",system-ui,sans-serif;line-height:1.7;font-size:15px}
+.page{max-width:900px;margin:0 auto;padding:2rem 1.5rem}
+h1{font-size:2rem;font-weight:600;background:linear-gradient(90deg,#22d3ee,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.4rem}
+h2{font-size:1.25rem;font-weight:500;color:#22d3ee;margin:2.5rem 0 1rem;display:flex;align-items:center;gap:.5rem}
+h2::before{content:"";display:inline-block;width:4px;height:1.2em;background:#22d3ee;border-radius:2px}
+h3{font-size:1rem;font-weight:500;color:#94a3b8;margin:1.2rem 0 .5rem}
+p{color:#cbd5e1;margin-bottom:1rem;line-height:1.8}
+.subtitle{color:#64748b;font-size:.95rem;margin-bottom:2rem}
+.card{background:rgba(17,24,39,0.7);border:1px solid rgba(148,163,184,0.12);border-radius:12px;padding:1.5rem;margin:1.5rem 0;backdrop-filter:blur(8px)}
+.card-accent{border-color:rgba(34,211,238,0.25)}
+.formula-box{background:#0d1117;border:1px solid rgba(34,211,238,0.2);border-radius:8px;padding:1rem 1.5rem;font-family:monospace;font-size:.9rem;color:#22d3ee;margin:1rem 0;overflow-x:auto}
+.highlight{color:#fbbf24;font-weight:500}
+.green{color:#34d399}
+.purple{color:#a855f7}
+.orange{color:#fb923c}
+.red{color:#f87171}
+.cyan{color:#22d3ee}
+.tag{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.78rem;font-weight:500;margin-right:.4rem}
+.tag-cyan{background:rgba(34,211,238,0.1);color:#22d3ee;border:1px solid rgba(34,211,238,0.25)}
+.tag-purple{background:rgba(168,85,247,0.1);color:#a855f7;border:1px solid rgba(168,85,247,0.25)}
+.tag-green{background:rgba(52,211,153,0.1);color:#34d399;border:1px solid rgba(52,211,153,0.25)}
+.tag-orange{background:rgba(251,146,60,0.1);color:#fb923c;border:1px solid rgba(251,146,60,0.25)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.stat-card{background:#111827;border:1px solid rgba(148,163,184,0.1);border-radius:10px;padding:1rem 1.25rem;text-align:center}
+.stat-num{font-size:1.8rem;font-weight:600;color:#22d3ee;display:block}
+.stat-label{font-size:.82rem;color:#64748b;margin-top:.25rem}
+.conclusion-box{background:rgba(34,211,238,0.05);border:1px solid rgba(34,211,238,0.2);border-left:3px solid #22d3ee;border-radius:0 8px 8px 0;padding:1rem 1.25rem;margin:1rem 0}
+.mnemonic-box{background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.2);border-left:3px solid #a855f7;border-radius:0 8px 8px 0;padding:1rem 1.25rem;margin:1rem 0}
+.mnemonic-box .label{font-size:.78rem;color:#a855f7;font-weight:600;letter-spacing:.05em;margin-bottom:.35rem}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{background:#1a2236;color:#94a3b8;padding:.6rem 1rem;text-align:left;font-weight:500;font-size:.82rem;letter-spacing:.04em}
+td{padding:.6rem 1rem;border-bottom:1px solid rgba(148,163,184,0.08);color:#cbd5e1}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(148,163,184,0.04)}
+.divider{border:none;border-top:1px solid rgba(148,163,184,0.08);margin:2rem 0}
+.io-badge{display:inline-flex;align-items:center;gap:.3rem;background:#0f1117;border:1px solid rgba(34,211,238,0.3);border-radius:6px;padding:.25rem .75rem;font-size:.82rem;font-family:monospace;color:#22d3ee}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div style="margin-bottom:2rem">
+  <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem">
+    <span class="tag tag-cyan">InnoDB</span>
+    <span class="tag tag-purple">B+ Tree</span>
+    <span class="tag tag-green">索引原理</span>
+    <span class="tag tag-orange">生产实战</span>
+  </div>
+  <h1>MySQL B+ 树：三层 I/O 覆盖千万数据</h1>
+  <p class="subtitle">InnoDB 16 KB 页、约 1600 扇出，3 层树高可覆盖约 4000 万条记录——这个数字是怎么算出来的？</p>
+</div>
+
+<!-- 第一部分：为什么 -->
+<h2>① 从"为什么"出发：磁盘 I/O 才是瓶颈</h2>
+<p>数据库查询的终极成本不是 CPU，而是<span class="highlight">磁盘 I/O 次数</span>。每次读取磁盘页（InnoDB 默认 16 KB）都需要约 <span class="highlight">5–10 ms</span>，而内存访问只需 <span class="highlight">100 ns</span>，相差 5 万倍。因此，索引结构的核心目标是：用最少的 I/O 次数，找到目标数据。</p>
+<p>B+ 树的设计思路就是把"每次 I/O 能消除多少候选项"最大化——这个能力叫做<span class="cyan">扇出（Fan-out）</span>。</p>
+
+<div class="grid2" style="margin:1.5rem 0">
+  <div class="stat-card">
+    <span class="stat-num">16 KB</span>
+    <div class="stat-label">InnoDB 默认页大小</div>
+  </div>
+  <div class="stat-card">
+    <span class="stat-num" style="color:#f87171">5–10 ms</span>
+    <div class="stat-label">机械盘单次随机 I/O 延迟</div>
+  </div>
+  <div class="stat-card">
+    <span class="stat-num" style="color:#a855f7">~1600</span>
+    <div class="stat-label">内节点扇出（每页指针数）</div>
+  </div>
+  <div class="stat-card">
+    <span class="stat-num" style="color:#34d399">3 次</span>
+    <div class="stat-label">典型树高（覆盖千万级数据）</div>
+  </div>
+</div>
+
+<!-- 架构图1：整体三层结构 -->
+<h2>② 三层 B+ 树全景图</h2>
+<p>下图展示一棵三层 B+ 树的物理结构。层 1 是根节点（常驻内存），层 2 是中间索引节点，层 3 是叶子节点（存放实际数据行或主键回表指针）。</p>
+
+<div class="card card-accent">
+<svg width="100%" viewBox="0 0 860 420" role="img">
+  <title>MySQL B+ 树三层结构全景图</title>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/>
+    </marker>
+    <marker id="arr-g" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#34d399" stroke-width="1.5" stroke-linecap="round"/>
+    </marker>
+  </defs>
+
+  <!-- 层标签 -->
+  <text x="20" y="72" fill="#64748b" font-size="11" font-family="monospace">层 1</text>
+  <text x="20" y="72" fill="#64748b" font-size="11" font-family="monospace">层 1</text>
+  <text x="20" y="195" fill="#64748b" font-size="11" font-family="monospace">层 2</text>
+  <text x="20" y="348" fill="#64748b" font-size="11" font-family="monospace">层 3</text>
+
+  <!-- 层 1：根节点 -->
+  <rect x="320" y="38" width="220" height="54" rx="8" fill="#1a2236" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="430" y="58" text-anchor="middle" fill="#22d3ee" font-size="12" font-weight="600" font-family="monospace">Root Page (16 KB)</text>
+  <text x="430" y="76" text-anchor="middle" fill="#94a3b8" font-size="11" font-family="monospace">常驻内存 · ~1600 个指针</text>
+
+  <!-- 层 2：三个中间节点 -->
+  <rect x="100" y="158" width="160" height="48" rx="8" fill="#111827" stroke="#a855f7" stroke-width="1"/>
+  <text x="180" y="177" text-anchor="middle" fill="#a855f7" font-size="11" font-weight="600" font-family="monospace">Index Page A</text>
+  <text x="180" y="193" text-anchor="middle" fill="#64748b" font-size="10" font-family="monospace">~1600 指针</text>
+
+  <rect x="350" y="158" width="160" height="48" rx="8" fill="#111827" stroke="#a855f7" stroke-width="1"/>
+  <text x="430" y="177" text-anchor="middle" fill="#a855f7" font-size="11" font-weight="600" font-family="monospace">Index Page B</text>
+  <text x="430" y="193" text-anchor="middle" fill="#64748b" font-size="10" font-family="monospace">~1600 指针</text>
+
+  <rect x="600" y="158" width="160" height="48" rx="8" fill="#111827" stroke="#a855f7" stroke-width="1"/>
+  <text x="680" y="177" text-anchor="middle" fill="#a855f7" font-size="11" font-weight="600" font-family="monospace">Index Page C</text>
+  <text x="680" y="193" text-anchor="middle" fill="#64748b" font-size="10" font-family="monospace">~1600 指针</text>
+
+  <!-- 省略号 -->
+  <text x="265" y="187" fill="#64748b" font-size="16" text-anchor="middle">···</text>
+  <text x="510" y="187" fill="#64748b" font-size="16" text-anchor="middle">···</text>
+
+  <!-- 层 1→层 2 连线 -->
+  <line x1="380" y1="92" x2="230" y2="158" stroke="#22d3ee" stroke-width="0.8" stroke-dasharray="4 3" marker-end="url(#arr)" fill="none"/>
+  <line x1="430" y1="92" x2="430" y2="158" stroke="#22d3ee" stroke-width="0.8" stroke-dasharray="4 3" marker-end="url(#arr)" fill="none"/>
+  <line x1="480" y1="92" x2="630" y2="158" stroke="#22d3ee" stroke-width="0.8" stroke-dasharray="4 3" marker-end="url(#arr)" fill="none"/>
+
+  <!-- 层 3：叶子节点（一排） -->
+  <rect x="50" y="300" width="110" height="48" rx="6" fill="#0d1117" stroke="#34d399" stroke-width="1"/>
+  <text x="105" y="320" text-anchor="middle" fill="#34d399" font-size="10" font-weight="600" font-family="monospace">Leaf Page</text>
+  <text x="105" y="336" text-anchor="middle" fill="#64748b" font-size="9" font-family="monospace">~100条数据行</text>
+
+  <rect x="185" y="300" width="110" height="48" rx="6" fill="#0d1117" stroke="#34d399" stroke-width="1"/>
+  <text x="240" y="320" text-anchor="middle" fill="#34d399" font-size="10" font-weight="600" font-family="monospace">Leaf Page</text>
+  <text x="240" y="336" text-anchor="middle" fill="#64748b" font-size="9" font-family="monospace">~100条数据行</text>
+
+  <text x="330" y="325" fill="#64748b" font-size="18" text-anchor="middle">···</text>
+
+  <rect x="375" y="300" width="110" height="48" rx="6" fill="#0d1117" stroke="#34d399" stroke-width="1"/>
+  <text x="430" y="320" text-anchor="middle" fill="#34d399" font-size="10" font-weight="600" font-family="monospace">Leaf Page</text>
+  <text x="430" y="336" text-anchor="middle" fill="#64748b" font-size="9" font-family="monospace">~100条数据行</text>
+
+  <text x="510" y="325" fill="#64748b" font-size="18" text-anchor="middle">···</text>
+
+  <rect x="565" y="300" width="110" height="48" rx="6" fill="#0d1117" stroke="#34d399" stroke-width="1"/>
+  <text x="620" y="320" text-anchor="middle" fill="#34d399" font-size="10" font-weight="600" font-family="monospace">Leaf Page</text>
+  <text x="620" y="336" text-anchor="middle" fill="#64748b" font-size="9" font-family="monospace">~100条数据行</text>
+
+  <text x="700" y="325" fill="#64748b" font-size="18" text-anchor="middle">···</text>
+
+  <rect x="720" y="300" width="110" height="48" rx="6" fill="#0d1117" stroke="#34d399" stroke-width="1"/>
+  <text x="775" y="320" text-anchor="middle" fill="#34d399" font-size="10" font-weight="600" font-family="monospace">Leaf Page</text>
+  <text x="775" y="336" text-anchor="middle" fill="#64748b" font-size="9" font-family="monospace">~100条数据行</text>
+
+  <!-- 层 2→层 3 连线 -->
+  <line x1="140" y1="206" x2="105" y2="300" stroke="#a855f7" stroke-width="0.7" stroke-dasharray="3 3" marker-end="url(#arr-g)" fill="none"/>
+  <line x1="165" y1="206" x2="240" y2="300" stroke="#a855f7" stroke-width="0.7" stroke-dasharray="3 3" marker-end="url(#arr-g)" fill="none"/>
+  <line x1="410" y1="206" x2="430" y2="300" stroke="#a855f7" stroke-width="0.7" stroke-dasharray="3 3" marker-end="url(#arr-g)" fill="none"/>
+  <line x1="640" y1="206" x2="620" y2="300" stroke="#a855f7" stroke-width="0.7" stroke-dasharray="3 3" marker-end="url(#arr-g)" fill="none"/>
+  <line x1="700" y1="206" x2="775" y2="300" stroke="#a855f7" stroke-width="0.7" stroke-dasharray="3 3" marker-end="url(#arr-g)" fill="none"/>
+
+  <!-- 叶子节点双向链表 -->
+  <line x1="160" y1="324" x2="185" y2="324" stroke="#34d399" stroke-width="1" marker-end="url(#arr-g)" fill="none"/>
+  <line x1="295" y1="324" x2="375" y2="324" stroke="#34d399" stroke-width="1" stroke-dasharray="3 2" fill="none"/>
+  <line x1="485" y1="324" x2="565" y2="324" stroke="#34d399" stroke-width="1" stroke-dasharray="3 2" fill="none"/>
+  <line x1="675" y1="324" x2="720" y2="324" stroke="#34d399" stroke-width="1" marker-end="url(#arr-g)" fill="none"/>
+
+  <!-- 图例 -->
+  <rect x="50" y="378" width="14" height="8" rx="2" fill="none" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="70" y="387" fill="#64748b" font-size="10" font-family="monospace">根/调度层</text>
+  <rect x="175" y="378" width="14" height="8" rx="2" fill="none" stroke="#a855f7" stroke-width="1"/>
+  <text x="195" y="387" fill="#64748b" font-size="10" font-family="monospace">中间索引层</text>
+  <rect x="310" y="378" width="14" height="8" rx="2" fill="none" stroke="#34d399" stroke-width="1"/>
+  <text x="330" y="387" fill="#64748b" font-size="10" font-family="monospace">叶子数据层（双向链表）</text>
+  <line x1="525" y1="382" x2="555" y2="382" stroke="#34d399" stroke-width="1" stroke-dasharray="3 2" fill="none"/>
+  <text x="562" y="387" fill="#64748b" font-size="10" font-family="monospace">范围扫描链</text>
+</svg>
+</div>
+
+<div class="conclusion-box">
+  <strong class="cyan">核心结论：</strong>B+ 树的非叶子节点只存 Key + 指针，叶子节点才存完整数据行（聚簇索引）或主键（二级索引）。这让中间层可以塞入尽可能多的指针，最大化扇出。叶子节点之间通过<strong>双向链表</strong>相连，天然支持范围查询而无需回溯树干。
+</div>
+
+<div class="mnemonic-box">
+  <div class="label">实战口诀</div>
+  <strong style="color:#f1f5f9">上层导航、下层存货，叶子串成链、范围不回头。</strong>
+</div>
+
+<!-- 第三部分：计算过程 -->
+<h2>③ 扇出计算：1600 这个数是怎么来的</h2>
+<p>这是整篇的核心数学。我们来逐步拆解。</p>
+
+<!-- 架构图2：页结构分解 -->
+<h3>内节点（非叶子节点）的页结构</h3>
+<p>一个 16 KB 的内节点页由三部分组成：固定页头、若干个 <code style="color:#fbbf24;background:#0d1117;padding:1px 6px;border-radius:4px">[Key, ChildPointer]</code> 键值对，以及一个末尾指针。</p>
+
+<div class="card">
+<svg width="100%" viewBox="0 0 860 220" role="img">
+  <title>InnoDB 内节点页结构分解</title>
+  <defs>
+    <marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
+    </marker>
+  </defs>
+
+  <!-- 主页条 -->
+  <rect x="40" y="50" width="778" height="60" rx="6" fill="#111827" stroke="rgba(148,163,184,0.2)" stroke-width="1"/>
+
+  <!-- 页头 -->
+  <rect x="40" y="50" width="80" height="60" rx="6" fill="#1a2236" stroke="#64748b" stroke-width="1"/>
+  <text x="80" y="76" text-anchor="middle" fill="#94a3b8" font-size="11" font-family="monospace" font-weight="600">Page</text>
+  <text x="80" y="92" text-anchor="middle" fill="#64748b" font-size="10" font-family="monospace">Header</text>
+  <text x="80" y="104" text-anchor="middle" fill="#64748b" font-size="9" font-family="monospace">~100B</text>
+
+  <!-- 键值对组（5个示意） -->
+  <rect x="128" y="54" width="90" height="52" rx="4" fill="#0f1117" stroke="#fbbf24" stroke-width="1"/>
+  <text x="173" y="75" text-anchor="middle" fill="#fbbf24" font-size="10" font-family="monospace">Key₁</text>
+  <text x="173" y="89" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="monospace">Ptr₁</text>
+  <text x="173" y="102" text-anchor="middle" fill="#64748b" font-size="9" font-family="monospace">14B</text>
+
+  <rect x="224" y="54" width="90" height="52" rx="4" fill="#0f1117" stroke="#fbbf24" stroke-width="1"/>
+  <text x="269" y="75" text-anchor="middle" fill="#fbbf24" font-size="10" font-family="monospace">Key₂</text>
+  <text x="269" y="89" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="monospace">Ptr₂</text>
+  <text x="269" y="102" text-anchor="middle" fill="#64748b" font-size="9" font-family="monospace">14B</text>
+
+  <rect x="320" y="54" width="90" height="52" rx="4" fill="#0f1117" stroke="#fbbf24" stroke-width="1"/>
+  <text x="365" y="75" text-anchor="middle" fill="#fbbf24" font-size="10" font-family="monospace">Key₃</text>
+  <text x="365" y="89" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="monospace">Ptr₃</text>
+  <text x="365" y="102" text-anchor="middle" fill="#64748b" font-size="9" font-family="monospace">14B</text>
+
+  <text x="435" y="82" fill="#64748b" font-size="18" text-anchor="middle">···</text>
+
+  <rect x="470" y="54" width="90" height="52" rx="4" fill="#0f1117" stroke="#fbbf24" stroke-width="1"/>
+  <text x="515" y="75" text-anchor="middle" fill="#fbbf24" font-size="10" font-family="monospace">Key_n</text>
+  <text x="515" y="89" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="monospace">Ptr_n</text>
+  <text x="515" y="102" text-anchor="middle" fill="#64748b" font-size="9" font-family="monospace">14B</text>
+
+  <!-- 末尾指针 -->
+  <rect x="570" y="54" width="240" height="52" rx="4" fill="#0f1117" stroke="#22d3ee" stroke-width="1"/>
+  <text x="690" y="82" text-anchor="middle" fill="#22d3ee" font-size="11" font-family="monospace">Last Child Pointer</text>
+  <text x="690" y="98" text-anchor="middle" fill="#64748b" font-size="10" font-family="monospace">6B（page_no）</text>
+
+  <!-- 标注 -->
+  <line x1="173" y1="106" x2="173" y2="148" stroke="#fbbf24" stroke-width="0.8" stroke-dasharray="3 2"/>
+  <text x="350" y="165" text-anchor="middle" fill="#94a3b8" font-size="11" font-family="monospace">Key: 4B (INT) + Ptr: 6B (page_no) + 4B overhead = <tspan fill="#fbbf24" font-weight="600">14B / entry</tspan></text>
+
+  <!-- 计算 -->
+  <rect x="40" y="180" width="778" height="30" rx="4" fill="#0d1117"/>
+  <text x="430" y="200" text-anchor="middle" fill="#22d3ee" font-size="11" font-family="monospace">可用空间 = 16384B − 100B ≈ 16284B  →  16284 ÷ 14 ≈ <tspan fill="#34d399" font-weight="700" font-size="13">1163</tspan> 个指针（保守估计）；实际含优化约 <tspan fill="#34d399" font-weight="700" font-size="13">1600</tspan></text>
+</svg>
+</div>
+
+<div class="card card-accent">
+<h3 style="color:#fbbf24;margin-bottom:1rem">扇出精确计算步骤</h3>
+<div class="formula-box">
+<span style="color:#64748b">// 步骤1：一个 16 KB 页的可用空间</span>
+16384 B  (16 KB)
+− 38 B   (File Header)
+− 56 B   (Page Header)  
+− 26 B   (Page Directory + Trailer)
+= <span style="color:#34d399;font-weight:700">16264 B</span>  可用于存储键值对
+
+<span style="color:#64748b">// 步骤2：单个索引键值对大小（以 INT 主键为例）</span>
+Key  : 4 B  (INT)
+Ptr  : 6 B  (Page Number, 4B) + 2B (pointer metadata)
+= <span style="color:#fbbf24;font-weight:700">约 10~14 B / entry</span>
+
+<span style="color:#64748b">// 步骤3：扇出（每页指针数）</span>
+fan_out = 16264 ÷ 10 ≈ <span style="color:#22d3ee;font-weight:700">1626</span>  （乐观）
+fan_out = 16264 ÷ 14 ≈ <span style="color:#22d3ee;font-weight:700">1162</span>  （保守）
+<span style="color:#a855f7">常用估算值：约 1200 ~ 1600</span>，官方文档取 ~1200
+</div>
+</div>
+
+<!-- 架构图3：三层覆盖量计算 -->
+<h2>④ 三层覆盖量：指数爆炸的威力</h2>
+<p>有了扇出系数，三层覆盖量就是简单的乘方。关键在于理解：每一层都是对上一层的指数级放大，就像二叉树的 2ⁿ，只不过这里底数是 1600。</p>
+
+<div class="card">
+<svg width="100%" viewBox="0 0 860 310" role="img">
+  <title>B+ 树三层覆盖量指数增长示意图</title>
+  <defs>
+    <marker id="arr3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/>
+    </marker>
+  </defs>
+
+  <!-- 层 1：1 个根节点 -->
+  <rect x="360" y="20" width="140" height="50" rx="8" fill="#1a2236" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="430" y="40" text-anchor="middle" fill="#22d3ee" font-size="12" font-family="monospace" font-weight="700">层 1: 根节点</text>
+  <text x="430" y="57" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="monospace">1 个页</text>
+
+  <!-- 箭头+标注 -->
+  <line x1="430" y1="70" x2="430" y2="105" stroke="#22d3ee" stroke-width="1.2" marker-end="url(#arr3)"/>
+  <text x="450" y="92" fill="#fbbf24" font-size="10" font-family="monospace">×1600 扇出</text>
+
+  <!-- 层 2：1600 个中间节点 -->
+  <rect x="280" y="108" width="300" height="50" rx="8" fill="#1a2236" stroke="#a855f7" stroke-width="1.5"/>
+  <text x="430" y="128" text-anchor="middle" fill="#a855f7" font-size="12" font-family="monospace" font-weight="700">层 2: 索引节点</text>
+  <text x="430" y="145" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="monospace">1 × 1,600 = <tspan fill="#a855f7" font-weight="700">1,600 个页</tspan></text>
+
+  <!-- 箭头+标注 -->
+  <line x1="430" y1="158" x2="430" y2="193" stroke="#a855f7" stroke-width="1.2" marker-end="url(#arr3)"/>
+  <text x="455" y="180" fill="#fbbf24" font-size="10" font-family="monospace">×1600 扇出</text>
+
+  <!-- 层 3：2560000 个叶子节点 -->
+  <rect x="160" y="196" width="540" height="50" rx="8" fill="#0d1117" stroke="#34d399" stroke-width="1.5"/>
+  <text x="430" y="216" text-anchor="middle" fill="#34d399" font-size="12" font-family="monospace" font-weight="700">层 3: 叶子节点</text>
+  <text x="430" y="233" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="monospace">1,600 × 1,600 = <tspan fill="#34d399" font-weight="700">2,560,000 个叶子页</tspan></text>
+
+  <!-- 叶子页×每页行数 -->
+  <rect x="160" y="258" width="540" height="40" rx="6" fill="rgba(52,211,153,0.06)" stroke="rgba(52,211,153,0.25)" stroke-width="1"/>
+  <text x="430" y="282" text-anchor="middle" fill="#f1f5f9" font-size="11" font-family="monospace">
+    2,560,000 页 × <tspan fill="#fbbf24">~16 条/页</tspan> = <tspan fill="#34d399" font-weight="700" font-size="14">约 4,096 万条记录</tspan>
+  </text>
+</svg>
+</div>
+
+<div class="card" style="margin:1rem 0">
+<table>
+  <thead>
+    <tr>
+      <th>树层</th>
+      <th>节点数量</th>
+      <th>计算公式</th>
+      <th>I/O 次数</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="cyan">层 1（根）</span></td>
+      <td>1 个页</td>
+      <td><code style="color:#fbbf24">1</code></td>
+      <td class="green">0（常驻内存）</td>
+      <td>Buffer Pool 热点，几乎不读盘</td>
+    </tr>
+    <tr>
+      <td><span class="purple">层 2（中间）</span></td>
+      <td>~1,600 个页</td>
+      <td><code style="color:#fbbf24">1 × 1600</code></td>
+      <td class="orange">1 次 I/O</td>
+      <td>读取对应中间节点页</td>
+    </tr>
+    <tr>
+      <td><span class="green">层 3（叶子）</span></td>
+      <td>~256 万个页</td>
+      <td><code style="color:#fbbf24">1600 × 1600</code></td>
+      <td class="orange">1 次 I/O</td>
+      <td>读取对应叶子页，获得数据</td>
+    </tr>
+    <tr style="background:rgba(52,211,153,0.05)">
+      <td colspan="2"><strong style="color:#f1f5f9">总计覆盖</strong></td>
+      <td><code style="color:#34d399">256万页 × ~16条</code></td>
+      <td><strong class="green">仅 2 次磁盘 I/O</strong></td>
+      <td>根节点已缓存，实际仅需 2 次！</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="conclusion-box">
+  <strong class="cyan">核心结论：</strong>
+  <ol style="padding-left:1.5rem;margin-top:.5rem;color:#cbd5e1">
+    <li style="margin-bottom:.5rem"><strong style="color:#f1f5f9">覆盖量 = 扇出^(树高-1) × 叶子页行数</strong>。以扇出 1600、树高 3 计算：1600² × 16 ≈ <span class="green">4000 万条</span>。</li>
+    <li style="margin-bottom:.5rem">根节点几乎永远在 Buffer Pool 中，所以实际磁盘 I/O 只有 <span class="orange">2 次</span>（中间层 1 次 + 叶子层 1 次）。</li>
+    <li>叶子页每页约存 <span class="highlight">16 条数据行</span>（以 1 KB/行为例：16384 ÷ 1024 ≈ 16；行越小，每页越多）。</li>
+  </ol>
+</div>
+
+<div class="mnemonic-box">
+  <div class="label">实战口诀</div>
+  <strong style="color:#f1f5f9">扇出 1600 是底数，树高 3 是指数，叶子行数是系数；</strong><br>
+  <strong style="color:#f1f5f9">根在内存不算盘，每查一次最多 2 I/O 就能见。</strong>
+</div>
+
+<!-- 第四部分：叶子页行数计算 -->
+<h2>⑤ 叶子节点：每页能放多少行数据</h2>
+<p>叶子节点的行数直接影响覆盖量，它取决于<span class="highlight">单行大小</span>。不同表结构差异很大：</p>
+
+<div class="card">
+<svg width="100%" viewBox="0 0 860 200" role="img">
+  <title>叶子节点行数与行大小对照</title>
+  <defs>
+    <marker id="arr4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#34d399" stroke-width="1.5" stroke-linecap="round"/>
+    </marker>
+  </defs>
+
+  <!-- 行大小刻度条 -->
+  <rect x="60" y="70" width="740" height="20" rx="4" fill="#111827" stroke="rgba(148,163,184,0.1)" stroke-width="1"/>
+
+  <!-- 分段填色 -->
+  <rect x="60" y="70" width="186" height="20" rx="4" fill="rgba(52,211,153,0.25)"/>
+  <rect x="246" y="70" width="186" height="20" fill="rgba(34,211,238,0.2)"/>
+  <rect x="432" y="70" width="186" height="20" fill="rgba(168,85,247,0.2)"/>
+  <rect x="618" y="70" width="182" height="20" rx="4" fill="rgba(248,113,113,0.2)"/>
+
+  <!-- 刻度标签 -->
+  <text x="60"  y="60" fill="#64748b" font-size="10" font-family="monospace" text-anchor="middle">128 B</text>
+  <text x="246" y="60" fill="#64748b" font-size="10" font-family="monospace" text-anchor="middle">512 B</text>
+  <text x="432" y="60" fill="#64748b" font-size="10" font-family="monospace" text-anchor="middle">1 KB</text>
+  <text x="618" y="60" fill="#64748b" font-size="10" font-family="monospace" text-anchor="middle">4 KB</text>
+  <text x="800" y="60" fill="#64748b" font-size="10" font-family="monospace" text-anchor="middle">16 KB</text>
+
+  <!-- 垂直分隔线 -->
+  <line x1="246" y1="65" x2="246" y2="95" stroke="rgba(148,163,184,0.2)" stroke-width="0.8"/>
+  <line x1="432" y1="65" x2="432" y2="95" stroke="rgba(148,163,184,0.2)" stroke-width="0.8"/>
+  <line x1="618" y1="65" x2="618" y2="95" stroke="rgba(148,163,184,0.2)" stroke-width="0.8"/>
+
+  <!-- 覆盖量标注 -->
+  <text x="153" y="114" text-anchor="middle" fill="#34d399" font-size="11" font-family="monospace" font-weight="700">~128 行/页</text>
+  <text x="153" y="128" text-anchor="middle" fill="#64748b" font-size="9" font-family="monospace">覆盖量 ×8 倍</text>
+
+  <text x="339" y="114" text-anchor="middle" fill="#22d3ee" font-size="11" font-family="monospace" font-weight="700">~32 行/页</text>
+  <text x="339" y="128" text-anchor="middle" fill="#64748b" font-size="9" font-family="monospace">中等行宽</text>
+
+  <text x="525" y="114" text-anchor="middle" fill="#a855f7" font-size="11" font-family="monospace" font-weight="700">~16 行/页</text>
+  <text x="525" y="128" text-anchor="middle" fill="#64748b" font-size="9" font-family="monospace">官方参考估算</text>
+
+  <text x="709" y="114" text-anchor="middle" fill="#f87171" font-size="11" font-family="monospace" font-weight="700">~4 行/页</text>
+  <text x="709" y="128" text-anchor="middle" fill="#64748b" font-size="9" font-family="monospace">大行警告</text>
+
+  <!-- 总覆盖量对应 -->
+  <text x="153" y="158" text-anchor="middle" fill="#34d399" font-size="10" font-family="monospace">约 3.3 亿条</text>
+  <text x="339" y="158" text-anchor="middle" fill="#22d3ee" font-size="10" font-family="monospace">约 8000 万条</text>
+  <text x="525" y="158" text-anchor="middle" fill="#a855f7" font-size="10" font-family="monospace">约 4000 万条</text>
+  <text x="709" y="158" text-anchor="middle" fill="#f87171" font-size="10" font-family="monospace">约 1000 万条</text>
+
+  <text x="430" y="190" text-anchor="middle" fill="#64748b" font-size="9" font-family="monospace">（树高 3 层、扇出 1600，按不同行宽估算总覆盖数据量）</text>
+</svg>
+</div>
+
+<p>可见<strong style="color:#f1f5f9">行越宽，叶子节点装的行数越少，同样树高能覆盖的总数据量越少</strong>。这也是为什么 InnoDB 建议主键要短——主键出现在所有二级索引中，每缩短 4 字节，整个索引层的密度都提升。</p>
+
+<!-- 第五部分：生产实战 -->
+<h2>⑥ 生产实战：配置与诊断</h2>
+
+<div class="grid2" style="gap:1rem;margin-bottom:1rem">
+  <div class="card" style="margin:0">
+    <h3 style="color:#22d3ee;margin-bottom:.75rem">关键配置参数</h3>
+    <div class="formula-box" style="font-size:.82rem">
+-- 查看当前页大小
+SHOW VARIABLES LIKE 'innodb_page_size';
+
+-- 查看 Buffer Pool 大小（根节点缓存）
+SHOW VARIABLES LIKE 'innodb_buffer_pool_size';
+
+-- 推荐：Buffer Pool 设为物理内存 70~80%
+innodb_buffer_pool_size = 12G  -- 16G 内存机器
+    </div>
+  </div>
+  <div class="card" style="margin:0">
+    <h3 style="color:#22d3ee;margin-bottom:.75rem">估算表的树高</h3>
+    <div class="formula-box" style="font-size:.82rem">
+-- 查看表的页数（间接推算树高）
+SELECT TABLE_NAME,
+  DATA_LENGTH / 16384 AS page_count,
+  TABLE_ROWS
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = 'your_db';
+
+-- 树高估算：log_{扇出}(page_count)
+-- page_count=1600  → 高度≈2
+-- page_count=256万 → 高度≈3（千万级）
+    </div>
+  </div>
+</div>
+
+<h3 style="color:#94a3b8;margin:1.5rem 0 .75rem">常见错误配置 vs 正确写法</h3>
+<div class="card">
+<div class="formula-box" style="font-size:.83rem">
+<span style="color:#f87171">-- ❌ 错误：用 UUID 做主键（36B 字符串）</span>
+CREATE TABLE orders (
+  id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),  -- 过长，扇出骤降
+  ...
+);
+
+<span style="color:#34d399">-- ✅ 正确：INT / BIGINT 自增主键（4/8B）</span>
+CREATE TABLE orders (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  biz_uuid VARCHAR(36) NOT NULL,   -- 业务 UUID 单独存，不当主键
+  INDEX idx_biz_uuid (biz_uuid),
+  ...
+);
+
+<span style="color:#f87171">-- ❌ 错误：联合索引字段顺序错误（选择性低的字段放前面）</span>
+INDEX idx_wrong (status, user_id);  -- status 只有 3 个值，扇出极差
+
+<span style="color:#34d399">-- ✅ 正确：高选择性字段放前面</span>
+INDEX idx_right (user_id, status);  -- user_id 选择性高，先过滤
+</div>
+</div>
+
+<hr class="divider">
+
+<div class="conclusion-box" style="margin-bottom:2rem">
+  <strong class="cyan" style="display:block;margin-bottom:.5rem">完整推导公式</strong>
+  <div style="font-family:monospace;font-size:.95rem;color:#f1f5f9;line-height:2">
+    扇出 f ≈ (16384 − 页头) ÷ (Key_size + Ptr_size)<br>
+    叶子页数 L = f^(h−1)　　　（h 为树高）<br>
+    总行数 N = L × rows_per_leaf<br>
+    <span style="color:#34d399">代入 f=1600, h=3, rows≈16：N = 1600² × 16 ≈ 4096万</span>
+  </div>
+</div>
+
+</div>
+</body>
+</html>
