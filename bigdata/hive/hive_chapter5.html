@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apache Hive 深度学习 · 第5章 · 性能调优与生产运维</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0900;
+  --bg2: #161000;
+  --bg3: #1e1500;
+  --primary: #fbbf24;
+  --primary-dark: #d97706;
+  --primary-light: #fcd34d;
+  --accent: #fb923c;
+  --accent2: #fef3c7;
+  --glow: rgba(251,191,36,0.14);
+  --text: #e2e8f0;
+  --text-muted: #6b5a2a;
+  --text-dim: #94a3b8;
+  --border: rgba(251,191,36,0.14);
+  --border-bright: rgba(252,211,77,0.38);
+  --sidebar-w: 68px;
+  --green: #4ade80;
+  --orange: #fb923c;
+  --red: #f87171;
+  --cyan: #22d3ee;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans SC',sans-serif;font-size:15px;line-height:1.75;overflow-x:hidden;}
+
+/* SIDEBAR */
+.sidebar{position:fixed;left:0;top:0;width:var(--sidebar-w);height:100vh;background:rgba(13,9,0,0.94);border-right:1px solid var(--border);backdrop-filter:blur(14px);z-index:100;display:flex;flex-direction:column;align-items:center;padding:28px 0;}
+.sidebar-title{writing-mode:vertical-rl;transform:rotate(180deg);font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.15em;color:var(--primary-light);text-transform:uppercase;margin-bottom:28px;}
+.sidebar-chap{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted);margin-bottom:22px;letter-spacing:0.08em;}
+.sidebar-dots{display:flex;flex-direction:column;gap:14px;flex:1;align-items:center;}
+.sidebar-dot{width:7px;height:7px;border-radius:50%;background:var(--text-muted);opacity:0.35;transition:all 0.3s;cursor:pointer;}
+.sidebar-dot.active{background:var(--primary-light);opacity:1;box-shadow:0 0 10px var(--primary-light);width:9px;height:9px;}
+
+/* MAIN */
+.main{margin-left:var(--sidebar-w);}
+
+/* HERO */
+.hero{min-height:100vh;position:relative;display:flex;flex-direction:column;justify-content:center;padding:80px;overflow:hidden;}
+.hero-bg{position:absolute;inset:0;z-index:0;pointer-events:none;}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(251,191,36,0.045) 1px,transparent 1px),linear-gradient(90deg,rgba(251,191,36,0.045) 1px,transparent 1px);background-size:58px 58px;}
+.hero-orb{position:absolute;border-radius:50%;filter:blur(100px);opacity:0.18;}
+.o1{width:560px;height:560px;background:radial-gradient(circle,#fbbf24,transparent 70%);top:-120px;right:-90px;animation:ob1 11s ease-in-out infinite;}
+.o2{width:370px;height:370px;background:radial-gradient(circle,#fb923c,transparent 70%);bottom:-80px;left:70px;animation:ob2 9s ease-in-out infinite;}
+.o3{width:270px;height:270px;background:radial-gradient(circle,#d97706,transparent 70%);top:44%;left:44%;animation:ob3 13s ease-in-out infinite;}
+@keyframes ob1{0%,100%{transform:scale(1) translate(0,0)}50%{transform:scale(1.08) translate(-26px,24px)}}
+@keyframes ob2{0%,100%{transform:scale(1) translate(0,0)}50%{transform:scale(0.92) translate(20px,-20px)}}
+@keyframes ob3{0%,100%{transform:scale(1) translate(-50%,-50%)}50%{transform:scale(1.17) translate(-58%,-44%)}}
+.hero-deco{position:absolute;top:44px;right:64px;width:260px;height:260px;opacity:0.05;}
+.hero-content{position:relative;z-index:1;max-width:900px;}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border-bright);background:rgba(251,191,36,0.07);padding:6px 16px;border-radius:100px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--primary-light);letter-spacing:0.08em;margin-bottom:26px;}
+.badge-dot{width:7px;height:7px;border-radius:50%;background:var(--primary-light);animation:breathe 2s ease-in-out infinite;}
+@keyframes breathe{0%,100%{opacity:1;transform:scale(1);box-shadow:0 0 0 0 rgba(252,211,77,0.4)}50%{opacity:0.65;transform:scale(0.82);box-shadow:0 0 0 5px rgba(252,211,77,0)}}
+.hero-title{font-family:'Syne',sans-serif;font-size:clamp(46px,6vw,80px);font-weight:800;line-height:1.05;letter-spacing:-0.02em;margin-bottom:20px;background:linear-gradient(135deg,#e2e8f0 15%,var(--primary-light) 52%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200% auto;animation:shimmer 4s linear infinite;}
+@keyframes shimmer{0%{background-position:0% center}100%{background-position:200% center}}
+.hero-subtitle{font-size:17px;color:var(--text-dim);max-width:650px;margin-bottom:30px;line-height:1.8;}
+.hero-pills{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:34px;}
+.pill{font-family:'JetBrains Mono',monospace;font-size:11.5px;padding:5px 14px;border-radius:100px;border:1px solid var(--border-bright);color:var(--accent2);background:rgba(251,191,36,0.07);letter-spacing:0.05em;transition:all 0.2s;}
+.pill:hover{background:rgba(251,191,36,0.17);border-color:var(--primary-light);}
+.hero-meta{display:flex;flex-wrap:wrap;gap:24px;}
+.meta-item{display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-muted);}
+.meta-val{color:var(--text-dim);}
+
+/* DIVIDER */
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border-bright),transparent);margin:0 80px;opacity:0.5;}
+
+/* SECTION */
+.section{padding:80px 80px;}
+.section-tag{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--primary-light);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.section-tag::before{content:'';display:inline-block;width:22px;height:1px;background:var(--primary-light);}
+.section-title{font-family:'Syne',sans-serif;font-size:clamp(26px,3.5vw,42px);font-weight:700;margin-bottom:10px;color:#f1f5f9;line-height:1.15;}
+.section-desc{color:var(--text-muted);font-size:15px;max-width:660px;margin-bottom:44px;line-height:1.8;}
+
+/* CODE */
+.code-block{border-radius:12px;overflow:hidden;border:1px solid var(--border);background:#080600;margin:20px 0;}
+.code-header{display:flex;align-items:center;gap:10px;padding:12px 18px;background:rgba(22,16,0,0.92);border-bottom:1px solid var(--border);}
+.code-dots{display:flex;gap:6px;}
+.code-dot{width:12px;height:12px;border-radius:50%;}
+.code-dot.red{background:#ff5f57;}.code-dot.yellow{background:#febc2e;}.code-dot.green{background:#28c840;}
+.code-filename{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-muted);margin-left:6px;}
+.code-body{padding:22px 24px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.85;overflow-x:auto;}
+.code-body pre{white-space:pre;}
+.kw{color:#fcd34d;}.fn{color:#fdba74;}.str{color:#d9f99d;}.num{color:#fb923c;}.cmt{color:#3d2e00;font-style:italic;}.tp{color:#fef9c3;}.nn{color:#f9a8d4;}.hl{color:#86efac;}.bad{color:#f87171;}.good{color:#4ade80;}.op{color:#94a3b8;}
+
+/* INFO BOX */
+.info-box{border-radius:10px;padding:16px 20px;margin:16px 0;display:flex;gap:14px;align-items:flex-start;border-left:3px solid;font-size:14px;line-height:1.75;}
+.info-box.tip{background:rgba(251,191,36,0.07);border-color:var(--primary-light);color:var(--accent2);}
+.info-box.warn{background:rgba(251,146,60,0.07);border-color:var(--accent);color:#fed7aa;}
+.info-box.danger{background:rgba(248,113,113,0.06);border-color:#f87171;color:#fecaca;}
+.info-box.note{background:rgba(34,211,238,0.06);border-color:#22d3ee;color:#a5f3fc;}
+.info-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+
+/* KNOB CARDS */
+.knob-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:24px 0;}
+.knob-card{border:1px solid var(--border);border-radius:12px;padding:22px;background:var(--bg2);transition:all 0.3s;position:relative;overflow:hidden;}
+.knob-card:hover{border-color:var(--border-bright);transform:translateY(-2px);}
+.knob-name{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--primary-light);margin-bottom:6px;word-break:break-all;}
+.knob-default{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-muted);margin-bottom:4px;}
+.knob-range{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);margin-bottom:8px;}
+.knob-desc{font-size:13px;color:var(--text-dim);line-height:1.65;margin-bottom:12px;}
+.knob-bar-bg{height:5px;background:rgba(251,191,36,0.1);border-radius:10px;overflow:hidden;margin-bottom:8px;}
+.knob-bar-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--primary-dark),var(--primary-light));width:0;transition:width 1.2s cubic-bezier(0.25,1,0.5,1);}
+.knob-tags{display:flex;flex-wrap:wrap;gap:6px;}
+.knob-tag{font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 8px;border-radius:4px;background:rgba(251,191,36,0.09);border:1px solid rgba(251,191,36,0.2);color:var(--accent2);}
+
+/* PERF BAR */
+.perf-rows{display:flex;flex-direction:column;gap:14px;margin:20px 0;}
+.perf-row{display:grid;grid-template-columns:220px 1fr 90px;align-items:center;gap:16px;}
+.perf-label{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-dim);}
+.perf-bar-bg{height:7px;background:rgba(251,191,36,0.09);border-radius:10px;overflow:hidden;}
+.perf-bar-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--primary-dark),var(--primary-light));width:0;transition:width 1.2s cubic-bezier(0.25,1,0.5,1);}
+.perf-bar-fill.amber{background:linear-gradient(90deg,#92400e,#fbbf24);}
+.perf-bar-fill.green{background:linear-gradient(90deg,#14532d,#4ade80);}
+.perf-bar-fill.red{background:linear-gradient(90deg,#7f1d1d,#f87171);}
+.perf-val{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--primary-light);text-align:right;}
+
+/* MATRIX */
+.matrix-wrap{overflow-x:auto;margin:20px 0;}
+.matrix-table{width:100%;border-collapse:collapse;border-radius:10px;overflow:hidden;background:var(--bg2);border:1px solid var(--border);}
+.matrix-table th{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);padding:13px 15px;background:rgba(22,16,0,0.9);text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
+.matrix-table td{padding:12px 15px;font-size:13px;color:var(--text-dim);border-bottom:1px solid rgba(251,191,36,0.06);vertical-align:top;line-height:1.65;}
+.matrix-table tr:last-child td{border-bottom:none;}
+.matrix-table tr:hover td{background:rgba(251,191,36,0.03);}
+.matrix-table td:first-child{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--primary-light);font-weight:500;white-space:nowrap;}
+.ok{color:#4ade80!important;}.warn-c{color:#fbbf24!important;}.no{color:#f87171!important;}
+
+/* CARD GRID */
+.card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin:24px 0;}
+.grid-card{border:1px solid var(--border);border-radius:12px;padding:22px;background:var(--bg2);position:relative;overflow:hidden;transition:all 0.3s;}
+.grid-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--primary-dark),var(--primary-light));opacity:0;transition:opacity 0.3s;}
+.grid-card:hover{transform:translateY(-3px);border-color:var(--border-bright);}
+.grid-card:hover::after{opacity:1;}
+.grid-card-icon{font-size:24px;margin-bottom:10px;}
+.grid-card-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#f1f5f9;margin-bottom:8px;}
+.grid-card-desc{font-size:13px;color:var(--text-muted);line-height:1.7;}
+
+/* COMPARE */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:24px 0;}
+.compare-card{border:1px solid var(--border);border-radius:12px;padding:24px;background:var(--bg2);transition:all 0.3s;position:relative;overflow:hidden;}
+.compare-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;opacity:0;transition:opacity 0.3s;}
+.compare-card.amber::before{background:linear-gradient(90deg,var(--primary-dark),var(--primary-light));}
+.compare-card.orange::before{background:linear-gradient(90deg,#c2410c,var(--accent));}
+.compare-card:hover{transform:translateY(-3px);border-color:var(--border-bright);}
+.compare-card:hover::before{opacity:1;}
+.compare-card-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.compare-badge{font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 8px;border-radius:4px;background:rgba(251,191,36,0.12);color:var(--primary-light);border:1px solid rgba(251,191,36,0.25);}
+.compare-list{list-style:none;display:flex;flex-direction:column;gap:8px;}
+.compare-list li{font-size:13.5px;color:var(--text-dim);display:flex;align-items:flex-start;gap:8px;line-height:1.65;}
+.compare-list li::before{content:'→';color:var(--primary-light);flex-shrink:0;margin-top:1px;}
+
+/* TRAP LIST */
+.trap-list{display:flex;flex-direction:column;gap:14px;margin:20px 0;}
+.trap-item{display:flex;gap:16px;align-items:flex-start;border:1px solid rgba(248,113,113,0.12);border-radius:10px;padding:16px 20px;background:rgba(248,113,113,0.03);transition:all 0.3s;}
+.trap-item:hover{border-color:rgba(248,113,113,0.28);background:rgba(248,113,113,0.06);}
+.trap-icon{font-size:20px;flex-shrink:0;margin-top:1px;}
+.trap-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fca5a5;margin-bottom:5px;}
+.trap-desc{font-size:13px;color:var(--text-muted);line-height:1.7;}
+
+/* STAT ROW */
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:24px 0;}
+.stat-box{border:1px solid var(--border);border-radius:12px;padding:20px;background:var(--bg2);text-align:center;position:relative;overflow:hidden;transition:all 0.3s;}
+.stat-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--primary-dark),var(--primary-light));opacity:0.5;}
+.stat-box:hover{transform:translateY(-2px);border-color:var(--border-bright);}
+.stat-val{font-family:'Syne',sans-serif;font-size:30px;font-weight:800;color:var(--primary-light);line-height:1;margin-bottom:6px;}
+.stat-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-muted);letter-spacing:0.07em;line-height:1.5;}
+
+/* TIMELINE */
+.timeline{position:relative;padding-left:40px;display:flex;flex-direction:column;}
+.timeline::before{content:'';position:absolute;left:14px;top:14px;bottom:14px;width:2px;background:linear-gradient(180deg,var(--primary-dark),var(--accent),transparent);}
+.timeline-item{position:relative;padding:18px 0 18px 28px;}
+.timeline-dot{position:absolute;left:-26px;top:22px;width:28px;height:28px;border-radius:50%;background:var(--bg2);border:2px solid var(--primary-dark);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--primary-light);z-index:1;transition:all 0.3s;}
+.timeline-item:hover .timeline-dot{border-color:var(--primary-light);box-shadow:0 0 12px rgba(251,191,36,0.4);}
+.timeline-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:5px;}
+.timeline-desc{font-size:13.5px;color:var(--text-muted);line-height:1.7;}
+
+/* CHECKLIST */
+.checklist{display:flex;flex-direction:column;gap:10px;margin:16px 0;}
+.checklist-group{margin-bottom:8px;}
+.checklist-group-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--primary-light);margin:20px 0 10px;display:flex;align-items:center;gap:8px;}
+.checklist-group-title::before{content:'';width:16px;height:2px;background:var(--primary-light);}
+.check-item{display:flex;align-items:flex-start;gap:12px;padding:11px 16px;border:1px solid var(--border);border-radius:8px;background:var(--bg2);transition:all 0.3s;}
+.check-item:hover{border-color:var(--border-bright);background:rgba(251,191,36,0.04);}
+.check-icon{font-size:15px;flex-shrink:0;margin-top:1px;}
+.check-text{font-size:13.5px;color:var(--text-dim);line-height:1.65;}
+.check-text strong{color:#f1f5f9;}
+
+/* DIAGNOSTIC TABLE */
+.diag-table{width:100%;border-collapse:collapse;border-radius:12px;overflow:hidden;background:var(--bg2);border:1px solid var(--border);margin:20px 0;}
+.diag-table th{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);padding:13px 16px;background:rgba(22,16,0,0.9);text-align:left;border-bottom:1px solid var(--border);}
+.diag-table td{padding:13px 16px;font-size:13px;color:var(--text-dim);border-bottom:1px solid rgba(251,191,36,0.06);vertical-align:top;line-height:1.65;}
+.diag-table tr:last-child td{border-bottom:none;}
+.diag-table tr:hover td{background:rgba(251,191,36,0.03);}
+.diag-table td:first-child{font-family:'JetBrains Mono',monospace;font-size:12px;color:#f87171;font-weight:500;}
+.diag-table td:nth-child(2){color:#fbbf24;}
+.diag-table td:nth-child(3){color:#94a3b8;}
+.diag-table td:nth-child(4){color:#4ade80;font-family:'JetBrains Mono',monospace;font-size:11.5px;}
+
+/* FOOTER */
+.footer-nav{padding:60px 80px;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:60px;background:var(--bg2);}
+.footer-toc-title{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:20px;}
+.footer-toc-list{list-style:none;display:flex;flex-direction:column;gap:10px;}
+.footer-toc-list li{font-size:14px;color:var(--text-muted);display:flex;align-items:center;gap:10px;}
+.footer-toc-list li.done{text-decoration:line-through;opacity:0.35;}
+.footer-toc-list li.current{color:var(--primary-light);font-weight:600;}
+.chap-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-muted);min-width:36px;}
+.next-card{border:1px solid var(--border-bright);border-radius:14px;padding:30px;background:rgba(251,191,36,0.05);backdrop-filter:blur(4px);}
+.next-label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--primary-light);margin-bottom:12px;}
+.next-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:#f1f5f9;margin-bottom:12px;}
+.next-desc{font-size:13.5px;color:var(--text-muted);line-height:1.75;}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity 0.6s ease,transform 0.6s ease;}
+.reveal.visible{opacity:1;transform:translateY(0);}
+
+/* RESP */
+@media(max-width:768px){
+  .sidebar{display:none;}.main{margin-left:0;}
+  .hero,.section{padding:48px 24px;}
+  .compare-grid,.stat-row,.knob-grid{grid-template-columns:1fr;}
+  .card-grid{grid-template-columns:1fr;}
+  .footer-nav{grid-template-columns:1fr;padding:40px 24px;}
+  .perf-row{grid-template-columns:120px 1fr 60px;}
+  .divider{margin:0 24px;}
+}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-title">Apache Hive</div>
+  <div class="sidebar-chap">CH.05</div>
+  <nav class="sidebar-dots" id="sidebarDots">
+    <div class="sidebar-dot active" data-sec="hero"></div>
+    <div class="sidebar-dot" data-sec="sec1"></div>
+    <div class="sidebar-dot" data-sec="sec2"></div>
+    <div class="sidebar-dot" data-sec="sec3"></div>
+    <div class="sidebar-dot" data-sec="sec4"></div>
+    <div class="sidebar-dot" data-sec="sec5"></div>
+    <div class="sidebar-dot" data-sec="sec6"></div>
+    <div class="sidebar-dot" data-sec="footer"></div>
+  </nav>
+</aside>
+
+<main class="main">
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-bg">
+    <div class="hero-grid"></div>
+    <div class="hero-orb o1"></div>
+    <div class="hero-orb o2"></div>
+    <div class="hero-orb o3"></div>
+  </div>
+  <svg class="hero-deco" viewBox="0 0 260 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="130" cy="130" r="120" stroke="#fbbf24" stroke-width="0.5"/>
+    <circle cx="130" cy="130" r="80"  stroke="#fcd34d" stroke-width="0.4"/>
+    <circle cx="130" cy="130" r="40"  stroke="#fb923c" stroke-width="0.35"/>
+    <line x1="10"  y1="130" x2="250" y2="130" stroke="#fbbf24" stroke-width="0.3"/>
+    <line x1="130" y1="10"  x2="130" y2="250" stroke="#fbbf24" stroke-width="0.3"/>
+    <line x1="45"  y1="45"  x2="215" y2="215" stroke="#d97706" stroke-width="0.25"/>
+    <line x1="215" y1="45"  x2="45"  y2="215" stroke="#d97706" stroke-width="0.25"/>
+    <circle cx="130" cy="10"  r="3" fill="#fbbf24" opacity="0.7"/>
+    <circle cx="130" cy="250" r="3" fill="#fbbf24" opacity="0.7"/>
+    <circle cx="10"  cy="130" r="3" fill="#fcd34d" opacity="0.7"/>
+    <circle cx="250" cy="130" r="3" fill="#fcd34d" opacity="0.7"/>
+    <circle cx="45"  cy="45"  r="3" fill="#fb923c" opacity="0.6"/>
+    <circle cx="215" cy="215" r="3" fill="#fb923c" opacity="0.6"/>
+    <!-- gauge needle -->
+    <line x1="130" y1="130" x2="185" y2="75" stroke="#fbbf24" stroke-width="1.2" stroke-linecap="round"/>
+    <circle cx="130" cy="130" r="5" fill="#fbbf24" opacity="0.8"/>
+  </svg>
+  <div class="hero-content">
+    <div class="hero-badge"><span class="badge-dot"></span>APACHE HIVE DEEP DIVE · CHAPTER 05</div>
+    <h1 class="hero-title">性能调优与<br>生产运维</h1>
+    <p class="hero-subtitle">
+      系统化调优方法论：从参数 Knob 到 YARN 资源配置，从慢查询根因诊断到
+      GC 优化，再到完整的监控指标体系与四类生产运维检查清单——
+      打造高可用、高性能的 Hive 生产集群。
+    </p>
+    <div class="hero-pills">
+      <span class="pill">Tez 调优</span>
+      <span class="pill">YARN 资源</span>
+      <span class="pill">慢查询诊断</span>
+      <span class="pill">GC 调优</span>
+      <span class="pill">小文件治理</span>
+      <span class="pill">HS2 高可用</span>
+      <span class="pill">监控指标</span>
+      <span class="pill">容量规划</span>
+    </div>
+    <div class="hero-meta">
+      <div class="meta-item"><span>⚡</span><span>难度</span><span class="meta-val">高级</span></div>
+      <div class="meta-item"><span>⏱</span><span>预计阅读</span><span class="meta-val">45 分钟</span></div>
+      <div class="meta-item"><span>📌</span><span>前置</span><span class="meta-val">第2章：编译器与优化器</span></div>
+      <div class="meta-item"><span>🏷</span><span>版本</span><span class="meta-val">Hive 3.x / Tez 0.9+</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SEC 1: 调优方法论 -->
+<section class="section" id="sec1">
+  <div class="section-tag">01 / TUNING METHODOLOGY</div>
+  <h2 class="section-title">调优方法论：先诊断，后调参</h2>
+  <p class="section-desc">
+    盲目调参是生产中最危险的行为。正确的调优路径是：
+    先通过指标定位瓶颈所在层（SQL层/引擎层/资源层/存储层），
+    再针对性选择调优手段，最后验证效果。
+  </p>
+
+  <div class="stat-row reveal">
+    <div class="stat-box">
+      <div class="stat-val">4层</div>
+      <div class="stat-label">瓶颈定位层次</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val">80%</div>
+      <div class="stat-label">性能问题可被 SQL 改写解决</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val">Tez UI</div>
+      <div class="stat-label">最核心的诊断工具</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val">EXPLAIN</div>
+      <div class="stat-label">调优前必看的计划</div>
+    </div>
+  </div>
+
+  <div class="timeline reveal">
+    <div class="timeline-item">
+      <div class="timeline-dot">1</div>
+      <div class="timeline-title">SQL 层诊断：EXPLAIN + 执行计划分析</div>
+      <div class="timeline-desc">首先检查 EXPLAIN 输出：CBO 是否生效（Num rows 是否合理）、分区裁剪是否触发、Join 类型是否最优（BROADCAST 还是 SIMPLE）、Stage 数量是否过多。<strong>80% 的性能问题在 SQL 层可以解决</strong>，无需调参。</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot">2</div>
+      <div class="timeline-title">引擎层诊断：Tez UI DAG 分析</div>
+      <div class="timeline-desc">在 Tez UI 中打开 DAG 视图：查看每个 Vertex 的耗时分布，找到长尾 Task（耗时远超平均值的 Task 是倾斜或内存不足的标志）。查看 Counters 中的 <code>INPUT_RECORDS_PROCESSED</code>、<code>SPILLED_RECORDS</code>（有 Spill 说明内存不足）、<code>GC_TIME_MILLIS</code>。</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot">3</div>
+      <div class="timeline-title">资源层诊断：YARN 资源利用率</div>
+      <div class="timeline-desc">检查 YARN ResourceManager UI：Container 等待时间是否过长（资源不足）、内存利用率是否过高（频繁 GC）、CPU 利用率是否与内存利用率匹配（CPU 低内存高说明配置不合理）。通过 <code>mapreduce.job.counters</code> 查看任务级资源消耗。</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot">4</div>
+      <div class="timeline-title">存储层诊断：HDFS 文件分布</div>
+      <div class="timeline-desc">检查输入数据文件大小分布：小文件过多导致 Map Task 数量爆炸（每个文件至少一个 Map Task）；文件过大导致 Map Task 过少、并行度不足。理想 HDFS 文件大小为 256MB~1GB，Map 数量应在数十到数百个之间。</div>
+    </div>
+  </div>
+
+  <div class="info-box tip reveal">
+    <span class="info-icon">💡</span>
+    <div><strong>黄金诊断顺序：</strong>① <code>EXPLAIN CBO</code> 看计划 → ② Tez UI 看 DAG 耗时分布 → ③ 检查长尾 Task 的 Counters（SPILL/GC） → ④ 查看 YARN 资源等待 → ⑤ 检查 HDFS 文件大小分布。按这个顺序依次排查，找到真实瓶颈后再调整对应层的参数。</div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SEC 2: 核心调优参数 Knob -->
+<section class="section" id="sec2">
+  <div class="section-tag">02 / TUNING KNOBS</div>
+  <h2 class="section-title">核心调优参数详解</h2>
+  <p class="section-desc">
+    以下是对 Hive 查询性能影响最大的参数，每个参数都配有推荐值范围、
+    调整影响的维度分析，以及什么场景下需要调整的判断依据。
+  </p>
+
+  <div class="knob-grid reveal">
+    <div class="knob-card">
+      <div class="knob-name">hive.tez.container.size</div>
+      <div class="knob-default">默认：继承 mapreduce.map.memory.mb（通常 1024MB）</div>
+      <div class="knob-range">推荐：4096 ~ 8192 MB（复杂查询）</div>
+      <div class="knob-desc">Tez Task Container 内存上限。Map Join 的 HashTable、聚合的 Hash Buffer 都在此内存中。过小导致频繁 Spill 到磁盘；过大浪费 YARN 资源。调整后同步修改 <code>hive.tez.java.opts=-Xmx[0.8×size]m</code>。</div>
+      <div class="knob-bar-bg"><div class="knob-bar-fill" data-w="85%"></div></div>
+      <div class="knob-tags"><span class="knob-tag">内存</span><span class="knob-tag">Map Join</span><span class="knob-tag">OOM 防护</span></div>
+    </div>
+    <div class="knob-card">
+      <div class="knob-name">hive.exec.reducers.bytes.per.reducer</div>
+      <div class="knob-default">默认：256MB（268435456）</div>
+      <div class="knob-range">推荐：512MB ~ 1GB（大数据量场景）</div>
+      <div class="knob-desc">每个 Reducer 处理的目标数据量，控制 Reducer 总数 = 输入数据量 / 此值。值过小导致 Reducer 数量爆炸、调度开销大；值过大导致单 Reducer 压力过高、内存溢出。</div>
+      <div class="knob-bar-bg"><div class="knob-bar-fill" data-w="78%"></div></div>
+      <div class="knob-tags"><span class="knob-tag">并行度</span><span class="knob-tag">Reducer 数</span><span class="knob-tag">核心参数</span></div>
+    </div>
+    <div class="knob-card">
+      <div class="knob-name">hive.mapjoin.smalltable.filesize</div>
+      <div class="knob-default">默认：25MB（25000000）</div>
+      <div class="knob-range">推荐：50MB ~ 200MB（根据 Container 内存调整）</div>
+      <div class="knob-desc">触发 Map Join 的小表压缩后文件大小阈值。ORC/Parquet 压缩比约 5~10x，25MB 文件解压后占 125~250MB 内存。建议：container.size × 0.3 作为此参数上限，避免 Map Join OOM。</div>
+      <div class="knob-bar-bg"><div class="knob-bar-fill" data-w="88%"></div></div>
+      <div class="knob-tags"><span class="knob-tag">Map Join</span><span class="knob-tag">广播阈值</span><span class="knob-tag">高影响</span></div>
+    </div>
+    <div class="knob-card">
+      <div class="knob-name">hive.auto.convert.join.noconditionaltask.size</div>
+      <div class="knob-default">默认：10MB（10485760）</div>
+      <div class="knob-range">推荐：200MB ~ 512MB</div>
+      <div class="knob-desc">多个小表 Map Join 时，多个 HashTable 内存累加上限。多表 JOIN 场景下，所有被广播的小表大小之和不超过此值。与 smalltable.filesize 配合使用。</div>
+      <div class="knob-bar-bg"><div class="knob-bar-fill" data-w="72%"></div></div>
+      <div class="knob-tags"><span class="knob-tag">多表 Join</span><span class="knob-tag">累加内存</span><span class="knob-tag">常被忽视</span></div>
+    </div>
+    <div class="knob-card">
+      <div class="knob-name">tez.grouping.min/max-size</div>
+      <div class="knob-default">默认：min=16MB, max=1GB</div>
+      <div class="knob-range">推荐：min=128MB, max=512MB（大文件场景）</div>
+      <div class="knob-desc">Tez 引擎将多个小 InputSplit 合并成一个 Group 分配给 Map Task。min-size 控制合并下限，max-size 控制合并上限。小文件过多时适当调大 min-size，减少 Map Task 数量，降低调度开销。</div>
+      <div class="knob-bar-bg"><div class="knob-bar-fill" data-w="65%"></div></div>
+      <div class="knob-tags"><span class="knob-tag">小文件治理</span><span class="knob-tag">Map 数控制</span><span class="knob-tag">Tez 专属</span></div>
+    </div>
+    <div class="knob-card">
+      <div class="knob-name">hive.optimize.sort.dynamic.partition</div>
+      <div class="knob-default">默认：false</div>
+      <div class="knob-range">建议：true（动态分区写入场景）</div>
+      <div class="knob-desc">开启后，动态分区写入时在 Reduce 阶段按分区列排序，使每个 Reducer 只输出连续的同一分区数据，减少同时打开的文件句柄数，解决动态分区 OOM 问题。</div>
+      <div class="knob-bar-bg"><div class="knob-bar-fill" data-w="70%"></div></div>
+      <div class="knob-tags"><span class="knob-tag">动态分区</span><span class="knob-tag">文件句柄</span><span class="knob-tag">OOM 防护</span></div>
+    </div>
+  </div>
+
+  <div class="code-block reveal">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div></div>
+      <div class="code-filename">tuning_template.hql · 生产环境调优参数完整模板</div>
+    </div>
+    <div class="code-body"><pre><span class="cmt">━━━ 引擎 & 基础配置 ━━━</span>
+<span class="kw">SET</span> hive.execution.engine=tez;
+<span class="kw">SET</span> hive.tez.container.size=<span class="num">8192</span>;              <span class="cmt">-- 8GB Container</span>
+<span class="kw">SET</span> hive.tez.java.opts=<span class="str">'-Xmx6554m -XX:+UseG1GC -XX:+ResizeTLAB'</span>;
+<span class="kw">SET</span> tez.am.resource.memory.mb=<span class="num">4096</span>;            <span class="cmt">-- AppMaster 内存</span>
+<span class="kw">SET</span> tez.task.resource.memory.mb=<span class="num">8192</span>;          <span class="cmt">-- 同 container.size</span>
+
+<span class="cmt">━━━ CBO & 统计信息 ━━━</span>
+<span class="kw">SET</span> hive.cbo.enable=<span class="kw">true</span>;
+<span class="kw">SET</span> hive.compute.query.using.stats=<span class="kw">true</span>;
+<span class="kw">SET</span> hive.stats.fetch.column.stats=<span class="kw">true</span>;
+<span class="kw">SET</span> hive.stats.fetch.partition.stats=<span class="kw">true</span>;
+
+<span class="cmt">━━━ Join 优化 ━━━</span>
+<span class="kw">SET</span> hive.auto.convert.join=<span class="kw">true</span>;
+<span class="kw">SET</span> hive.mapjoin.smalltable.filesize=<span class="num">104857600</span>;    <span class="cmt">-- 100MB</span>
+<span class="kw">SET</span> hive.auto.convert.join.noconditionaltask=<span class="kw">true</span>;
+<span class="kw">SET</span> hive.auto.convert.join.noconditionaltask.size=<span class="num">536870912</span>; <span class="cmt">-- 512MB</span>
+
+<span class="cmt">━━━ Reducer & 并行度 ━━━</span>
+<span class="kw">SET</span> hive.exec.reducers.bytes.per.reducer=<span class="num">536870912</span>;  <span class="cmt">-- 512MB/Reducer</span>
+<span class="kw">SET</span> hive.exec.reducers.max=<span class="num">2009</span>;
+<span class="kw">SET</span> hive.exec.parallel=<span class="kw">true</span>;
+<span class="kw">SET</span> hive.exec.parallel.thread.number=<span class="num">16</span>;
+
+<span class="cmt">━━━ 动态分区 ━━━</span>
+<span class="kw">SET</span> hive.exec.dynamic.partition=<span class="kw">true</span>;
+<span class="kw">SET</span> hive.exec.dynamic.partition.mode=nonstrict;
+<span class="kw">SET</span> hive.exec.max.dynamic.partitions=<span class="num">5000</span>;
+<span class="kw">SET</span> hive.exec.max.dynamic.partitions.pernode=<span class="num">1000</span>;
+<span class="kw">SET</span> hive.optimize.sort.dynamic.partition=<span class="kw">true</span>;    <span class="cmt">-- 降低文件句柄压力</span>
+
+<span class="cmt">━━━ 向量化 & 小文件合并 ━━━</span>
+<span class="kw">SET</span> hive.vectorized.execution.enabled=<span class="kw">true</span>;
+<span class="kw">SET</span> hive.vectorized.execution.reduce.enabled=<span class="kw">true</span>;
+<span class="kw">SET</span> hive.merge.tezfiles=<span class="kw">true</span>;
+<span class="kw">SET</span> hive.merge.smallfiles.avgsize=<span class="num">33554432</span>;      <span class="cmt">-- 32MB 触发合并</span>
+<span class="kw">SET</span> hive.merge.size.per.task=<span class="num">536870912</span>;          <span class="cmt">-- 目标 512MB</span>
+
+<span class="cmt">━━━ 小文件 Input 合并（减少 Map Task 数） ━━━</span>
+<span class="kw">SET</span> tez.grouping.min-size=<span class="num">134217728</span>;            <span class="cmt">-- 128MB 最小合并</span>
+<span class="kw">SET</span> tez.grouping.max-size=<span class="num">536870912</span>;            <span class="cmt">-- 512MB 最大合并</span></pre></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SEC 3: 慢查询根因诊断 -->
+<section class="section" id="sec3">
+  <div class="section-tag">03 / SLOW QUERY DIAGNOSIS</div>
+  <h2 class="section-title">慢查询根因诊断体系</h2>
+  <p class="section-desc">
+    生产中的慢查询通常有固定的根因模式，建立系统化的根因-症状-解决方案映射，
+    能将平均诊断时间从数小时缩短到分钟级。
+  </p>
+
+  <div class="matrix-wrap reveal">
+    <table class="diag-table">
+      <thead>
+        <tr>
+          <th>症状</th>
+          <th>根因</th>
+          <th>诊断命令 / 指标</th>
+          <th>解决方案</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>99% Task 完成，1% 跑几小时</td>
+          <td>数据倾斜（热点 Key）</td>
+          <td>Tez UI → Task Duration 降序排列；Counters → INPUT_RECORDS</td>
+          <td>NULL 随机化 / 热点分离 / hive.groupby.skewindata</td>
+        </tr>
+        <tr>
+          <td>SPILLED_RECORDS 很大</td>
+          <td>内存不足，Hash Buffer 溢出磁盘</td>
+          <td>Tez Counters → SPILLED_RECORDS > 0</td>
+          <td>增大 container.size；调小 reducers.bytes.per.reducer</td>
+        </tr>
+        <tr>
+          <td>Map Task 数量达数千个</td>
+          <td>小文件过多，每文件一个 Map</td>
+          <td>hdfs dfs -ls 分区目录 | wc -l</td>
+          <td>调大 tez.grouping.min-size；合并小文件（CONCATENATE）</td>
+        </tr>
+        <tr>
+          <td>Container 申请等待超 10 分钟</td>
+          <td>YARN 资源不足，队列已满</td>
+          <td>YARN UI → 队列使用率；yarn application -list</td>
+          <td>降低 container.size；错峰提交；扩容 YARN 队列</td>
+        </tr>
+        <tr>
+          <td>GC_TIME_MILLIS 占比 > 20%</td>
+          <td>JVM GC 频繁，内存碎片化</td>
+          <td>Tez Counters → GC_TIME_MILLIS / CPU_MILLISECONDS</td>
+          <td>切换 G1GC；增大 Heap；减少中间对象创建（避免 UDF 大对象）</td>
+        </tr>
+        <tr>
+          <td>Metastore 调用超时</td>
+          <td>分区数过多，Metastore DB 慢查询</td>
+          <td>HMS 日志搜索 slow query；PARTITIONS 表行数</td>
+          <td>限制 partition.request；增大连接池；分区归档清理</td>
+        </tr>
+        <tr>
+          <td>编译阶段耗时 > 30 秒</td>
+          <td>复杂 SQL / CBO 统计过多表</td>
+          <td>HS2 日志搜索 "compile time"</td>
+          <td>拆分复杂 SQL；限制 CBO Join Reorder 表数量上限</td>
+        </tr>
+        <tr>
+          <td>Reduce 阶段全部完成但结果迟迟不返回</td>
+          <td>大量小输出文件，Fetch Task 慢</td>
+          <td>输出分区目录文件数；hive.fetch.task.conversion</td>
+          <td>开启输出端小文件合并；调大 merge.size.per.task</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="code-block reveal">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div></div>
+      <div class="code-filename">slow_query_diag.sh · 慢查询一键诊断脚本</div>
+    </div>
+    <div class="code-body"><pre><span class="cmt">#!/bin/bash
+# 快速诊断：给定一个 Hive Application ID，输出关键诊断信息</span>
+APP_ID=<span class="str">"application_1704067200000_12345"</span>
+
+<span class="cmt"># 1. 获取 DAG 列表</span>
+<span class="fn">yarn</span> logs -applicationId $APP_ID -log_files syslog 2>/dev/null | \
+  <span class="fn">grep</span> -E <span class="str">"DAG:|vertex:|Counters"</span> | <span class="fn">head</span> -50
+
+<span class="cmt"># 2. 检查 SPILL（内存不足信号）</span>
+<span class="fn">yarn</span> logs -applicationId $APP_ID 2>/dev/null | \
+  <span class="fn">grep</span> -i <span class="str">"SPILLED_RECORDS"</span> | <span class="fn">awk</span> <span class="str">'{sum+=$NF} END{print "Total SPILLED:", sum}'</span>
+
+<span class="cmt"># 3. 检查 GC 耗时比例</span>
+<span class="fn">yarn</span> logs -applicationId $APP_ID 2>/dev/null | \
+  <span class="fn">grep</span> -E <span class="str">"GC_TIME_MILLIS|CPU_MILLISECONDS"</span>
+
+<span class="cmt"># 4. 统计分区目录文件数（小文件诊断）</span>
+PARTITION_PATH=<span class="str">"/warehouse/dwd.db/orders/dt=2024-01-01"</span>
+<span class="fn">hdfs</span> dfs -ls $PARTITION_PATH | <span class="fn">wc</span> -l
+<span class="fn">hdfs</span> dfs -ls $PARTITION_PATH | <span class="fn">awk</span> <span class="str">'{print $5}'</span> | <span class="fn">sort</span> -n | \
+  <span class="fn">awk</span> <span class="str">'BEGIN{min=999999999999;max=0} {if($1<min)min=$1; if($1>max)max=$1; sum+=$1; cnt++}
+       END{print "Files:"cnt, "Min:"min/1024/1024"MB", "Max:"max/1024/1024"MB", "Avg:"sum/cnt/1024/1024"MB"}'</span>
+
+<span class="cmt"># 5. Hive 查询历史（从 HS2 日志提取最近慢查询）</span>
+<span class="fn">grep</span> <span class="str">"Total Time"</span> /var/log/hive/hiveserver2.log | \
+  <span class="fn">awk</span> <span class="str">'{print $NF, $0}'</span> | <span class="fn">sort</span> -rn | <span class="fn">head</span> -20</pre></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SEC 4: GC 与内存优化 -->
+<section class="section" id="sec4">
+  <div class="section-tag">04 / GC & MEMORY</div>
+  <h2 class="section-title">GC 调优与内存配置</h2>
+  <p class="section-desc">
+    JVM GC 是 Hive/Tez 任务中常被忽视的性能杀手。
+    高 GC 压力不仅直接消耗 CPU，还可能导致 Task 超时被 YARN 杀死。
+    合理的 GC 策略和内存配置可带来 20~40% 的性能提升。
+  </p>
+
+  <div class="compare-grid reveal">
+    <div class="compare-card amber">
+      <div class="compare-card-title">G1GC（推荐，Hive 3.x 默认）<span class="compare-badge">生产首选</span></div>
+      <ul class="compare-list">
+        <li>区域化垃圾回收，停顿时间可预测（目标 200ms 内）</li>
+        <li>自动调整 Eden/Survivor/Old 区比例，无需手动分区</li>
+        <li>大堆（&gt;4GB）场景下优于 CMS 和 ParallelGC</li>
+        <li>对 Hive 任务中的短生命周期大对象（UDF 中间结果）处理更好</li>
+        <li><code>-XX:+UseG1GC -XX:MaxGCPauseMillis=200</code></li>
+      </ul>
+    </div>
+    <div class="compare-card orange">
+      <div class="compare-card-title">CMS（Hive 2.x 遗留）<span class="compare-badge">逐步淘汰</span></div>
+      <ul class="compare-list">
+        <li>并发标记清除，低停顿，但会产生内存碎片</li>
+        <li>需手动设置 -XX:NewRatio（年轻代比例）</li>
+        <li>大堆下 Full GC 停顿时间不可控（可能超 30 秒）</li>
+        <li>Java 14+ 已移除，需考虑升级路径</li>
+        <li>仅在 Hive 2.x 遗留环境继续使用</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="code-block reveal">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div></div>
+      <div class="code-filename">jvm_gc_config.xml · Tez Task JVM 调优完整配置</div>
+    </div>
+    <div class="code-body"><pre><span class="cmt">&lt;!-- hive-site.xml / tez-site.xml 中的 JVM 配置 --&gt;</span>
+
+<span class="cmt">&lt;!-- Tez Task Container 内存 --&gt;</span>
+<span class="kw">&lt;property&gt;</span>
+  <span class="kw">&lt;name&gt;</span>hive.tez.container.size<span class="kw">&lt;/name&gt;</span>
+  <span class="kw">&lt;value&gt;</span>8192<span class="kw">&lt;/value&gt;</span>  <span class="cmt">&lt;!-- 8GB --&gt;</span>
+<span class="kw">&lt;/property&gt;</span>
+
+<span class="cmt">&lt;!-- JVM Heap = Container × 0.8，预留 20% 给堆外内存（DirectBuffer/Native） --&gt;</span>
+<span class="kw">&lt;property&gt;</span>
+  <span class="kw">&lt;name&gt;</span>hive.tez.java.opts<span class="kw">&lt;/name&gt;</span>
+  <span class="kw">&lt;value&gt;</span>
+    -Xms6554m                     <span class="cmt">&lt;!-- 初始堆 = 最大堆，避免动态扩展开销 --&gt;</span>
+    -Xmx6554m                     <span class="cmt">&lt;!-- 最大堆 ≈ container.size × 0.8 --&gt;</span>
+    -XX:+UseG1GC                  <span class="cmt">&lt;!-- G1 垃圾收集器 --&gt;</span>
+    -XX:MaxGCPauseMillis=200      <span class="cmt">&lt;!-- 目标最大 GC 停顿 200ms --&gt;</span>
+    -XX:G1HeapRegionSize=32m      <span class="cmt">&lt;!-- Region 大小（堆/2048，建议 16~32MB） --&gt;</span>
+    -XX:+ParallelRefProcEnabled   <span class="cmt">&lt;!-- 并行处理弱引用，减少 GC 停顿 --&gt;</span>
+    -XX:+ResizeTLAB               <span class="cmt">&lt;!-- 自动调整 TLAB 大小 --&gt;</span>
+    -XX:+PrintGCDetails           <span class="cmt">&lt;!-- 打印 GC 详情（排查用，生产可关闭） --&gt;</span>
+    -XX:+PrintGCDateStamps        <span class="cmt">&lt;!-- GC 日志带时间戳 --&gt;</span>
+    -Xloggc:/tmp/gc-tez-task.log  <span class="cmt">&lt;!-- GC 日志路径 --&gt;</span>
+  <span class="kw">&lt;/value&gt;</span>
+<span class="kw">&lt;/property&gt;</span>
+
+<span class="cmt">&lt;!-- HiveServer2 JVM 配置（放在 hive-env.sh） --&gt;</span>
+<span class="cmt"># export HADOOP_HEAPSIZE=4096           # HS2 Heap 4GB</span>
+<span class="cmt"># export HADOOP_OPTS="$HADOOP_OPTS      \</span>
+<span class="cmt">#   -XX:+UseG1GC                        \</span>
+<span class="cmt">#   -XX:MaxGCPauseMillis=500            \</span>
+<span class="cmt">#   -XX:+HeapDumpOnOutOfMemoryError     \   # OOM 时 Dump，便于分析</span>
+<span class="cmt">#   -XX:HeapDumpPath=/tmp/hs2-oom.hprof"</span>
+
+<span class="cmt">&lt;!-- Metastore JVM 配置 --&gt;</span>
+<span class="cmt"># export HADOOP_HEAPSIZE=2048</span>
+<span class="cmt"># 大量分区的集群建议 4~8GB</span></pre></div>
+  </div>
+
+  <h3 style="font-family:'Syne',sans-serif;font-size:19px;font-weight:700;color:#f1f5f9;margin:28px 0 16px;" class="reveal">内存配置黄金比例</h3>
+  <div class="perf-rows reveal">
+    <div class="perf-row">
+      <span class="perf-label">JVM Heap（-Xmx）</span>
+      <div class="perf-bar-bg"><div class="perf-bar-fill amber" data-w="80%"></div></div>
+      <span class="perf-val">80% 容器</span>
+    </div>
+    <div class="perf-row">
+      <span class="perf-label">堆外内存（DirectBuffer）</span>
+      <div class="perf-bar-bg"><div class="perf-bar-fill" data-w="15%"></div></div>
+      <span class="perf-val">15% 容器</span>
+    </div>
+    <div class="perf-row">
+      <span class="perf-label">系统/YARN 预留</span>
+      <div class="perf-bar-bg"><div class="perf-bar-fill" data-w="5%"></div></div>
+      <span class="perf-val">5% 容器</span>
+    </div>
+    <div class="perf-row">
+      <span class="perf-label">G1GC Young 区目标</span>
+      <div class="perf-bar-bg"><div class="perf-bar-fill green" data-w="30%"></div></div>
+      <span class="perf-val">20~30% 堆</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SEC 5: 监控指标体系 -->
+<section class="section" id="sec5">
+  <div class="section-tag">05 / MONITORING</div>
+  <h2 class="section-title">生产监控指标体系</h2>
+  <p class="section-desc">
+    完善的监控体系应覆盖四个维度：查询层、引擎层、服务层、存储层。
+    以下是每个维度的核心指标及告警阈值建议。
+  </p>
+
+  <div class="matrix-wrap reveal">
+    <table class="matrix-table">
+      <thead>
+        <tr>
+          <th>监控维度</th>
+          <th>指标名称</th>
+          <th>含义</th>
+          <th>告警阈值</th>
+          <th>异常原因</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>查询层</td>
+          <td>query_p99_latency</td>
+          <td>99 分位查询延迟</td>
+          <td class="warn-c">&gt;30min 告警</td>
+          <td>倾斜/资源不足/慢 SQL</td>
+        </tr>
+        <tr>
+          <td>查询层</td>
+          <td>query_failure_rate</td>
+          <td>查询失败率</td>
+          <td class="no">&gt;5% 严重告警</td>
+          <td>OOM/Metastore 异常/YARN 满</td>
+        </tr>
+        <tr>
+          <td>查询层</td>
+          <td>compile_time_avg</td>
+          <td>平均编译耗时</td>
+          <td class="warn-c">&gt;10s 告警</td>
+          <td>Metastore 慢/CBO 分析超时</td>
+        </tr>
+        <tr>
+          <td>引擎层</td>
+          <td>spill_records_total</td>
+          <td>总 Spill 行数</td>
+          <td class="warn-c">&gt;0 关注</td>
+          <td>Container 内存不足</td>
+        </tr>
+        <tr>
+          <td>引擎层</td>
+          <td>gc_time_ratio</td>
+          <td>GC 时间占 CPU 比例</td>
+          <td class="no">&gt;20% 告警</td>
+          <td>堆太小/对象分配过快</td>
+        </tr>
+        <tr>
+          <td>服务层</td>
+          <td>hs2_active_sessions</td>
+          <td>HiveServer2 活跃会话数</td>
+          <td class="warn-c">&gt;200 告警</td>
+          <td>连接未释放/并发爆炸</td>
+        </tr>
+        <tr>
+          <td>服务层</td>
+          <td>metastore_latency_p99</td>
+          <td>Metastore API 99 分位延迟</td>
+          <td class="no">&gt;5s 告警</td>
+          <td>分区过多/DB 连接池满</td>
+        </tr>
+        <tr>
+          <td>服务层</td>
+          <td>compaction_queue_depth</td>
+          <td>Compaction 队列积压数</td>
+          <td class="warn-c">&gt;20 告警</td>
+          <td>Worker 不足/HMS 压力大</td>
+        </tr>
+        <tr>
+          <td>存储层</td>
+          <td>small_files_count</td>
+          <td>小于 128MB 的文件数</td>
+          <td class="warn-c">&gt;100 万关注</td>
+          <td>缺少小文件合并/高频写入</td>
+        </tr>
+        <tr>
+          <td>存储层</td>
+          <td>partition_count_per_table</td>
+          <td>单表最大分区数</td>
+          <td class="no">&gt;50 万告警</td>
+          <td>Metastore 性能劣化临界点</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="info-box note reveal">
+    <span class="info-icon">📊</span>
+    <div><strong>监控技术栈推荐：</strong>Hive 3.x 内置 JMX 指标（通过 <code>hive.server2.metrics.enabled=true</code> 开启），可被 Prometheus JMX Exporter 抓取，配合 Grafana 构建可视化看板。关键 Dashboard：HiveServer2 会话监控、Tez 任务 GC 趋势、Metastore API 延迟热力图、HDFS 小文件趋势。</div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SEC 6: 生产运维检查清单 + 陷阱 -->
+<section class="section" id="sec6">
+  <div class="section-tag">06 / OPS CHECKLIST & PITFALLS</div>
+  <h2 class="section-title">生产运维检查清单与高频陷阱</h2>
+  <p class="section-desc">
+    将运维知识系统化为可执行的检查清单，并收录生产环境中最难排查的隐性陷阱。
+  </p>
+
+  <div class="checklist reveal">
+    <div class="checklist-group-title">🔍 日常巡检（每日）</div>
+    <div class="check-item">
+      <div class="check-icon">✅</div>
+      <div class="check-text"><strong>查询失败率：</strong>检查 HS2 日志中 ERROR 数量，失败率 &gt;2% 需立即排查</div>
+    </div>
+    <div class="check-item">
+      <div class="check-icon">✅</div>
+      <div class="check-text"><strong>YARN 队列利用率：</strong>高峰期 &gt;90% 需考虑扩容或调整任务调度优先级</div>
+    </div>
+    <div class="check-item">
+      <div class="check-icon">✅</div>
+      <div class="check-text"><strong>Compaction 状态：</strong><code>SHOW COMPACTIONS</code> 检查积压数量，FAILED 状态的 Compaction 需人工干预</div>
+    </div>
+    <div class="check-item">
+      <div class="check-icon">✅</div>
+      <div class="check-text"><strong>僵尸事务清理：</strong>检查超时未关闭的 ACID 事务，避免阻塞 Compaction 和新事务</div>
+    </div>
+
+    <div class="checklist-group-title">📦 周期性运维（每周）</div>
+    <div class="check-item">
+      <div class="check-icon">✅</div>
+      <div class="check-text"><strong>小文件合并：</strong>对高频写入分区执行 <code>ALTER TABLE ... CONCATENATE</code>，维持文件大小在 256MB~1GB</div>
+    </div>
+    <div class="check-item">
+      <div class="check-icon">✅</div>
+      <div class="check-text"><strong>统计信息更新：</strong>对活跃分区（近 7 天有写入）执行增量 <code>ANALYZE TABLE ... COMPUTE STATISTICS FOR COLUMNS</code></div>
+    </div>
+    <div class="check-item">
+      <div class="check-icon">✅</div>
+      <div class="check-text"><strong>过期分区清理：</strong>删除超出保留期（如 &gt;90 天）的历史分区，防止 Metastore 分区数膨胀</div>
+    </div>
+    <div class="check-item">
+      <div class="check-icon">✅</div>
+      <div class="check-text"><strong>HS2 实例健康检查：</strong>通过 Beeline <code>!connect</code> 验证所有 HS2 实例可连接，检查 ZooKeeper 注册状态</div>
+    </div>
+
+    <div class="checklist-group-title">🏗 容量规划（每月）</div>
+    <div class="check-item">
+      <div class="check-icon">✅</div>
+      <div class="check-text"><strong>Metastore DB 容量：</strong>监控 MySQL/PostgreSQL 数据库大小增长趋势，PARTITIONS 表行数预测</div>
+    </div>
+    <div class="check-item">
+      <div class="check-icon">✅</div>
+      <div class="check-text"><strong>HDFS 容量趋势：</strong>预测未来 3 个月数据增长，提前规划 DataNode 扩容计划</div>
+    </div>
+    <div class="check-item">
+      <div class="check-icon">✅</div>
+      <div class="check-text"><strong>慢查询 TOP-20 治理：</strong>每月整理 P99 延迟最高的 20 条 SQL，逐一优化或重写</div>
+    </div>
+  </div>
+
+  <h3 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:#f1f5f9;margin:36px 0 8px;" class="reveal">生产高频陷阱</h3>
+  <div class="trap-list">
+    <div class="trap-item reveal">
+      <div class="trap-icon">🔥</div>
+      <div class="trap-content">
+        <div class="trap-title">HS2 连接泄漏：会话数持续增长直至 OOM</div>
+        <div class="trap-desc">Beeline/JDBC 客户端若未正确关闭连接（<code>connection.close()</code>），HS2 端会话永久保持 OPEN 状态。默认无超时限制，数百个泄漏会话积累后导致 HS2 内存耗尽崩溃。解决：设置 <code>hive.server2.session.check.interval=1h</code>、<code>hive.server2.idle.session.timeout=6h</code>，同时在应用侧确保连接池正确归还连接。</div>
+      </div>
+    </div>
+    <div class="trap-item reveal">
+      <div class="trap-icon">💀</div>
+      <div class="trap-content">
+        <div class="trap-title">向量化执行与某些 SerDe 不兼容：静默降级无提示</div>
+        <div class="trap-desc">部分自定义 SerDe（如 JSON/Regex SerDe）不支持向量化执行模式，Hive 会静默关闭向量化并回退到逐行模式。性能下降明显但无任何警告日志。诊断方式：在 HS2 日志中搜索 <code>NOT vectorized</code> 或在任务日志中搜索 <code>VectorizedRowBatch</code>，确认向量化是否真正生效。</div>
+      </div>
+    </div>
+    <div class="trap-item reveal">
+      <div class="trap-icon">⚡</div>
+      <div class="trap-content">
+        <div class="trap-title">Tez Session 复用导致参数设置不生效</div>
+        <div class="trap-desc">Tez 引擎支持 Session 复用（<code>hive.server2.tez.sessions.per.default.queue</code>），预启动的 Tez Session 在首次创建时固化了 Container 大小和 JVM 参数。后续在会话内用 SET 命令修改 <code>hive.tez.container.size</code> 时，已复用的 Session 不会重新申请新 Container，修改不生效。需重启 Tez Session 或关闭 Session 复用后重新连接才能使配置生效。</div>
+      </div>
+    </div>
+    <div class="trap-item reveal">
+      <div class="trap-icon">🐌</div>
+      <div class="trap-content">
+        <div class="trap-title">hive.exec.parallel 在资源紧张集群反噬：并发任务互相抢资源</div>
+        <div class="trap-desc">Stage 并行执行在 YARN 资源充足时效果显著（可减少 30~50% 总耗时），但在队列繁忙时，并行的多个 Stage 同时申请 Container 导致长时间排队，总耗时反而比串行更长。建议在调度系统层面按队列利用率动态决定是否开启，而非全局固定开启。ETL 大任务开启，交互式查询根据负载判断。</div>
+      </div>
+    </div>
+    <div class="trap-item reveal">
+      <div class="trap-icon">🧩</div>
+      <div class="trap-content">
+        <div class="trap-title">NameNode 元数据压力：千万级小文件导致 GC 停顿分钟级</div>
+        <div class="trap-desc">HDFS NameNode 为每个文件/目录维护约 150 字节内存元数据。1000 万文件 ≈ 1.5GB NameNode 堆消耗，5000 万文件可能触发数分钟级 Full GC 停顿，期间整个集群 HDFS 操作全部阻塞。除应用层合并小文件外，还需在 NameNode 侧配置 <code>dfs.namenode.max.objects</code> 上限告警，并定期通过 HAR 归档冷数据。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FOOTER -->
+<footer class="footer-nav" id="footer">
+  <div>
+    <div class="footer-toc-title">COURSE DIRECTORY · 课程目录</div>
+    <ul class="footer-toc-list">
+      <li class="done"><span class="chap-num">CH.01</span>核心架构与存储机制</li>
+      <li class="done"><span class="chap-num">CH.02</span>HQL 编译器与查询优化器深度剖析</li>
+      <li class="done"><span class="chap-num">CH.03</span>Join 策略与数据倾斜治理</li>
+      <li class="done"><span class="chap-num">CH.04</span>ACID 事务与 Schema 演化</li>
+      <li class="current"><span class="chap-num">CH.05</span>性能调优与生产运维</li>
+      <li><span class="chap-num">CH.06</span>生态集成：Spark / Flink / Presto 深度实战</li>
+    </ul>
+  </div>
+  <div>
+    <div class="next-card">
+      <div class="next-label">▶ NEXT CHAPTER · 最终章</div>
+      <div class="next-title">生态集成深度实战<br>Spark / Flink / Presto</div>
+      <div class="next-desc">
+        Hive 与主流计算引擎的深度集成原理：Spark on Hive 的 HWC 机制、
+        Flink Hive Catalog 的流批一体、Presto/Trino 读取 Hive 表的 Split 策略，
+        以及数据湖格式（Iceberg/Delta）与 Hive 的共存迁移路径。
+      </div>
+    </div>
+  </div>
+</footer>
+
+</main>
+
+<script>
+const reveals = document.querySelectorAll('.reveal');
+const ro = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const d = parseInt(e.target.dataset.delay || 0);
+      setTimeout(() => e.target.classList.add('visible'), d);
+      ro.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.08 });
+reveals.forEach((el, i) => { el.dataset.delay = (i % 7) * 55; ro.observe(el); });
+
+const bars = document.querySelectorAll('.perf-bar-fill, .knob-bar-fill');
+const bo = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      setTimeout(() => { e.target.style.width = e.target.dataset.w; }, 260);
+      bo.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.4 });
+bars.forEach(b => bo.observe(b));
+
+const sections = ['hero','sec1','sec2','sec3','sec4','sec5','sec6','footer'];
+const dots = document.querySelectorAll('.sidebar-dot');
+const so = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const idx = sections.indexOf(e.target.id);
+      if (idx !== -1) { dots.forEach(d => d.classList.remove('active')); dots[idx]?.classList.add('active'); }
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(id => { const el = document.getElementById(id); if (el) so.observe(el); });
+dots.forEach((dot, i) => dot.addEventListener('click', () => {
+  document.getElementById(sections[i])?.scrollIntoView({ behavior: 'smooth' });
+}));
+</script>
+</body>
+</html>

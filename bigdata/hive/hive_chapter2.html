@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apache Hive 深度学习 · 第2章 · HQL 编译器与查询优化器</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #07100f;
+  --bg2: #0b1612;
+  --bg3: #0f1d1a;
+  --primary: #06d6a0;
+  --primary-dark: #059669;
+  --primary-light: #34d399;
+  --accent: #00b4d8;
+  --accent2: #a7f3d0;
+  --glow: rgba(6,214,160,0.15);
+  --text: #e2e8f0;
+  --text-muted: #4b6e65;
+  --text-dim: #94a3b8;
+  --border: rgba(6,214,160,0.14);
+  --border-bright: rgba(52,211,153,0.35);
+  --sidebar-w: 68px;
+  --green: #4ade80;
+  --orange: #fb923c;
+  --red: #f87171;
+  --yellow: #fbbf24;
+  --cyan: #22d3ee;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 15px;
+  line-height: 1.75;
+  overflow-x: hidden;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  position: fixed;
+  left: 0; top: 0;
+  width: var(--sidebar-w);
+  height: 100vh;
+  background: rgba(7,16,15,0.93);
+  border-right: 1px solid var(--border);
+  backdrop-filter: blur(14px);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 0;
+}
+.sidebar-title {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--primary);
+  text-transform: uppercase;
+  margin-bottom: 28px;
+}
+.sidebar-chap {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: 22px;
+  letter-spacing: 0.08em;
+}
+.sidebar-dots {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+  align-items: center;
+}
+.sidebar-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  opacity: 0.35;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+.sidebar-dot.active {
+  background: var(--primary);
+  opacity: 1;
+  box-shadow: 0 0 10px var(--primary);
+  width: 9px; height: 9px;
+}
+
+/* ── MAIN ── */
+.main { margin-left: var(--sidebar-w); }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 80px;
+  overflow: hidden;
+}
+.hero-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.hero-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(6,214,160,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6,214,160,0.04) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+.hero-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.18;
+}
+.o1 { width:560px;height:560px;background:radial-gradient(circle,#06d6a0,transparent 70%);top:-120px;right:-80px;animation:ob1 11s ease-in-out infinite; }
+.o2 { width:380px;height:380px;background:radial-gradient(circle,#00b4d8,transparent 70%);bottom:-80px;left:60px;animation:ob2 9s ease-in-out infinite; }
+.o3 { width:260px;height:260px;background:radial-gradient(circle,#059669,transparent 70%);top:45%;left:45%;animation:ob3 13s ease-in-out infinite; }
+@keyframes ob1 { 0%,100%{transform:scale(1) translate(0,0)} 50%{transform:scale(1.08) translate(-25px,28px)} }
+@keyframes ob2 { 0%,100%{transform:scale(1) translate(0,0)} 50%{transform:scale(0.92) translate(22px,-18px)} }
+@keyframes ob3 { 0%,100%{transform:scale(1) translate(-50%,-50%)} 50%{transform:scale(1.2) translate(-55%,-45%)} }
+
+/* circuit decoration */
+.hero-circuit {
+  position: absolute;
+  top: 0; right: 0;
+  width: 340px; height: 340px;
+  opacity: 0.055;
+}
+
+.hero-content { position: relative; z-index: 1; max-width: 880px; }
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border-bright);
+  background: rgba(6,214,160,0.07);
+  padding: 6px 16px;
+  border-radius: 100px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--primary);
+  letter-spacing: 0.08em;
+  margin-bottom: 26px;
+}
+.badge-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--primary);
+  animation: breathe 2s ease-in-out infinite;
+}
+@keyframes breathe {
+  0%,100%{opacity:1;transform:scale(1);box-shadow:0 0 0 0 rgba(6,214,160,0.4)}
+  50%{opacity:0.65;transform:scale(0.82);box-shadow:0 0 0 5px rgba(6,214,160,0)}
+}
+.hero-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(46px,6vw,80px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #e2e8f0 15%, var(--primary) 55%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  background-size: 200% auto;
+  animation: shimmer 4s linear infinite;
+}
+@keyframes shimmer { 0%{background-position:0% center} 100%{background-position:200% center} }
+.hero-subtitle {
+  font-size: 17px;
+  color: var(--text-dim);
+  max-width: 640px;
+  margin-bottom: 30px;
+  line-height: 1.8;
+}
+.hero-pills { display:flex;flex-wrap:wrap;gap:10px;margin-bottom:34px; }
+.pill {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  padding: 5px 14px;
+  border-radius: 100px;
+  border: 1px solid var(--border-bright);
+  color: var(--accent2);
+  background: rgba(6,214,160,0.07);
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+}
+.pill:hover { background: rgba(6,214,160,0.16); border-color: var(--primary); }
+.hero-meta { display:flex;flex-wrap:wrap;gap:24px; }
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.meta-val { color: var(--text-dim); }
+
+/* ── DIVIDER ── */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-bright), transparent);
+  margin: 0 80px;
+  opacity: 0.5;
+}
+
+/* ── SECTION ── */
+.section { padding: 80px 80px; }
+.section-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--primary);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-tag::before {
+  content: '';
+  display: inline-block;
+  width: 22px; height: 1px;
+  background: var(--primary);
+}
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(26px,3.5vw,42px);
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #f1f5f9;
+  line-height: 1.15;
+}
+.section-desc {
+  color: var(--text-muted);
+  font-size: 15px;
+  max-width: 660px;
+  margin-bottom: 44px;
+  line-height: 1.8;
+}
+
+/* ── PIPELINE (数据流管道) ── */
+.pipeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-width: 860px;
+  margin: 24px 0;
+}
+.pipe-stage {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 0;
+  position: relative;
+}
+.pipe-phase {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 20px 0 0;
+}
+.pipe-phase-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--primary);
+  background: rgba(6,214,160,0.08);
+  border: 1px solid var(--border-bright);
+  border-radius: 6px;
+  padding: 4px 10px;
+  white-space: nowrap;
+  margin-bottom: 0;
+  z-index: 1;
+}
+.pipe-line {
+  flex: 1;
+  width: 2px;
+  background: linear-gradient(180deg, var(--primary-dark), transparent);
+  margin: 6px auto 0;
+}
+.pipe-body {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 22px;
+  background: var(--bg2);
+  margin-bottom: 12px;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.pipe-body::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--primary), var(--accent));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.pipe-body:hover { border-color: var(--border-bright); transform: translateX(4px); }
+.pipe-body:hover::before { opacity: 1; }
+.pipe-body-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin-bottom: 6px;
+}
+.pipe-body-desc {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  line-height: 1.7;
+  margin-bottom: 10px;
+}
+.pipe-tags { display:flex;flex-wrap:wrap;gap:6px; }
+.pipe-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  background: rgba(6,214,160,0.08);
+  border: 1px solid rgba(6,214,160,0.18);
+  color: var(--accent2);
+}
+
+/* ── CODE BLOCK ── */
+.code-block {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: #040908;
+  margin: 20px 0;
+}
+.code-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  background: rgba(11,22,18,0.9);
+  border-bottom: 1px solid var(--border);
+}
+.code-dots { display:flex;gap:6px; }
+.code-dot { width:12px;height:12px;border-radius:50%; }
+.code-dot.red   { background:#ff5f57; }
+.code-dot.yellow{ background:#febc2e; }
+.code-dot.green { background:#28c840; }
+.code-filename {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-left: 6px;
+}
+.code-body {
+  padding: 22px 24px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.8;
+  overflow-x: auto;
+}
+.code-body pre { white-space: pre; }
+.kw  { color: #34d399; }
+.fn  { color: #67e8f9; }
+.str { color: #86efac; }
+.num { color: #fbbf24; }
+.cmt { color: #374f47; font-style: italic; }
+.op  { color: #94a3b8; }
+.tp  { color: #a5f3fc; }
+.nn  { color: #f9a8d4; }
+.hl  { color: #fde68a; }
+
+/* ── INFO BOX ── */
+.info-box {
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin: 16px 0;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  border-left: 3px solid;
+  font-size: 14px;
+  line-height: 1.75;
+}
+.info-box.tip    { background:rgba(6,214,160,0.06); border-color:var(--primary); color:#a7f3d0; }
+.info-box.warn   { background:rgba(251,146,60,0.06); border-color:#fb923c; color:#fed7aa; }
+.info-box.danger { background:rgba(248,113,113,0.06); border-color:#f87171; color:#fecaca; }
+.info-box.note   { background:rgba(0,180,216,0.07); border-color:var(--accent); color:#a5f3fc; }
+.info-icon { font-size:18px;flex-shrink:0;margin-top:1px; }
+
+/* ── COMPARE GRID ── */
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin: 24px 0;
+}
+.compare-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  background: var(--bg2);
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.compare-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.compare-card.green::before { background: linear-gradient(90deg, var(--primary-dark), var(--primary)); }
+.compare-card.cyan::before  { background: linear-gradient(90deg, #0891b2, #22d3ee); }
+.compare-card:hover { transform: translateY(-3px); border-color: var(--border-bright); }
+.compare-card:hover::before { opacity: 1; }
+.compare-card-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.compare-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(6,214,160,0.12);
+  color: var(--primary);
+  border: 1px solid rgba(6,214,160,0.22);
+}
+.compare-list { list-style:none;display:flex;flex-direction:column;gap:8px; }
+.compare-list li {
+  font-size: 13.5px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.6;
+}
+.compare-list li::before { content:'→';color:var(--primary);flex-shrink:0;margin-top:1px; }
+
+/* ── MATRIX TABLE ── */
+.matrix-wrap { overflow-x: auto; margin: 20px 0; }
+.matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+}
+.matrix-table th {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 13px 15px;
+  background: rgba(11,22,18,0.85);
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.matrix-table td {
+  padding: 12px 15px;
+  font-size: 13px;
+  color: var(--text-dim);
+  border-bottom: 1px solid rgba(6,214,160,0.06);
+  vertical-align: top;
+  line-height: 1.6;
+}
+.matrix-table tr:last-child td { border-bottom: none; }
+.matrix-table tr:hover td { background: rgba(6,214,160,0.03); }
+.matrix-table td:first-child {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--primary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.ok   { color:#4ade80!important; }
+.warn-c{ color:#fbbf24!important; }
+.no   { color:#f87171!important; }
+
+/* ── CARD GRID ── */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin: 24px 0;
+}
+.grid-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px;
+  background: var(--bg2);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+.grid-card::after {
+  content:'';
+  position: absolute;
+  top:0;left:0;right:0;
+  height:2px;
+  background: linear-gradient(90deg, var(--primary-dark), var(--primary));
+  opacity:0;
+  transition: opacity 0.3s;
+}
+.grid-card:hover { transform:translateY(-3px);border-color:var(--border-bright); }
+.grid-card:hover::after { opacity:1; }
+.grid-card-icon { font-size:24px;margin-bottom:10px; }
+.grid-card-title { font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#f1f5f9;margin-bottom:8px; }
+.grid-card-desc { font-size:13px;color:var(--text-muted);line-height:1.7; }
+
+/* ── TIMELINE ── */
+.timeline {
+  position: relative;
+  padding-left: 40px;
+  display: flex;
+  flex-direction: column;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 14px; top: 14px; bottom: 14px;
+  width: 2px;
+  background: linear-gradient(180deg, var(--primary), var(--accent), transparent);
+}
+.timeline-item { position: relative; padding: 18px 0 18px 28px; }
+.timeline-dot {
+  position: absolute;
+  left: -26px; top: 22px;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--bg2);
+  border: 2px solid var(--primary-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary);
+  z-index: 1;
+  transition: all 0.3s;
+}
+.timeline-item:hover .timeline-dot {
+  border-color: var(--primary);
+  box-shadow: 0 0 12px rgba(6,214,160,0.4);
+}
+.timeline-title { font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:5px; }
+.timeline-desc { font-size:13.5px;color:var(--text-muted);line-height:1.7; }
+
+/* ── PERF BAR ── */
+.perf-rows { display:flex;flex-direction:column;gap:14px;margin:20px 0; }
+.perf-row { display:grid;grid-template-columns:200px 1fr 70px;align-items:center;gap:16px; }
+.perf-label { font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-dim); }
+.perf-bar-bg { height:7px;background:rgba(6,214,160,0.08);border-radius:10px;overflow:hidden; }
+.perf-bar-fill {
+  height:100%;border-radius:10px;
+  background: linear-gradient(90deg, var(--primary-dark), var(--primary));
+  width:0;
+  transition: width 1.2s cubic-bezier(0.25,1,0.5,1);
+}
+.perf-val { font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--primary);text-align:right; }
+
+/* ── TRAP LIST ── */
+.trap-list { display:flex;flex-direction:column;gap:14px;margin:20px 0; }
+.trap-item {
+  display:flex;gap:16px;align-items:flex-start;
+  border:1px solid rgba(248,113,113,0.12);
+  border-radius:10px;padding:16px 20px;
+  background:rgba(248,113,113,0.03);
+  transition:all 0.3s;
+}
+.trap-item:hover { border-color:rgba(248,113,113,0.28);background:rgba(248,113,113,0.06); }
+.trap-icon { font-size:20px;flex-shrink:0;margin-top:1px; }
+.trap-title { font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fca5a5;margin-bottom:5px; }
+.trap-desc { font-size:13px;color:var(--text-muted);line-height:1.7; }
+
+/* ── SCHEMA DIFF ── */
+.schema-diff {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 20px 0;
+  background: #040908;
+}
+.diff-col { padding: 0; }
+.diff-header {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.diff-header.before { color: #f87171; background: rgba(248,113,113,0.06); border-right: 1px solid var(--border); }
+.diff-header.after  { color: #4ade80; background: rgba(74,222,128,0.06); }
+.diff-body { padding: 16px 18px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 2; }
+.diff-body.before { border-right: 1px solid var(--border); }
+.diff-line-same    { color: #475569; }
+.diff-line-del     { color: #f87171; text-decoration: line-through; opacity: 0.7; }
+.diff-line-add     { color: #4ade80; }
+.diff-line-mod     { color: #fb923c; }
+
+/* ── STAT BOX ── */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin: 24px 0;
+}
+.stat-box {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  background: var(--bg2);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+.stat-box::before {
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;height:2px;
+  background: linear-gradient(90deg, var(--primary-dark), var(--primary));
+  opacity:0.5;
+}
+.stat-box:hover { transform:translateY(-2px);border-color:var(--border-bright); }
+.stat-val {
+  font-family: 'Syne', sans-serif;
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.stat-label { font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-muted);letter-spacing:0.08em; }
+
+/* ── KNOB CARD ── */
+.knob-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+  margin: 24px 0;
+}
+.knob-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px;
+  background: var(--bg2);
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.knob-card:hover { border-color: var(--border-bright); transform: translateY(-2px); }
+.knob-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--primary);
+  margin-bottom: 8px;
+  word-break: break-all;
+}
+.knob-default {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.knob-desc {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.65;
+  margin-bottom: 12px;
+}
+.knob-bar-bg { height:5px;background:rgba(6,214,160,0.08);border-radius:10px;overflow:hidden;margin-bottom:8px; }
+.knob-bar-fill {
+  height:100%;border-radius:10px;
+  background: linear-gradient(90deg, var(--primary-dark), var(--primary));
+  width:0;transition:width 1.2s cubic-bezier(0.25,1,0.5,1);
+}
+.knob-tags { display:flex;flex-wrap:wrap;gap:6px; }
+.knob-tag {
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;padding:2px 8px;border-radius:4px;
+  background:rgba(6,214,160,0.08);border:1px solid rgba(6,214,160,0.18);
+  color:var(--accent2);
+}
+
+/* ── FOOTER NAV ── */
+.footer-nav {
+  padding: 60px 80px;
+  border-top: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  background: var(--bg2);
+}
+.footer-toc-title {
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;letter-spacing:0.15em;text-transform:uppercase;
+  color:var(--text-muted);margin-bottom:20px;
+}
+.footer-toc-list { list-style:none;display:flex;flex-direction:column;gap:10px; }
+.footer-toc-list li {
+  font-size:14px;color:var(--text-muted);
+  display:flex;align-items:center;gap:10px;
+}
+.footer-toc-list li.done { text-decoration:line-through;opacity:0.35; }
+.footer-toc-list li.current { color:var(--primary);font-weight:600; }
+.chap-num { font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-muted);min-width:36px; }
+.next-card {
+  border:1px solid var(--border-bright);border-radius:14px;padding:30px;
+  background:rgba(6,214,160,0.05);backdrop-filter:blur(4px);
+}
+.next-label {
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+  letter-spacing:0.15em;text-transform:uppercase;color:var(--primary);margin-bottom:12px;
+}
+.next-title { font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:#f1f5f9;margin-bottom:12px; }
+.next-desc { font-size:13.5px;color:var(--text-muted);line-height:1.75; }
+
+/* ── REVEAL ── */
+.reveal { opacity:0;transform:translateY(22px);transition:opacity 0.6s ease,transform 0.6s ease; }
+.reveal.visible { opacity:1;transform:translateY(0); }
+
+/* ── RESP ── */
+@media(max-width:768px){
+  .sidebar{display:none}.main{margin-left:0}
+  .hero,.section{padding:48px 24px}
+  .compare-grid,.schema-diff,.knob-grid,.stat-row{grid-template-columns:1fr}
+  .card-grid{grid-template-columns:1fr}
+  .footer-nav{grid-template-columns:1fr;padding:40px 24px}
+  .perf-row{grid-template-columns:130px 1fr 50px}
+  .divider{margin:0 24px}
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-title">Apache Hive</div>
+  <div class="sidebar-chap">CH.02</div>
+  <nav class="sidebar-dots" id="sidebarDots">
+    <div class="sidebar-dot active" data-sec="hero"></div>
+    <div class="sidebar-dot" data-sec="sec1"></div>
+    <div class="sidebar-dot" data-sec="sec2"></div>
+    <div class="sidebar-dot" data-sec="sec3"></div>
+    <div class="sidebar-dot" data-sec="sec4"></div>
+    <div class="sidebar-dot" data-sec="sec5"></div>
+    <div class="sidebar-dot" data-sec="sec6"></div>
+    <div class="sidebar-dot" data-sec="footer"></div>
+  </nav>
+</aside>
+
+<main class="main">
+
+<!-- ── HERO ── -->
+<section class="hero" id="hero">
+  <div class="hero-bg">
+    <div class="hero-grid"></div>
+    <div class="hero-orb o1"></div>
+    <div class="hero-orb o2"></div>
+    <div class="hero-orb o3"></div>
+  </div>
+  <svg class="hero-circuit" viewBox="0 0 340 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="20" y="20" width="300" height="300" rx="8" stroke="#06d6a0" stroke-width="0.5"/>
+    <rect x="50" y="50" width="240" height="240" rx="6" stroke="#00b4d8" stroke-width="0.35"/>
+    <line x1="20" y1="100" x2="340" y2="100" stroke="#06d6a0" stroke-width="0.3"/>
+    <line x1="20" y1="170" x2="340" y2="170" stroke="#06d6a0" stroke-width="0.3"/>
+    <line x1="20" y1="240" x2="340" y2="240" stroke="#06d6a0" stroke-width="0.3"/>
+    <line x1="100" y1="20" x2="100" y2="340" stroke="#00b4d8" stroke-width="0.3"/>
+    <line x1="170" y1="20" x2="170" y2="340" stroke="#00b4d8" stroke-width="0.3"/>
+    <line x1="240" y1="20" x2="240" y2="340" stroke="#00b4d8" stroke-width="0.3"/>
+    <circle cx="100" cy="100" r="5" fill="#06d6a0" opacity="0.6"/>
+    <circle cx="170" cy="170" r="8" fill="#00b4d8" opacity="0.5"/>
+    <circle cx="240" cy="100" r="5" fill="#06d6a0" opacity="0.6"/>
+    <circle cx="100" cy="240" r="5" fill="#06d6a0" opacity="0.6"/>
+    <circle cx="240" cy="240" r="5" fill="#00b4d8" opacity="0.5"/>
+    <path d="M100 100 L170 170 L240 100" stroke="#06d6a0" stroke-width="0.5" fill="none"/>
+    <path d="M100 240 L170 170 L240 240" stroke="#00b4d8" stroke-width="0.5" fill="none"/>
+  </svg>
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="badge-dot"></span>
+      APACHE HIVE DEEP DIVE · CHAPTER 02
+    </div>
+    <h1 class="hero-title">HQL 编译器与<br>查询优化器</h1>
+    <p class="hero-subtitle">
+      从 ANTLR 语法树的生成，到 Calcite CBO 的代价模型，再到物理执行计划的最终生成——
+      深入 Hive 优化器的每一个决策节点，掌握性能调优的底层原理。
+    </p>
+    <div class="hero-pills">
+      <span class="pill">ANTLR AST</span>
+      <span class="pill">Operator Tree</span>
+      <span class="pill">Calcite CBO</span>
+      <span class="pill">谓词下推</span>
+      <span class="pill">Join Reorder</span>
+      <span class="pill">列裁剪</span>
+      <span class="pill">统计信息</span>
+      <span class="pill">EXPLAIN 解读</span>
+    </div>
+    <div class="hero-meta">
+      <div class="meta-item"><span>⚡</span><span>难度</span><span class="meta-val">高级</span></div>
+      <div class="meta-item"><span>⏱</span><span>预计阅读</span><span class="meta-val">40 分钟</span></div>
+      <div class="meta-item"><span>📌</span><span>前置</span><span class="meta-val">第1章：核心架构</span></div>
+      <div class="meta-item"><span>🏷</span><span>版本</span><span class="meta-val">Hive 3.x / 4.x</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SEC 1: 编译全流程 -->
+<section class="section" id="sec1">
+  <div class="section-tag">01 / COMPILER PIPELINE</div>
+  <h2 class="section-title">HQL 编译全流程</h2>
+  <p class="section-desc">
+    一条 HQL 从字符串到可执行任务，历经 6 个阶段。每个阶段有不同的数据结构，
+    也是不同类型报错和性能问题的根源地。
+  </p>
+
+  <div class="pipeline reveal">
+    <div class="pipe-stage">
+      <div class="pipe-phase">
+        <div class="pipe-phase-label">STAGE 1</div>
+        <div class="pipe-line"></div>
+      </div>
+      <div class="pipe-body">
+        <div class="pipe-body-title">词法 & 语法解析（Lexer / Parser）</div>
+        <div class="pipe-body-desc">HQL 字符串 → Token 流 → AST（抽象语法树）。由 ANTLR3 文法驱动，完全基于文本，不访问 Metastore。语法错误在此阶段暴露："cannot recognize input near 'X'"。</div>
+        <div class="pipe-tags">
+          <span class="pipe-tag">HiveLexer.g</span>
+          <span class="pipe-tag">HiveParser.g</span>
+          <span class="pipe-tag">CommonTree (AST)</span>
+        </div>
+      </div>
+    </div>
+    <div class="pipe-stage">
+      <div class="pipe-phase">
+        <div class="pipe-phase-label">STAGE 2</div>
+        <div class="pipe-line"></div>
+      </div>
+      <div class="pipe-body">
+        <div class="pipe-body-title">语义分析（SemanticAnalyzer）</div>
+        <div class="pipe-body-desc">AST → QB（QueryBlock）→ Operator Tree（逻辑算子树）。此处首次访问 Metastore 验证表名/列名/类型，同时确定分区裁剪谓词范围，生成初始逻辑计划。类型不匹配报错在此阶段抛出。</div>
+        <div class="pipe-tags">
+          <span class="pipe-tag">QueryBlock</span>
+          <span class="pipe-tag">TableScanOperator</span>
+          <span class="pipe-tag">FilterOperator</span>
+          <span class="pipe-tag">JoinOperator</span>
+        </div>
+      </div>
+    </div>
+    <div class="pipe-stage">
+      <div class="pipe-phase">
+        <div class="pipe-phase-label">STAGE 3</div>
+        <div class="pipe-line"></div>
+      </div>
+      <div class="pipe-body">
+        <div class="pipe-body-title">逻辑优化（Logical Optimizer）</div>
+        <div class="pipe-body-desc">对 Operator Tree 应用一系列规则（Rule-Based Optimization）和基于代价的优化（CBO，由 Apache Calcite 提供）。包含谓词下推、列裁剪、聚合下推、Join Reorder、子查询展开等核心变换。</div>
+        <div class="pipe-tags">
+          <span class="pipe-tag">PredicatePushDown</span>
+          <span class="pipe-tag">ColumnPruner</span>
+          <span class="pipe-tag">JoinReorder (CBO)</span>
+          <span class="pipe-tag">ConstantFolding</span>
+        </div>
+      </div>
+    </div>
+    <div class="pipe-stage">
+      <div class="pipe-phase">
+        <div class="pipe-phase-label">STAGE 4</div>
+        <div class="pipe-line"></div>
+      </div>
+      <div class="pipe-body">
+        <div class="pipe-body-title">物理计划生成（Physical Plan Generator）</div>
+        <div class="pipe-body-desc">Operator Tree → Task Tree（MapWork / ReduceWork / TezWork）。决定 Map/Reduce 边界，分配 Shuffle Key，确定每个算子运行在 Map 端还是 Reduce 端，生成执行引擎可理解的物理计划。</div>
+        <div class="pipe-tags">
+          <span class="pipe-tag">MapWork</span>
+          <span class="pipe-tag">ReduceWork</span>
+          <span class="pipe-tag">TezWork (DAG)</span>
+          <span class="pipe-tag">SparkWork</span>
+        </div>
+      </div>
+    </div>
+    <div class="pipe-stage">
+      <div class="pipe-phase">
+        <div class="pipe-phase-label">STAGE 5</div>
+        <div class="pipe-line"></div>
+      </div>
+      <div class="pipe-body">
+        <div class="pipe-body-title">物理优化（Physical Optimizer）</div>
+        <div class="pipe-body-desc">在物理计划层面应用引擎特定优化：Map Join 转换（小表广播）、Skew Join（数据倾斜特殊处理）、Bucket Map Join、SMB Join（Sort-Merge-Bucket）。此阶段优化对性能影响极大。</div>
+        <div class="pipe-tags">
+          <span class="pipe-tag">MapJoinProcessor</span>
+          <span class="pipe-tag">BucketMapJoin</span>
+          <span class="pipe-tag">SkewJoinOptimizer</span>
+          <span class="pipe-tag">SMBJoin</span>
+        </div>
+      </div>
+    </div>
+    <div class="pipe-stage">
+      <div class="pipe-phase">
+        <div class="pipe-phase-label">STAGE 6</div>
+        <div class="pipe-line" style="background:transparent"></div>
+      </div>
+      <div class="pipe-body">
+        <div class="pipe-body-title">任务提交（Task Execution）</div>
+        <div class="pipe-body-desc">Task Tree 序列化后提交至 YARN。Tez 模式下构建 DAG 并通过 TezClient 提交；MapReduce 模式逐 Stage 串行提交 Job。FetchTask 直接在 Driver 端本地执行（如 LIMIT 小结果集）。</div>
+        <div class="pipe-tags">
+          <span class="pipe-tag">TezClient</span>
+          <span class="pipe-tag">JobClient (MR)</span>
+          <span class="pipe-tag">FetchTask</span>
+          <span class="pipe-tag">DDLTask</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-box note reveal">
+    <span class="info-icon">🔬</span>
+    <div><strong>调试入口：</strong>在 HiveServer2 日志（<code>hiveserver2.log</code>）中搜索 <code>Starting command</code> 可看到每条 HQL 的完整生命周期时间戳，定位是哪个阶段耗时最长。Tez UI 的 DAG 视图则是物理执行阶段最直观的分析工具。</div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SEC 2: CBO 与统计信息 -->
+<section class="section" id="sec2">
+  <div class="section-tag">02 / CBO & STATISTICS</div>
+  <h2 class="section-title">Calcite CBO 与统计信息体系</h2>
+  <p class="section-desc">
+    CBO（基于代价的优化器）是 Hive 3.x 最重要的优化机制，但它高度依赖准确的统计信息。
+    没有统计信息的 CBO 只是空转——理解这套体系，是让优化器真正发挥作用的前提。
+  </p>
+
+  <div class="stat-row reveal">
+    <div class="stat-box">
+      <div class="stat-val">~10x</div>
+      <div class="stat-label">Join Reorder 最大性能差距</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val">4类</div>
+      <div class="stat-label">统计信息维度</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val">Calcite</div>
+      <div class="stat-label">CBO 底层框架</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val">NDV</div>
+      <div class="stat-label">最关键统计指标</div>
+    </div>
+  </div>
+
+  <div class="compare-grid reveal">
+    <div class="compare-card green">
+      <div class="compare-card-title">RBO（规则驱动优化）<span class="compare-badge">始终生效</span></div>
+      <ul class="compare-list">
+        <li>基于固定规则变换，不依赖统计信息</li>
+        <li>谓词下推 / 常量折叠 / 列裁剪</li>
+        <li>总是确定性执行，结果可预期</li>
+        <li>无法感知数据分布，无法做 Join 顺序优化</li>
+        <li>Hive 早期（1.x/2.x）的主要优化手段</li>
+      </ul>
+    </div>
+    <div class="compare-card cyan">
+      <div class="compare-card-title">CBO（代价驱动优化）<span class="compare-badge">需统计信息</span></div>
+      <ul class="compare-list">
+        <li>基于表/列统计信息估算各计划代价</li>
+        <li>自动选择最优 Join 顺序（小表驱动大表）</li>
+        <li>自动判断用 Map Join 还是 Sort-Merge Join</li>
+        <li>利用 NDV 优化 GROUP BY 和 DISTINCT</li>
+        <li>统计信息过时或缺失时退化为 RBO</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="code-block reveal">
+    <div class="code-header">
+      <div class="code-dots">
+        <div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div>
+      </div>
+      <div class="code-filename">statistics.hql · 统计信息收集完整指南</div>
+    </div>
+    <div class="code-body"><pre><span class="cmt">-- ① 收集表级统计（行数、文件数、总大小）</span>
+<span class="fn">ANALYZE TABLE</span> dwd.user_behavior <span class="fn">COMPUTE STATISTICS</span>;
+
+<span class="cmt">-- ② 收集列级统计（NDV、Min、Max、Null数、直方图）</span>
+<span class="fn">ANALYZE TABLE</span> dwd.user_behavior
+  <span class="fn">COMPUTE STATISTICS FOR COLUMNS</span>
+  user_id, item_id, behavior, ts;
+
+<span class="cmt">-- ③ 对分区表：只分析特定分区（增量方式，推荐）</span>
+<span class="fn">ANALYZE TABLE</span> dwd.user_behavior
+  <span class="kw">PARTITION</span>(dt=<span class="str">'2024-01-01'</span>)
+  <span class="fn">COMPUTE STATISTICS FOR COLUMNS</span>;
+
+<span class="cmt">-- ④ 自动统计信息收集（INSERT/CTAS 后自动触发，Hive 3.x）</span>
+<span class="kw">SET</span> hive.stats.autogather=<span class="kw">true</span>;           <span class="cmt">-- 表级统计自动收集（默认已开启）</span>
+<span class="kw">SET</span> hive.stats.column.autogather=<span class="kw">true</span>;    <span class="cmt">-- 列级统计自动收集（默认关闭，开启有性能开销）</span>
+
+<span class="cmt">-- ⑤ 验证统计信息是否已收集</span>
+<span class="fn">DESCRIBE EXTENDED</span> dwd.user_behavior;
+<span class="cmt">-- 看 parameters 中的 numRows、rawDataSize、COLUMN_STATS_ACCURATE</span>
+
+<span class="cmt">-- ⑥ 开启 CBO（Hive 3.x 默认开启，验证确认）</span>
+<span class="kw">SET</span> hive.cbo.enable=<span class="kw">true</span>;
+<span class="kw">SET</span> hive.compute.query.using.stats=<span class="kw">true</span>;
+<span class="kw">SET</span> hive.stats.fetch.column.stats=<span class="kw">true</span>;
+
+<span class="cmt">-- ⑦ 确认 CBO 是否实际生效（看 EXPLAIN 输出中的统计数字）</span>
+<span class="fn">EXPLAIN CBO</span>
+<span class="kw">SELECT</span> a.user_id, <span class="fn">COUNT</span>(*) <span class="kw">FROM</span> dwd.user_behavior a
+<span class="kw">JOIN</span> dim.user b <span class="kw">ON</span> a.user_id = b.user_id
+<span class="kw">WHERE</span> a.dt = <span class="str">'2024-01-01'</span>
+<span class="kw">GROUP BY</span> a.user_id;
+<span class="cmt">-- 若输出中 cardinality=xxx 有合理数值，CBO 已生效</span></pre></div>
+  </div>
+
+  <div class="info-box warn reveal">
+    <span class="info-icon">⚠️</span>
+    <div><strong>统计信息陈旧陷阱：</strong>ANALYZE 是时间点快照。分区每天写入新数据，但历史分区统计不会自动更新。若 CBO 基于 3 个月前的统计信息做 Join 顺序决策，可能选出完全错误的执行计划。建议在 ETL 管道的最后一步加入增量 ANALYZE，或定期对活跃分区重新收集统计。</div>
+  </div>
+
+  <h3 style="font-family:'Syne',sans-serif;font-size:19px;font-weight:700;color:#f1f5f9;margin:32px 0 16px;" class="reveal">四类统计信息详解</h3>
+  <div class="matrix-wrap reveal">
+    <table class="matrix-table">
+      <thead>
+        <tr>
+          <th>统计指标</th>
+          <th>存储位置</th>
+          <th>CBO 用途</th>
+          <th>收集成本</th>
+          <th>重要程度</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>numRows（行数）</td>
+          <td>TBLS / PARTITIONS 表参数</td>
+          <td>估算 Join 输出大小、选择驱动表</td>
+          <td class="ok">低（扫描统计）</td>
+          <td class="ok">★★★★★</td>
+        </tr>
+        <tr>
+          <td>NDV（基数）</td>
+          <td>TAB_COL_STATS.NUM_DISTINCTS</td>
+          <td>Join 选择率、Group By 输出估算</td>
+          <td class="warn-c">中（HyperLogLog）</td>
+          <td class="ok">★★★★★</td>
+        </tr>
+        <tr>
+          <td>Min / Max</td>
+          <td>TAB_COL_STATS.LONG_LOW_VALUE 等</td>
+          <td>范围过滤选择率计算</td>
+          <td class="ok">低</td>
+          <td class="warn-c">★★★☆☆</td>
+        </tr>
+        <tr>
+          <td>直方图（Histogram）</td>
+          <td>TAB_COL_STATS（等高直方图）</td>
+          <td>非均匀分布的选择率估算（数据倾斜感知）</td>
+          <td class="no">高（需全列扫描）</td>
+          <td class="warn-c">★★★★☆</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SEC 3: Join 策略 -->
+<section class="section" id="sec3">
+  <div class="section-tag">03 / JOIN STRATEGIES</div>
+  <h2 class="section-title">Join 策略深度对比</h2>
+  <p class="section-desc">
+    Hive 实现了 4 种本质不同的 Join 物理策略，选择错误的策略是造成任务慢 10 倍的最常见原因。
+    CBO 自动选择策略，但你必须理解背后的原理才能干预和调优。
+  </p>
+
+  <div class="perf-rows reveal">
+    <div class="perf-row">
+      <span class="perf-label">Map Join（广播 Join）</span>
+      <div class="perf-bar-bg"><div class="perf-bar-fill" data-w="96%"></div></div>
+      <span class="perf-val">最快</span>
+    </div>
+    <div class="perf-row">
+      <span class="perf-label">SMB Join（桶排序 Join）</span>
+      <div class="perf-bar-bg"><div class="perf-bar-fill" data-w="80%"></div></div>
+      <span class="perf-val">快</span>
+    </div>
+    <div class="perf-row">
+      <span class="perf-label">Reduce-Side Join（普通）</span>
+      <div class="perf-bar-bg"><div class="perf-bar-fill" data-w="45%"></div></div>
+      <span class="perf-val">中</span>
+    </div>
+    <div class="perf-row">
+      <span class="perf-label">Skew Join（倾斜处理）</span>
+      <div class="perf-bar-bg"><div class="perf-bar-fill" data-w="35%"></div></div>
+      <span class="perf-val">兜底</span>
+    </div>
+  </div>
+
+  <div class="code-block reveal">
+    <div class="code-header">
+      <div class="code-dots">
+        <div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div>
+      </div>
+      <div class="code-filename">join_strategies.hql · 四种 Join 策略配置与使用</div>
+    </div>
+    <div class="code-body"><pre><span class="cmt">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 策略1：Map Join（小表广播，无 Shuffle，最快）
+ 触发条件：小表大小 < hive.mapjoin.smalltable.filesize
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+<span class="kw">SET</span> hive.auto.convert.join=<span class="kw">true</span>;             <span class="cmt">-- 自动转 Map Join</span>
+<span class="kw">SET</span> hive.mapjoin.smalltable.filesize=<span class="num">25000000</span>; <span class="cmt">-- 小表阈值 25MB（可适当调大）</span>
+<span class="kw">SET</span> hive.mapjoin.cache.numrows=<span class="num">25000</span>;          <span class="cmt">-- 小表缓存行数</span>
+
+<span class="cmt">-- 手动提示（当自动转换未触发时）</span>
+<span class="kw">SELECT</span> <span class="cmt">/*+ MAPJOIN(dim_user) */</span>
+    a.user_id, b.user_name
+<span class="kw">FROM</span> dwd.user_behavior a
+<span class="kw">JOIN</span> dim.user b <span class="kw">ON</span> a.user_id = b.user_id;
+
+<span class="cmt">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 策略2：SMB Join（两表同键分桶 + 排序，无 Reduce Shuffle）
+ 前提：两表按 JOIN KEY 分桶，且桶数有倍数关系
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+<span class="kw">SET</span> hive.auto.convert.sortmerge.join=<span class="kw">true</span>;
+<span class="kw">SET</span> hive.optimize.bucketmapjoin=<span class="kw">true</span>;
+<span class="kw">SET</span> hive.optimize.bucketmapjoin.sortedmerge=<span class="kw">true</span>;
+<span class="kw">SET</span> hive.enforce.sortmergebucketmapjoin=<span class="kw">false</span>;
+
+<span class="cmt">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 策略3：Reduce-Side Join（默认，全量 Shuffle）
+ 两表数据按 JOIN KEY hash 分发到相同 Reducer
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+<span class="cmt">-- 调整 Reducer 数量（影响并行度和内存压力）</span>
+<span class="kw">SET</span> hive.exec.reducers.bytes.per.reducer=<span class="num">268435456</span>;
+
+<span class="cmt">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 策略4：Skew Join（数据倾斜场景的特殊处理）
+ 热点 Key 先广播处理，非热点 Key 正常 Shuffle
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+<span class="kw">SET</span> hive.optimize.skewjoin=<span class="kw">true</span>;
+<span class="kw">SET</span> hive.skewjoin.key=<span class="num">100000</span>;   <span class="cmt">-- 超过此行数判定为热点 Key</span></pre></div>
+  </div>
+
+  <div class="info-box tip reveal">
+    <span class="info-icon">💡</span>
+    <div><strong>Map Join 不触发？排查顺序：</strong>① 确认 <code>hive.auto.convert.join=true</code>；② 检查小表实际大小（HDFS 压缩后的物理大小）是否超过阈值；③ 小表若是子查询，Hive 可能无法估算大小，改用 <code>/*+ MAPJOIN(t) */</code> Hint；④ 确认 CBO 已有该表的 numRows 统计，否则 CBO 无法判断表大小。</div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SEC 4: EXPLAIN 完整解读 -->
+<section class="section" id="sec4">
+  <div class="section-tag">04 / EXPLAIN DEEP DIVE</div>
+  <h2 class="section-title">EXPLAIN 输出完整解读</h2>
+  <p class="section-desc">
+    EXPLAIN 是优化 Hive 查询最重要的工具，但其输出格式复杂且信息密集。
+    掌握关键字段的含义，才能快速定位性能瓶颈。
+  </p>
+
+  <div class="code-block reveal">
+    <div class="code-header">
+      <div class="code-dots">
+        <div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div>
+      </div>
+      <div class="code-filename">explain_output.txt · EXPLAIN 输出关键字段注解</div>
+    </div>
+    <div class="code-body"><pre><span class="cmt">STAGE DEPENDENCIES:          ← Stage 依赖关系（执行顺序）
+  Stage-1 is a root stage    ← 第一个执行的 Stage
+  Stage-0 depends on stages: Stage-1   ← Stage-0 等 Stage-1 完成后执行</span>
+
+STAGE PLANS:
+  Stage: Stage-1
+    Tez:
+      Edges:
+        Map 1 <span class="kw">←</span> Map 2 (BROADCAST_EDGE)   <span class="cmt">← Map Join！小表广播给 Map 1</span>
+        Reducer 3 <span class="kw">←</span> Map 1 (SIMPLE_EDGE)  <span class="cmt">← Shuffle 到 Reducer</span>
+
+      Map 1
+        Map Operator Tree:
+          TableScan
+            alias: a                       <span class="cmt">← 扫描的表别名</span>
+            Statistics: Num rows: <span class="num">100000000</span> Data size: <span class="num">8000000000</span>
+                        <span class="cmt">↑ 关键！数字是否合理决定 CBO 是否生效</span>
+            Filter Operator
+              predicate: (dt = <span class="str">'2024-01-01'</span>)  <span class="cmt">← 分区裁剪条件出现在此处 ✓</span>
+              Statistics: Num rows: <span class="hl">273972</span>    <span class="cmt">← 过滤后行数估算</span>
+              Map Join Operator
+                condition map: Inner Join 0 to 1
+                keys:
+                  0 user_id (type: bigint)
+                  1 user_id (type: bigint)
+                <span class="nn">HybridGraceHashJoin: true</span>     <span class="cmt">← 内存不足时自动 spill 到磁盘</span>
+                Select Operator
+                  expressions: ...
+                  Group By Operator
+                    aggregations: count()
+                    <span class="nn">mode: hash</span>               <span class="cmt">← Map 端预聚合，减少 Shuffle 数据量</span>
+
+      Reducer 3
+        Group By Operator
+          <span class="nn">mode: mergepartial</span>           <span class="cmt">← Reduce 端合并 Map 端预聚合结果</span>
+          outputColumnNames: ...
+
+<span class="cmt">━━━━ 关键信号解读 ━━━━
+✓ BROADCAST_EDGE     → Map Join 已生效，最优
+✓ predicate 含分区列 → 分区裁剪已生效
+✓ mode: hash         → Map 端预聚合，Shuffle 数据减少
+✗ SIMPLE_EDGE 很多   → 多次 Shuffle，考虑优化 Join 顺序
+✗ Statistics: Num rows: 1  → 统计信息缺失，CBO 失效！</span></pre></div>
+  </div>
+
+  <div class="card-grid reveal">
+    <div class="grid-card">
+      <div class="grid-card-icon">🟢</div>
+      <div class="grid-card-title">BROADCAST_EDGE</div>
+      <div class="grid-card-desc">Map Join 已生效。小表被广播到所有 Map Task，无 Shuffle 开销。看到这个是最优 Join 信号。</div>
+    </div>
+    <div class="grid-card">
+      <div class="grid-card-icon">🟡</div>
+      <div class="grid-card-title">SIMPLE_EDGE</div>
+      <div class="grid-card-desc">普通 Hash Shuffle。数据按 key 分发到 Reducer，有网络开销。大表 Join 的正常情况，若出现多次需警惕。</div>
+    </div>
+    <div class="grid-card">
+      <div class="grid-card-icon">🔵</div>
+      <div class="grid-card-title">mode: hash</div>
+      <div class="grid-card-desc">Map 端预聚合（Combiner）。GROUP BY 场景下极重要，大幅减少 Shuffle 传输量。若未出现，检查 UDF 是否阻止预聚合。</div>
+    </div>
+    <div class="grid-card">
+      <div class="grid-card-icon">🔴</div>
+      <div class="grid-card-title">Num rows: 1</div>
+      <div class="grid-card-desc">CBO 统计信息缺失的典型标志！CBO 无法估算表大小，回退使用 1 行作为默认值，Join 顺序决策完全失效。</div>
+    </div>
+    <div class="grid-card">
+      <div class="grid-card-icon">🟣</div>
+      <div class="grid-card-title">HybridGraceHashJoin</div>
+      <div class="grid-card-desc">内存敏感的 Map Join 实现。内存足够时纯内存 Hash Join，内存不足时自动 spill 分区到磁盘，防止 OOM。</div>
+    </div>
+    <div class="grid-card">
+      <div class="grid-card-icon">⚪</div>
+      <div class="grid-card-title">FetchTask</div>
+      <div class="grid-card-desc">无需 MR/Tez Job 的本地执行任务。简单 SELECT、LIMIT 小结果集、SHOW 命令等直接在 Driver 端执行，速度极快。</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SEC 5: 关键优化器开关 -->
+<section class="section" id="sec5">
+  <div class="section-tag">05 / OPTIMIZER KNOBS</div>
+  <h2 class="section-title">关键优化器参数配置</h2>
+  <p class="section-desc">
+    以下参数是在生产环境中对 Hive 查询优化影响最大的配置项，
+    理解每个参数的作用机制，才能在不同场景下灵活调整。
+  </p>
+
+  <div class="knob-grid reveal">
+    <div class="knob-card">
+      <div class="knob-name">hive.cbo.enable</div>
+      <div class="knob-default">默认值：true（Hive 3.x）</div>
+      <div class="knob-desc">全局 CBO 开关。开启后使用 Calcite 框架做代价估算和 Join Reorder，依赖 ANALYZE 收集的统计信息。关闭后退化为纯规则优化。</div>
+      <div class="knob-bar-bg"><div class="knob-bar-fill" data-w="95%"></div></div>
+      <div class="knob-tags"><span class="knob-tag">Join Reorder</span><span class="knob-tag">代价模型</span><span class="knob-tag">必须开启</span></div>
+    </div>
+    <div class="knob-card">
+      <div class="knob-name">hive.auto.convert.join</div>
+      <div class="knob-default">默认值：true</div>
+      <div class="knob-desc">自动将 Reduce-Side Join 转为 Map Join（小表广播）。触发条件：小表文件大小 &lt; hive.mapjoin.smalltable.filesize（默认 25MB）。对性能影响极大，必须保持开启。</div>
+      <div class="knob-bar-bg"><div class="knob-bar-fill" data-w="92%"></div></div>
+      <div class="knob-tags"><span class="knob-tag">Map Join</span><span class="knob-tag">消除 Shuffle</span><span class="knob-tag">必须开启</span></div>
+    </div>
+    <div class="knob-card">
+      <div class="knob-name">hive.vectorized.execution.enabled</div>
+      <div class="knob-default">默认值：true（Hive 0.13+）</div>
+      <div class="knob-desc">向量化执行模式，批量处理 1024 行而非逐行处理。对数值计算、过滤、聚合等操作有 2~5x 加速效果。需搭配 ORC 格式使用效果最佳。</div>
+      <div class="knob-bar-bg"><div class="knob-bar-fill" data-w="80%"></div></div>
+      <div class="knob-tags"><span class="knob-tag">ORC 最优</span><span class="knob-tag">批处理加速</span><span class="knob-tag">SIMD</span></div>
+    </div>
+    <div class="knob-card">
+      <div class="knob-name">hive.exec.parallel</div>
+      <div class="knob-default">默认值：false</div>
+      <div class="knob-desc">允许 Stage 间并行执行（无依赖关系的 Stage 同时运行）。对多路 UNION、多个独立子查询场景效果显著，建议生产开启。并发数由 hive.exec.parallel.thread.number 控制（默认 8）。</div>
+      <div class="knob-bar-bg"><div class="knob-bar-fill" data-w="72%"></div></div>
+      <div class="knob-tags"><span class="knob-tag">Stage 并行</span><span class="knob-tag">UNION 优化</span><span class="knob-tag">建议开启</span></div>
+    </div>
+    <div class="knob-card">
+      <div class="knob-name">hive.merge.tezfiles / hive.merge.mapfiles</div>
+      <div class="knob-default">默认值：true / true</div>
+      <div class="knob-desc">任务结束后自动合并小文件。hive.merge.smallfiles.avgsize（默认 16MB）是合并触发阈值，hive.merge.size.per.task（默认 256MB）是目标文件大小。对防止小文件积累至关重要。</div>
+      <div class="knob-bar-bg"><div class="knob-bar-fill" data-w="68%"></div></div>
+      <div class="knob-tags"><span class="knob-tag">小文件合并</span><span class="knob-tag">NameNode 友好</span><span class="knob-tag">必须开启</span></div>
+    </div>
+    <div class="knob-card">
+      <div class="knob-name">hive.tez.container.size</div>
+      <div class="knob-default">默认值：-1（继承 mapreduce.map.memory.mb）</div>
+      <div class="knob-desc">Tez Task Container 内存大小。Map Join 的小表 HashTable 存放在此内存中，OOM 时需增大。建议设为 4~8GB，同时设 hive.tez.java.opts=-Xmx[0.8×container]。</div>
+      <div class="knob-bar-bg"><div class="knob-bar-fill" data-w="78%"></div></div>
+      <div class="knob-tags"><span class="knob-tag">内存调优</span><span class="knob-tag">OOM 防护</span><span class="knob-tag">Map Join 依赖</span></div>
+    </div>
+  </div>
+
+  <div class="code-block reveal">
+    <div class="code-header">
+      <div class="code-dots">
+        <div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div>
+      </div>
+      <div class="code-filename">session_settings.hql · 生产推荐的会话级参数模板</div>
+    </div>
+    <div class="code-body"><pre><span class="cmt">-- ① 引擎选择</span>
+<span class="kw">SET</span> hive.execution.engine=tez;
+
+<span class="cmt">-- ② CBO 全家桶（必须）</span>
+<span class="kw">SET</span> hive.cbo.enable=<span class="kw">true</span>;
+<span class="kw">SET</span> hive.compute.query.using.stats=<span class="kw">true</span>;
+<span class="kw">SET</span> hive.stats.fetch.column.stats=<span class="kw">true</span>;
+<span class="kw">SET</span> hive.stats.fetch.partition.stats=<span class="kw">true</span>;
+
+<span class="cmt">-- ③ Join 优化</span>
+<span class="kw">SET</span> hive.auto.convert.join=<span class="kw">true</span>;
+<span class="kw">SET</span> hive.mapjoin.smalltable.filesize=<span class="num">52428800</span>;   <span class="cmt">-- 50MB（适当调大）</span>
+<span class="kw">SET</span> hive.auto.convert.join.noconditionaltask=<span class="kw">true</span>;
+<span class="kw">SET</span> hive.auto.convert.join.noconditionaltask.size=<span class="num">209715200</span>; <span class="cmt">-- 200MB（多小表累加）</span>
+
+<span class="cmt">-- ④ 向量化执行</span>
+<span class="kw">SET</span> hive.vectorized.execution.enabled=<span class="kw">true</span>;
+<span class="kw">SET</span> hive.vectorized.execution.reduce.enabled=<span class="kw">true</span>;
+
+<span class="cmt">-- ⑤ 并行 Stage</span>
+<span class="kw">SET</span> hive.exec.parallel=<span class="kw">true</span>;
+<span class="kw">SET</span> hive.exec.parallel.thread.number=<span class="num">16</span>;
+
+<span class="cmt">-- ⑥ 动态分区</span>
+<span class="kw">SET</span> hive.exec.dynamic.partition=<span class="kw">true</span>;
+<span class="kw">SET</span> hive.exec.dynamic.partition.mode=nonstrict;
+<span class="kw">SET</span> hive.exec.max.dynamic.partitions=<span class="num">2000</span>;
+<span class="kw">SET</span> hive.exec.max.dynamic.partitions.pernode=<span class="num">500</span>;
+
+<span class="cmt">-- ⑦ 小文件合并</span>
+<span class="kw">SET</span> hive.merge.tezfiles=<span class="kw">true</span>;
+<span class="kw">SET</span> hive.merge.smallfiles.avgsize=<span class="num">16777216</span>;  <span class="cmt">-- 16MB 触发合并</span>
+<span class="kw">SET</span> hive.merge.size.per.task=<span class="num">268435456</span>;     <span class="cmt">-- 合并目标 256MB</span></pre></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SEC 6: 常见陷阱 -->
+<section class="section" id="sec6">
+  <div class="section-tag">06 / OPTIMIZER PITFALLS</div>
+  <h2 class="section-title">优化器常见陷阱</h2>
+  <p class="section-desc">
+    即使配置正确，优化器也可能在某些场景下做出错误决策。
+    以下是生产环境中高频出现的优化器失效场景。
+  </p>
+
+  <div class="trap-list">
+    <div class="trap-item reveal">
+      <div class="trap-icon">🔥</div>
+      <div class="trap-content">
+        <div class="trap-title">CBO Join Reorder 反向优化：大表变成驱动表</div>
+        <div class="trap-desc">当统计信息不准（如 ANALYZE 后数据大量增长），CBO 可能将大表排在 Join 左侧（驱动侧），导致内存暴增。排查方法：<code>EXPLAIN CBO</code> 检查各表 cardinality 是否符合实际。临时修复：<code>SET hive.cbo.enable=false</code> 并手动调整 SQL 中表的顺序（小表写在前）。</div>
+      </div>
+    </div>
+    <div class="trap-item reveal">
+      <div class="trap-icon">⚡</div>
+      <div class="trap-content">
+        <div class="trap-title">谓词下推被 OUTER JOIN 阻断</div>
+        <div class="trap-desc">对于 <code>LEFT JOIN</code>，右表的 WHERE 条件无法下推到 Join 之前（否则改变语义）。<code>SELECT * FROM a LEFT JOIN b ON ... WHERE b.col IS NOT NULL</code> 实际上等价于 INNER JOIN，但优化器需要先执行 Left Join 再过滤，浪费大量计算。解决：改写为 <code>INNER JOIN</code> 或将过滤条件移到 <code>ON</code> 子句内（语义等价时）。</div>
+      </div>
+    </div>
+    <div class="trap-item reveal">
+      <div class="trap-icon">🐌</div>
+      <div class="trap-content">
+        <div class="trap-title">向量化执行被复杂 UDF 静默禁用</div>
+        <div class="trap-desc">自定义 UDF（GenericUDF）通常不支持向量化，导致整个 Task 退回逐行执行模式。Hive 不会主动报警，性能下降难以察觉。诊断方法：在 Tez UI 的 Task 日志中搜索 <code>NOT vectorized</code>，找到具体原因（通常是 UDF class 名）。解决方案：升级 UDF 实现 VectorizedGenericUDF，或将 UDF 替换为内置函数。</div>
+      </div>
+    </div>
+    <div class="trap-item reveal">
+      <div class="trap-icon">💀</div>
+      <div class="trap-content">
+        <div class="trap-title">子查询展开失败导致额外 Stage</div>
+        <div class="trap-desc">Hive 会尝试将 <code>IN (SELECT ...)</code> 形式的子查询转换为 JOIN，但对于关联子查询（Correlated Subquery）或过于复杂的嵌套结构，展开可能失败，产生额外的 Stage 和不必要的全表扫描。建议：尽量将子查询改写为显式 JOIN，并用 <code>EXPLAIN</code> 验证 Stage 数量是否符合预期。</div>
+      </div>
+    </div>
+    <div class="trap-item reveal">
+      <div class="trap-icon">🧩</div>
+      <div class="trap-content">
+        <div class="trap-title">Map Join 触发 OOM：小表实际不小</div>
+        <div class="trap-desc">Map Join 阈值基于压缩后的 HDFS 文件大小，而实际内存中的 HashTable 是解压后数据。ORC/Parquet 压缩比可达 5~10x，一个 25MB 的 ORC 文件解压后可能占用 150~250MB 内存。Task OOM 时先检查小表实际行数，再调整 <code>hive.tez.container.size</code> 或降低 <code>hive.mapjoin.smalltable.filesize</code> 阈值。</div>
+      </div>
+    </div>
+    <div class="trap-item reveal">
+      <div class="trap-icon">🔐</div>
+      <div class="trap-content">
+        <div class="trap-title">hive.exec.parallel 导致资源竞争反而变慢</div>
+        <div class="trap-desc">Stage 并行执行在 YARN 资源充足时效果显著，但在资源紧张的集群中，多个 Stage 争抢 Container 导致频繁等待，总耗时反而更长。建议在 Session 级别按需开启，生产调度任务中根据集群负载动态决定是否启用。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FOOTER -->
+<footer class="footer-nav" id="footer">
+  <div>
+    <div class="footer-toc-title">COURSE DIRECTORY · 课程目录</div>
+    <ul class="footer-toc-list">
+      <li class="done"><span class="chap-num">CH.01</span>核心架构与存储机制</li>
+      <li class="current"><span class="chap-num">CH.02</span>HQL 编译器与查询优化器深度剖析</li>
+      <li><span class="chap-num">CH.03</span>Join 策略与数据倾斜治理</li>
+      <li><span class="chap-num">CH.04</span>ACID 事务与 Schema 演化</li>
+      <li><span class="chap-num">CH.05</span>性能调优与生产运维</li>
+      <li><span class="chap-num">CH.06</span>生态集成：Spark / Flink / Presto 深度实战</li>
+    </ul>
+  </div>
+  <div>
+    <div class="next-card">
+      <div class="next-label">▶ NEXT CHAPTER · 下一章</div>
+      <div class="next-title">Join 策略与<br>数据倾斜治理</div>
+      <div class="next-desc">
+        深入数据倾斜的产生根因与诊断方法，掌握 Skew Join、随机前缀、
+        两阶段聚合等核心治理手段，并覆盖 Bucket Join 与 SMB Join
+        的完整实现原理与适用场景。
+      </div>
+    </div>
+  </div>
+</footer>
+
+</main>
+
+<script>
+// REVEAL
+const reveals = document.querySelectorAll('.reveal');
+const ro = new IntersectionObserver(entries => {
+  entries.forEach((e,i) => {
+    if(e.isIntersecting){
+      const d = parseInt(e.target.dataset.delay||0);
+      setTimeout(()=>e.target.classList.add('visible'),d);
+      ro.unobserve(e.target);
+    }
+  });
+},{threshold:0.08});
+reveals.forEach((el,i)=>{el.dataset.delay=(i%7)*55;ro.observe(el);});
+
+// PROGRESS BARS
+const bars = document.querySelectorAll('.perf-bar-fill, .knob-bar-fill');
+const bo = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      setTimeout(()=>{e.target.style.width=e.target.dataset.w;},250);
+      bo.unobserve(e.target);
+    }
+  });
+},{threshold:0.5});
+bars.forEach(b=>bo.observe(b));
+
+// SIDEBAR
+const sections=['hero','sec1','sec2','sec3','sec4','sec5','sec6','footer'];
+const dots=document.querySelectorAll('.sidebar-dot');
+const so=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const idx=sections.indexOf(e.target.id);
+      if(idx!==-1){dots.forEach(d=>d.classList.remove('active'));dots[idx]&&dots[idx].classList.add('active');}
+    }
+  });
+},{threshold:0.3});
+sections.forEach(id=>{const el=document.getElementById(id);if(el)so.observe(el);});
+dots.forEach((dot,i)=>{
+  dot.addEventListener('click',()=>{
+    const el=document.getElementById(sections[i]);
+    if(el)el.scrollIntoView({behavior:'smooth'});
+  });
+});
+</script>
+</body>
+</html>
