@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apache Paimon 深度学习 · 第六章</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f080a;--surface:#1a0d10;--surface2:#221117;--surface3:#2c1620;
+  --border:rgba(244,63,94,0.11);--border2:rgba(244,63,94,0.28);
+  --a1:#f43f5e;--a2:#fb7185;--a3:#818cf8;--a4:#34d399;
+  --text:#fff1f2;--text2:#a06070;--text3:#4f2030;
+  --mono:'JetBrains Mono',monospace;--sans:'Noto Sans SC',sans-serif;--display:'Syne',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.7;overflow-x:hidden}
+
+/* ── sidebar ── */
+.sidebar{width:68px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:24px 0;position:fixed;top:0;bottom:0;z-index:100}
+.sb-logo{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--a1);letter-spacing:.22em;writing-mode:vertical-rl;transform:rotate(180deg);margin-bottom:auto;padding-top:20px}
+.sb-num{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--text3);padding-bottom:8px}
+.sb-dots{display:flex;flex-direction:column;gap:9px;padding-bottom:28px}
+.sdot{width:5px;height:5px;border-radius:50%;background:var(--text3);transition:.25s;cursor:pointer}
+.sdot.act{background:var(--a1);transform:scale(1.6)}
+.main{margin-left:68px}
+
+/* ── hero ── */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:80px 64px;position:relative;overflow:hidden}
+.hero-mesh{position:absolute;inset:0;background-image:radial-gradient(rgba(244,63,94,.07) 1px,transparent 1px),radial-gradient(rgba(129,140,248,.05) 1px,transparent 1px);background-size:32px 32px,64px 64px;background-position:0 0,16px 16px}
+.hero-orb1{position:absolute;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(244,63,94,.13) 0%,rgba(251,113,133,.05) 45%,transparent 68%);top:-100px;right:-80px;animation:o1 10s ease-in-out infinite}
+.hero-orb2{position:absolute;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(129,140,248,.10) 0%,transparent 65%);bottom:-60px;left:5%;animation:o2 13s ease-in-out infinite}
+@keyframes o1{0%,100%{transform:scale(1) rotate(0deg)}50%{transform:scale(1.07) rotate(4deg)}}
+@keyframes o2{0%,100%{transform:scale(1)}50%{transform:scale(1.05) translate(20px,-20px)}}
+.hero-line{position:absolute;bottom:0;left:68px;right:0;height:1px;background:linear-gradient(90deg,var(--a1),var(--a3),transparent)}
+
+.chip{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--border2);background:rgba(244,63,94,.08);color:var(--a1);font-family:var(--mono);font-size:11px;letter-spacing:.17em;padding:7px 18px;border-radius:2px;margin-bottom:36px;width:fit-content}
+.chip-dot{width:7px;height:7px;background:var(--a3);border-radius:50%;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+h1.hero-h{font-family:var(--display);font-size:clamp(40px,5.6vw,78px);font-weight:800;line-height:1.05;letter-spacing:-.025em;max-width:860px;margin-bottom:26px}
+.grad-rose{background:linear-gradient(130deg,#f43f5e,#fb7185,#818cf8,#34d399);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 5s linear infinite}
+@keyframes shimmer{to{background-position:200% center}}
+.hero-desc{font-size:17px;color:var(--text2);max-width:580px;line-height:1.88;margin-bottom:48px}
+.hero-pills{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:48px}
+.pill{font-family:var(--mono);font-size:11px;padding:5px 14px;border-radius:100px;border:1px solid var(--border2);color:var(--a1);background:rgba(244,63,94,.07);letter-spacing:.06em}
+.pill.indigo{border-color:rgba(129,140,248,.3);color:#a5b4fc;background:rgba(129,140,248,.07)}
+.pill.green{border-color:rgba(52,211,153,.3);color:#6ee7b7;background:rgba(52,211,153,.07)}
+.pill.amber{border-color:rgba(251,191,36,.3);color:#fde68a;background:rgba(251,191,36,.07)}
+.hero-meta{display:flex;gap:44px;font-family:var(--mono);font-size:12px}
+.mi{display:flex;flex-direction:column;gap:5px}
+.ml{color:var(--text3);font-size:10px;letter-spacing:.12em}.mv{color:var(--a1)}
+
+/* ── layout ── */
+.section{padding:96px 64px;max-width:1160px;margin:0 auto}
+.stag{font-family:var(--mono);font-size:10px;letter-spacing:.22em;color:var(--a1);margin-bottom:14px;text-transform:uppercase}
+.stitle{font-family:var(--display);font-size:clamp(26px,3.2vw,42px);font-weight:700;letter-spacing:-.02em;line-height:1.14;margin-bottom:14px}
+.ssub{font-size:15px;color:var(--text2);max-width:640px;line-height:1.88;margin-bottom:52px}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border2),transparent);margin:0 64px}
+
+/* ── code ── */
+.cw{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:36px}
+.ch{display:flex;align-items:center;justify-content:space-between;padding:12px 22px;background:var(--surface2);border-bottom:1px solid var(--border)}
+.dots{display:flex;gap:6px}.dot{width:10px;height:10px;border-radius:50%}
+.dr{background:#ff5f57}.dy{background:#febc2e}.dg{background:#28c840}
+.ct{font-family:var(--mono);font-size:11px;color:var(--text3);letter-spacing:.1em}
+.cb{padding:26px 28px;font-family:var(--mono);font-size:13px;line-height:2;overflow-x:auto}
+.kw{color:#c792ea}.str{color:#c3e88d}.cm{color:#4f2030}.fn{color:#82aaff}
+.vr{color:#eeffff}.op{color:#89ddff}.hl{color:var(--a1)}.grn{color:#6ee7b7}
+.ind{color:#a5b4fc}.amb{color:#fde68a}.rs{color:#fb7185}
+
+/* ── info box ── */
+.ib{border-radius:8px;padding:20px 24px;font-size:14px;line-height:1.85;margin:28px 0}
+.ib.tip{background:rgba(52,211,153,.07);border-left:3px solid var(--a4);color:var(--text2)}
+.ib.warn{background:rgba(251,191,36,.07);border-left:3px solid #fbbf24;color:var(--text2)}
+.ib.note{background:rgba(244,63,94,.07);border-left:3px solid var(--a1);color:var(--text2)}
+.ib.danger{background:rgba(239,68,68,.07);border-left:3px solid #ef4444;color:var(--text2)}
+.il{font-family:var(--mono);font-size:10px;letter-spacing:.16em;margin-bottom:8px;font-weight:600}
+.tip .il{color:var(--a4)}.warn .il{color:#fbbf24}.note .il{color:var(--a1)}.danger .il{color:#ef4444}
+
+/* ── engine cards ── */
+.engine-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:48px}
+.engine-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px 24px;position:relative;overflow:hidden;transition:border-color .28s,transform .28s}
+.engine-card:hover{border-color:var(--border2);transform:translateY(-3px)}
+.engine-logo{font-family:var(--display);font-size:26px;font-weight:800;margin-bottom:14px;letter-spacing:-.02em}
+.engine-card h3{font-size:15px;font-weight:600;margin-bottom:10px;color:var(--text)}
+.engine-card p{font-size:13px;color:var(--text2);line-height:1.78}
+.etags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.etag{font-family:var(--mono);font-size:10px;padding:2px 9px;border-radius:2px;letter-spacing:.07em;border:1px solid}
+.et-r{background:rgba(244,63,94,.1);color:#fb7185;border-color:rgba(244,63,94,.2)}
+.et-i{background:rgba(129,140,248,.1);color:#a5b4fc;border-color:rgba(129,140,248,.2)}
+.et-g{background:rgba(52,211,153,.1);color:#6ee7b7;border-color:rgba(52,211,153,.2)}
+.et-a{background:rgba(251,191,36,.1);color:#fde68a;border-color:rgba(251,191,36,.2)}
+.etop{position:absolute;top:0;left:0;right:0;height:2px;opacity:0;transition:.28s}
+.engine-card:hover .etop{opacity:1}
+
+/* ── lookup join deep dive ── */
+.lookup-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:40px;margin-top:48px;position:relative;overflow:hidden}
+.lookup-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--a1),var(--a3),var(--a4),transparent)}
+.lookup-flow{display:flex;flex-direction:column;gap:0}
+.lf-row{display:flex;align-items:stretch;gap:0;margin-bottom:10px}
+.lf-label{min-width:110px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--text3);display:flex;align-items:center;flex-shrink:0;padding-right:16px}
+.lf-nodes{display:flex;align-items:center;gap:10px;flex:1;flex-wrap:wrap}
+.lf-node{padding:11px 16px;border-radius:8px;font-size:12px;font-weight:500;white-space:nowrap;transition:transform .2s}
+.lf-node:hover{transform:translateY(-2px)}
+.ln-r{background:rgba(244,63,94,.12);border:1px solid rgba(244,63,94,.3);color:#fb7185}
+.ln-i{background:rgba(129,140,248,.1);border:1px solid rgba(129,140,248,.28);color:#a5b4fc}
+.ln-g{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.28);color:#6ee7b7}
+.ln-a{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.25);color:#fde68a}
+.ln-gray{background:rgba(100,100,120,.1);border:1px solid rgba(100,100,120,.2);color:#94a3b8}
+.lf-arr{font-size:16px;color:var(--text3);flex-shrink:0}
+.lf-divider{height:1px;background:var(--border);margin:14px 0}
+
+/* ── spark integration ── */
+.spark-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:48px}
+.spark-col{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px}
+.spark-col h4{font-family:var(--display);font-size:16px;font-weight:700;margin-bottom:16px;letter-spacing:-.01em}
+.spark-list{display:flex;flex-direction:column;gap:10px}
+.spark-item{display:flex;align-items:flex-start;gap:12px;font-size:13px;color:var(--text2);line-height:1.7}
+.spark-item::before{content:'›';color:var(--a1);font-size:15px;flex-shrink:0;margin-top:2px}
+
+/* ── table ── */
+.tw{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:40px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--surface2);padding:11px 18px;text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--text3);border-bottom:1px solid var(--border)}
+td{padding:12px 18px;border-bottom:1px solid var(--border);color:var(--text2);line-height:1.6;vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.012)}
+.badge{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 9px;border-radius:2px;letter-spacing:.07em;border:1px solid}
+.bd-r{background:rgba(244,63,94,.1);color:#fb7185;border-color:rgba(244,63,94,.2)}
+.bd-i{background:rgba(129,140,248,.1);color:#a5b4fc;border-color:rgba(129,140,248,.2)}
+.bd-g{background:rgba(52,211,153,.1);color:#6ee7b7;border-color:rgba(52,211,153,.2)}
+.bd-a{background:rgba(251,191,36,.1);color:#fde68a;border-color:rgba(251,191,36,.2)}
+.ok{color:#4ade80;font-size:15px}.no{color:#f87171;font-size:15px}.cond{color:#fbbf24;font-size:12px;font-family:var(--mono)}
+
+/* ── advanced patterns timeline ── */
+.tl{position:relative;margin-top:48px;padding-left:52px}
+.tl::before{content:'';position:absolute;left:18px;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,var(--a1),var(--a3),var(--a4))}
+.tl-item{position:relative;margin-bottom:32px}
+.tl-dot{position:absolute;left:-42px;top:6px;width:34px;height:34px;border-radius:50%;background:var(--surface2);border:2px solid var(--a1);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--a1);z-index:1}
+.tl-content{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:22px 26px;transition:border-color .28s}
+.tl-content:hover{border-color:var(--border2)}
+.tl-tag{font-family:var(--mono);font-size:10px;letter-spacing:.14em;padding:2px 10px;border-radius:2px;background:rgba(244,63,94,.1);color:var(--a1);border:1px solid rgba(244,63,94,.2);display:inline-block;margin-bottom:10px}
+.tl-content h4{font-family:var(--display);font-size:16px;font-weight:700;margin-bottom:8px}
+.tl-content p{font-size:13px;color:var(--text2);line-height:1.8}
+
+/* ── compete matrix ── */
+.cmp-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:48px}
+.cmp-head{background:var(--surface2);padding:14px 24px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.12em}
+.cmp-table{width:100%;border-collapse:collapse;font-size:12px}
+.cmp-table th{background:var(--surface2);padding:10px 16px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--text3);border-bottom:1px solid var(--border);text-align:center;font-weight:400}
+.cmp-table th:first-child{text-align:left;min-width:140px}
+.cmp-table td{padding:11px 16px;border-bottom:1px solid var(--border);text-align:center;vertical-align:middle;color:var(--text2)}
+.cmp-table td:first-child{text-align:left;font-family:var(--mono);font-size:11px;color:var(--text)}
+.cmp-table tr:last-child td{border-bottom:none}
+.cmp-table tr:hover td{background:rgba(255,255,255,.01)}
+.star{color:var(--a1);font-size:13px}
+.dim-star{color:var(--text3);font-size:13px}
+
+/* ── roadmap ── */
+.roadmap{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:48px}
+.rm-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:22px 20px;position:relative;overflow:hidden;transition:border-color .28s,transform .28s}
+.rm-card:hover{border-color:var(--border2);transform:translateY(-3px)}
+.rm-period{font-family:var(--mono);font-size:10px;letter-spacing:.15em;color:var(--text3);margin-bottom:10px}
+.rm-card h3{font-family:var(--display);font-size:15px;font-weight:700;margin-bottom:12px}
+.rm-items{display:flex;flex-direction:column;gap:7px}
+.rm-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)}
+.rm-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.rmd-r{background:var(--a1)}.rmd-i{background:var(--a3)}.rmd-g{background:var(--a4)}.rmd-a{background:#fbbf24}
+.rm-top{position:absolute;top:0;left:0;right:0;height:2px;opacity:0;transition:.28s}
+.rm-card:hover .rm-top{opacity:1}
+
+/* ── final summary ── */
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:48px}
+.sum-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px}
+.sum-icon{font-size:28px;margin-bottom:14px}
+.sum-card h3{font-family:var(--display);font-size:17px;font-weight:700;margin-bottom:12px}
+.sum-card p{font-size:13px;color:var(--text2);line-height:1.78}
+
+/* ── bench ── */
+.bench-row{margin-bottom:14px}
+.bench-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.bench-lbl{font-size:12px;color:var(--text2)}
+.bench-val{font-family:var(--mono);font-size:12px;color:var(--a1)}
+.bar-bg{height:6px;background:var(--surface3);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width 1.2s ease}
+
+/* ── reveal ── */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s ease,transform .65s ease}
+.reveal.visible{opacity:1;transform:none}
+
+/* ── footer ── */
+.footer-nav{padding:56px 64px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:24px;max-width:1160px;margin:0 auto}
+.toc{display:flex;flex-direction:column;gap:8px}
+.toc-item{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--text2);cursor:default}
+.toc-item.done{color:var(--text3);text-decoration:line-through;text-decoration-color:var(--text3)}
+.toc-item.active{color:var(--a1)}
+.tn{font-family:var(--mono);font-size:10px;color:var(--text3);min-width:22px}
+.course-complete{text-align:right}
+.cc-label{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.14em;margin-bottom:10px}
+.cc-badge{display:inline-flex;align-items:center;gap:10px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.28);color:#6ee7b7;font-family:var(--mono);font-size:13px;padding:10px 20px;border-radius:6px;letter-spacing:.06em}
+
+@media(max-width:768px){
+  .hero,.section{padding:60px 24px}
+  .sidebar{display:none}.main{margin-left:0}
+  .footer-nav{padding:40px 24px}
+  .divider{margin:0 24px}
+  .spark-grid{grid-template-columns:1fr}
+  .lookup-flow .lf-nodes{gap:6px}
+}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <span class="sb-logo">PAIMON</span>
+  <span class="sb-num">06</span>
+  <div class="sb-dots">
+    <div class="sdot act"></div><div class="sdot"></div><div class="sdot"></div>
+    <div class="sdot"></div><div class="sdot"></div><div class="sdot"></div><div class="sdot"></div>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- ── HERO ── -->
+<section class="hero" id="s0">
+  <div class="hero-mesh"></div><div class="hero-orb1"></div><div class="hero-orb2"></div><div class="hero-line"></div>
+  <div class="chip"><span class="chip-dot"></span>CHAPTER 06 · ECOSYSTEM INTEGRATION</div>
+  <h1 class="hero-h">与 Flink / Spark<br><span class="grad-rose">集成深度</span><br>实战</h1>
+  <p class="hero-desc">课程终章 —— 将前五章的原理知识落地为真实的工程能力。深度剖析 Paimon 与主流计算引擎的集成机制，掌握 Lookup Join、多引擎并发读写、跨引擎查询等高级模式，构建完整的 Lakehouse 生产方案。</p>
+  <div class="hero-pills">
+    <span class="pill">Flink SQL 深度集成</span>
+    <span class="pill indigo">Spark 读写实战</span>
+    <span class="pill green">Lookup Join 原理</span>
+    <span class="pill amber">StarRocks / Hive / Trino</span>
+  </div>
+  <div class="hero-meta">
+    <div class="mi"><span class="ml">DIFFICULTY</span><span class="mv">Expert</span></div>
+    <div class="mi"><span class="ml">READING TIME</span><span class="mv">~65 min</span></div>
+    <div class="mi"><span class="ml">PREV CHAPTER</span><span class="mv">性能调优与运维</span></div>
+    <div class="mi"><span class="ml">课程完结</span><span class="mv">FINAL CHAPTER</span></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ── S1: 引擎生态全景 ── -->
+<section class="section reveal" id="s1">
+  <div class="stag">01 / ENGINE ECOSYSTEM</div>
+  <h2 class="stitle">引擎生态全景</h2>
+  <p class="ssub">Paimon 设计之初就以"开放存储"为核心理念，支持主流计算引擎通过统一协议读写，真正实现一份数据、多引擎协作。</p>
+
+  <div class="engine-grid reveal">
+
+    <div class="engine-card">
+      <div class="etop" style="background:linear-gradient(90deg,transparent,#fb7185,transparent)"></div>
+      <div class="engine-logo" style="color:#fb7185">Flink</div>
+      <h3>Apache Flink（深度集成）</h3>
+      <p>Paimon 由 Flink 社区孵化，与 Flink 的集成最为深度。支持流批一体读写、Lookup Join、Changelog 消费、Exactly-Once 语义，是最推荐的写入引擎。</p>
+      <div class="etags">
+        <span class="etag et-r">流批一体</span>
+        <span class="etag et-r">Lookup Join</span>
+        <span class="etag et-r">Exactly-Once</span>
+        <span class="etag et-r">CDC 摄取</span>
+      </div>
+    </div>
+
+    <div class="engine-card">
+      <div class="etop" style="background:linear-gradient(90deg,transparent,#a5b4fc,transparent)"></div>
+      <div class="engine-logo" style="color:#a5b4fc">Spark</div>
+      <h3>Apache Spark（批量处理）</h3>
+      <p>通过 Paimon Spark Connector 接入，支持 DataFrame/SQL 读写、批量 OVERWRITE、时间旅行查询、Schema Evolution 感知，是离线 ETL 和大规模数据回填的首选。</p>
+      <div class="etags">
+        <span class="etag et-i">DataFrame API</span>
+        <span class="etag et-i">Spark SQL</span>
+        <span class="etag et-i">时间旅行</span>
+        <span class="etag et-i">批量回填</span>
+      </div>
+    </div>
+
+    <div class="engine-card">
+      <div class="etop" style="background:linear-gradient(90deg,transparent,#6ee7b7,transparent)"></div>
+      <div class="engine-logo" style="color:#6ee7b7">StarRocks</div>
+      <h3>StarRocks（实时 OLAP）</h3>
+      <p>通过 External Catalog 直接读取 Paimon 表，无需数据导入。结合 StarRocks 的向量化执行引擎，实现亚秒级 OLAP 查询，是实时数仓查询层的首选搭配。</p>
+      <div class="etags">
+        <span class="etag et-g">External Catalog</span>
+        <span class="etag et-g">向量化查询</span>
+        <span class="etag et-g">亚秒级响应</span>
+      </div>
+    </div>
+
+    <div class="engine-card">
+      <div class="etop" style="background:linear-gradient(90deg,transparent,#fde68a,transparent)"></div>
+      <div class="engine-logo" style="color:#fde68a">Hive</div>
+      <h3>Apache Hive（离线查询）</h3>
+      <p>通过 HiveCatalog 将 Paimon 表注册到 HMS，Hive SQL 可直接查询，兼容现有 Hive 生态工具链。适合将 Paimon 渐进式引入已有 Hive 数仓体系。</p>
+      <div class="etags">
+        <span class="etag et-a">HiveCatalog</span>
+        <span class="etag et-a">HMS 兼容</span>
+        <span class="etag et-a">渐进式迁移</span>
+      </div>
+    </div>
+
+    <div class="engine-card">
+      <div class="etop" style="background:linear-gradient(90deg,transparent,#fb7185,transparent)"></div>
+      <div class="engine-logo" style="color:#fb7185" style="font-size:22px">Trino</div>
+      <h3>Trino / Presto（联邦查询）</h3>
+      <p>通过 Hive Connector 兼容读取 Paimon 表（ORC/Parquet），支持联邦查询跨数据源 JOIN。适合数据探索和 Ad-hoc 查询场景，写入能力受限。</p>
+      <div class="etags">
+        <span class="etag et-r">Hive Connector</span>
+        <span class="etag et-r">联邦查询</span>
+        <span class="etag et-r">只读</span>
+      </div>
+    </div>
+
+    <div class="engine-card">
+      <div class="etop" style="background:linear-gradient(90deg,transparent,#6ee7b7,transparent)"></div>
+      <div class="engine-logo" style="color:#6ee7b7;font-size:20px">Doris</div>
+      <h3>Apache Doris（MPP 查询）</h3>
+      <p>通过 Paimon Catalog 直连，支持 Doris 直接查询 Paimon 表，利用 Doris 的 MPP 架构加速复杂聚合查询。与 StarRocks 功能相近，适合已有 Doris 体系的团队。</p>
+      <div class="etags">
+        <span class="etag et-g">Paimon Catalog</span>
+        <span class="etag et-g">MPP 加速</span>
+        <span class="etag et-g">复杂聚合</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ── S2: Flink 深度集成 ── -->
+<section class="section reveal" id="s2">
+  <div class="stag">02 / FLINK DEEP INTEGRATION</div>
+  <h2 class="stitle">Flink 深度集成实战</h2>
+  <p class="ssub">Flink 是 Paimon 的"母语"引擎，两者之间有最丰富的集成特性。掌握这些高级用法是构建生产级实时数仓的核心能力。</p>
+
+  <!-- Lookup Join 深度解析 -->
+  <div class="lookup-wrap reveal">
+    <p style="font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.14em;margin-bottom:28px">── LOOKUP JOIN 内部工作机制</p>
+
+    <div class="lookup-flow">
+      <div class="lf-row">
+        <div class="lf-label">主流输入</div>
+        <div class="lf-nodes">
+          <div class="lf-node ln-r">Kafka / CDC Source</div>
+          <div class="lf-arr">→</div>
+          <div class="lf-node ln-r">主流 Record（含 join key）</div>
+        </div>
+      </div>
+      <div class="lf-divider"></div>
+      <div class="lf-row">
+        <div class="lf-label">本地缓存层</div>
+        <div class="lf-nodes">
+          <div class="lf-node ln-i">RocksDB 本地缓存</div>
+          <div class="lf-arr">←→</div>
+          <div class="lf-node ln-i">LRU 淘汰策略</div>
+          <div class="lf-arr">↑ 未命中</div>
+          <div class="lf-node ln-a">Paimon 远程读取</div>
+        </div>
+      </div>
+      <div class="lf-divider"></div>
+      <div class="lf-row">
+        <div class="lf-label">维表来源</div>
+        <div class="lf-nodes">
+          <div class="lf-node ln-g">Paimon Primary Key Table</div>
+          <div class="lf-arr">→</div>
+          <div class="lf-node ln-g">按主键 point lookup</div>
+          <div class="lf-arr">→</div>
+          <div class="lf-node ln-g">维度字段返回</div>
+        </div>
+      </div>
+      <div class="lf-divider"></div>
+      <div class="lf-row">
+        <div class="lf-label">输出结果</div>
+        <div class="lf-nodes">
+          <div class="lf-node ln-r">主流字段</div>
+          <div class="lf-arr">⊕</div>
+          <div class="lf-node ln-g">维度字段</div>
+          <div class="lf-arr">→</div>
+          <div class="lf-node ln-gray">宽表 Record → 下游 Sink</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cw reveal">
+    <div class="ch"><div class="dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div><span class="ct">Flink SQL — Lookup Join 完整示例</span><span></span></div>
+    <div class="cb"><pre><span class="cm">-- 维度表（Paimon Primary Key Table，用于 Lookup Join）</span>
+<span class="fn">CREATE TABLE</span> <span class="vr">dim_user</span> (
+  <span class="vr">user_id</span>    <span class="kw">BIGINT</span>,
+  <span class="vr">username</span>   <span class="kw">STRING</span>,
+  <span class="vr">city</span>       <span class="kw">STRING</span>,
+  <span class="vr">vip_level</span>  <span class="kw">INT</span>,
+  <span class="kw">PRIMARY KEY</span> (<span class="vr">user_id</span>) <span class="fn">NOT ENFORCED</span>
+) <span class="fn">WITH</span> (
+  <span class="str">'connector'</span>   = <span class="str">'paimon'</span>,
+  <span class="str">'warehouse'</span>   = <span class="str">'hdfs:///warehouse/paimon'</span>,
+  <span class="str">'lookup.cache-rows'</span>    = <span class="str">'100000'</span>,   <span class="cm">-- 本地 RocksDB 缓存行数</span>
+  <span class="str">'lookup.cache-ttl'</span>     = <span class="str">'10 min'</span>,   <span class="cm">-- 缓存 TTL（维表更新频率决定）</span>
+  <span class="str">'lookup.async'</span>         = <span class="str">'true'</span>      <span class="cm">-- 异步 Lookup（提升吞吐）</span>
+)<span class="op">;</span>
+
+<span class="cm">-- 主流事实表（Kafka CDC）</span>
+<span class="fn">CREATE TABLE</span> <span class="vr">ods_orders</span> (
+  <span class="vr">order_id</span>    <span class="kw">BIGINT</span>,
+  <span class="vr">user_id</span>     <span class="kw">BIGINT</span>,
+  <span class="vr">amount</span>      <span class="kw">DECIMAL</span>(<span class="ind">12</span>,<span class="ind">2</span>),
+  <span class="vr">proc_time</span>   <span class="fn">AS</span> <span class="fn">PROCTIME</span>()   <span class="cm">-- Lookup Join 需要处理时间</span>
+) <span class="fn">WITH</span> ( <span class="str">'connector'</span> = <span class="str">'kafka'</span>, <span class="op">...</span> )<span class="op">;</span>
+
+<span class="cm">-- Lookup Join 实现维度扩展</span>
+<span class="fn">INSERT INTO</span> <span class="vr">dwd_orders</span>
+<span class="fn">SELECT</span>
+  <span class="vr">o</span>.<span class="vr">order_id</span>, <span class="vr">o</span>.<span class="vr">user_id</span>, <span class="vr">o</span>.<span class="vr">amount</span>,
+  <span class="vr">u</span>.<span class="vr">username</span>, <span class="vr">u</span>.<span class="vr">city</span>, <span class="vr">u</span>.<span class="vr">vip_level</span>
+<span class="fn">FROM</span> <span class="vr">ods_orders</span> <span class="fn">AS</span> <span class="vr">o</span>
+<span class="fn">LEFT JOIN</span> <span class="vr">dim_user</span> <span class="fn">FOR SYSTEM_TIME AS OF</span> <span class="vr">o</span>.<span class="vr">proc_time</span> <span class="fn">AS</span> <span class="vr">u</span>
+  <span class="fn">ON</span> <span class="vr">o</span>.<span class="vr">user_id</span> <span class="op">=</span> <span class="vr">u</span>.<span class="vr">user_id</span><span class="op">;</span>
+
+<span class="cm">-- ✓ 首次 Lookup：从 Paimon 远程读取，写入本地 RocksDB</span>
+<span class="cm">-- ✓ 再次 Lookup 相同 key：直接从 RocksDB 返回，延迟 &lt;1ms</span>
+<span class="cm">-- ✓ TTL 过期后：自动从 Paimon 重新加载最新版本</span></pre>
+    </div>
+  </div>
+
+  <div class="cw reveal">
+    <div class="ch"><div class="dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div><span class="ct">Flink SQL — partial-update 多流合并宽表</span><span></span></div>
+    <div class="cb"><pre><span class="cm">-- 场景：订单主表 + 物流信息 + 支付信息 → 合并为宽表</span>
+<span class="cm">-- 使用 partial-update，每个流只写自己负责的列</span>
+
+<span class="fn">CREATE TABLE</span> <span class="vr">dws_order_wide</span> (
+  <span class="vr">order_id</span>      <span class="kw">BIGINT</span>,
+  <span class="cm">-- 订单流字段</span>
+  <span class="vr">user_id</span>       <span class="kw">BIGINT</span>,
+  <span class="vr">amount</span>        <span class="kw">DECIMAL</span>(<span class="ind">12</span>,<span class="ind">2</span>),
+  <span class="cm">-- 物流流字段</span>
+  <span class="vr">logistics_no</span>  <span class="kw">STRING</span>,
+  <span class="vr">ship_time</span>     <span class="kw">TIMESTAMP</span>(<span class="ind">3</span>),
+  <span class="cm">-- 支付流字段</span>
+  <span class="vr">pay_method</span>    <span class="kw">STRING</span>,
+  <span class="vr">pay_time</span>      <span class="kw">TIMESTAMP</span>(<span class="ind">3</span>),
+  <span class="kw">PRIMARY KEY</span> (<span class="vr">order_id</span>) <span class="fn">NOT ENFORCED</span>
+) <span class="fn">WITH</span> (
+  <span class="str">'merge-engine'</span>        = <span class="str">'partial-update'</span>,
+  <span class="str">'partial-update.ignore-empty-columns'</span> = <span class="str">'true'</span>  <span class="cm">-- 空列不覆盖</span>
+)<span class="op">;</span>
+
+<span class="cm">-- 流1：订单主流写入（只写订单字段）</span>
+<span class="fn">INSERT INTO</span> <span class="vr">dws_order_wide</span> (<span class="vr">order_id</span>, <span class="vr">user_id</span>, <span class="vr">amount</span>)
+<span class="fn">SELECT</span> <span class="vr">order_id</span>, <span class="vr">user_id</span>, <span class="vr">amount</span> <span class="fn">FROM</span> <span class="vr">ods_orders</span><span class="op">;</span>
+
+<span class="cm">-- 流2：物流流写入（只写物流字段）</span>
+<span class="fn">INSERT INTO</span> <span class="vr">dws_order_wide</span> (<span class="vr">order_id</span>, <span class="vr">logistics_no</span>, <span class="vr">ship_time</span>)
+<span class="fn">SELECT</span> <span class="vr">order_id</span>, <span class="vr">logistics_no</span>, <span class="vr">ship_time</span> <span class="fn">FROM</span> <span class="vr">ods_logistics</span><span class="op">;</span>
+
+<span class="cm">-- 流3：支付流写入（只写支付字段）</span>
+<span class="fn">INSERT INTO</span> <span class="vr">dws_order_wide</span> (<span class="vr">order_id</span>, <span class="vr">pay_method</span>, <span class="vr">pay_time</span>)
+<span class="fn">SELECT</span> <span class="vr">order_id</span>, <span class="vr">pay_method</span>, <span class="vr">pay_time</span> <span class="fn">FROM</span> <span class="vr">ods_payment</span><span class="op">;</span></pre>
+    </div>
+  </div>
+
+  <div class="ib tip reveal">
+    <div class="il">PERFORMANCE TIP</div>
+    Lookup Join 的 <code style="font-family:var(--mono);font-size:12px;color:var(--a4)">lookup.async=true</code> 可将同步阻塞等待改为异步回调，在高并发场景下吞吐提升 2～5 倍。但需同时设置 <code style="font-family:var(--mono);font-size:12px;color:var(--a4)">lookup.async-capacity</code>（默认 100）控制并发异步请求数，防止 Paimon 端过载。
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ── S3: Spark 集成 ── -->
+<section class="section reveal" id="s3">
+  <div class="stag">03 / SPARK INTEGRATION</div>
+  <h2 class="stitle">Spark 集成实战</h2>
+  <p class="ssub">Spark 是离线批处理和大规模数据回填的主力引擎，通过 Paimon Spark Connector 可以无缝接入现有 Spark 工作流。</p>
+
+  <div class="spark-grid reveal">
+    <div class="spark-col">
+      <h4 style="color:#a5b4fc">Spark 读取能力</h4>
+      <div class="spark-list">
+        <div class="spark-item">全量读取最新 Snapshot（批量扫描）</div>
+        <div class="spark-item">时间旅行查询（按 snapshot-id 或 timestamp）</div>
+        <div class="spark-item">增量读取（两个 snapshot 之间的 diff）</div>
+        <div class="spark-item">分区裁剪 + 列裁剪 + 统计信息下推</div>
+        <div class="spark-item">自动感知最新 Schema（Schema Evolution）</div>
+        <div class="spark-item">并发读取多个 Bucket（并行 Split）</div>
+      </div>
+    </div>
+    <div class="spark-col">
+      <h4 style="color:#fb7185">Spark 写入能力</h4>
+      <div class="spark-list">
+        <div class="spark-item">Append 追加写入（Append-Only 表）</div>
+        <div class="spark-item">INSERT OVERWRITE 分区覆盖写</div>
+        <div class="spark-item">BulkWrite 高吞吐批量写入</div>
+        <div class="spark-item">DataFrame.write.format("paimon") API</div>
+        <div class="spark-item">写入后自动触发 Compaction（可配置）</div>
+        <div class="spark-item">Dynamic Partition 覆盖（自动推断分区）</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cw reveal">
+    <div class="ch"><div class="dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div><span class="ct">Spark — 完整读写示例（DataFrame API + SQL）</span><span></span></div>
+    <div class="cb"><pre><span class="cm">// ── Spark 环境初始化 ──────────────────────────────────────</span>
+<span class="kw">val</span> <span class="vr">spark</span> = SparkSession.builder()
+  .config(<span class="str">"spark.sql.catalog.paimon"</span>, <span class="str">"org.apache.paimon.spark.SparkCatalog"</span>)
+  .config(<span class="str">"spark.sql.catalog.paimon.warehouse"</span>, <span class="str">"hdfs:///warehouse/paimon"</span>)
+  .config(<span class="str">"spark.sql.catalog.paimon.metastore"</span>, <span class="str">"hive"</span>)
+  .config(<span class="str">"spark.sql.catalog.paimon.uri"</span>, <span class="str">"thrift://hive-metastore:9083"</span>)
+  .getOrCreate()
+
+<span class="cm">// ── 全量读取最新数据 ──────────────────────────────────────</span>
+<span class="kw">val</span> <span class="vr">df</span> = spark.read.format(<span class="str">"paimon"</span>)
+  .load(<span class="str">"hdfs:///warehouse/paimon/my_db.db/orders"</span>)
+
+<span class="cm">// ── 时间旅行查询 ──────────────────────────────────────────</span>
+<span class="kw">val</span> <span class="vr">histDf</span> = spark.read.format(<span class="str">"paimon"</span>)
+  .option(<span class="str">"scan.snapshot-id"</span>, <span class="str">"42"</span>)          <span class="cm">// 按 snapshot ID</span>
+  .option(<span class="str">"scan.timestamp-millis"</span>, <span class="str">"1704067200000"</span>)  <span class="cm">// 按时间戳</span>
+  .load(<span class="str">"hdfs:///warehouse/paimon/my_db.db/orders"</span>)
+
+<span class="cm">// ── 增量读取（两快照之间的变化）────────────────────────────</span>
+<span class="kw">val</span> <span class="vr">incrDf</span> = spark.read.format(<span class="str">"paimon"</span>)
+  .option(<span class="str">"incremental-between"</span>, <span class="str">"40,42"</span>)    <span class="cm">// snapshot 40 到 42 的增量</span>
+  .load(<span class="str">"hdfs:///warehouse/paimon/my_db.db/orders"</span>)
+
+<span class="cm">// ── 分区覆盖写（T+1 数据修正）────────────────────────────</span>
+<span class="vr">df</span>.write.format(<span class="str">"paimon"</span>)
+  .mode(<span class="str">"overwrite"</span>)
+  .option(<span class="str">"partitionOverwriteMode"</span>, <span class="str">"dynamic"</span>) <span class="cm">// 动态分区覆盖</span>
+  .save(<span class="str">"hdfs:///warehouse/paimon/my_db.db/orders"</span>)
+
+<span class="cm">// ── Spark SQL 方式 ─────────────────────────────────────</span>
+spark.sql(<span class="str">"""
+  INSERT OVERWRITE paimon.my_db.orders PARTITION (dt = '2024-01-01')
+  SELECT order_id, user_id, amount FROM source_table
+  WHERE dt = '2024-01-01'
+"""</span>)</pre>
+    </div>
+  </div>
+
+  <div class="ib warn reveal">
+    <div class="il">IMPORTANT</div>
+    Spark 写入 Paimon Primary Key Table 时，默认走 BulkWrite 路径，<strong>不支持实时 Upsert 语义</strong>（无法合并旧版本记录），只能整体 OVERWRITE 分区。若需要 Upsert，应使用 Flink 流式写入。Spark 更适合做全量数据初始化和分区级覆盖修正。
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ── S4: StarRocks & Hive 集成 ── -->
+<section class="section reveal" id="s4">
+  <div class="stag">04 / OLAP ENGINE INTEGRATION</div>
+  <h2 class="stitle">OLAP 引擎集成实战</h2>
+  <p class="ssub">将 Paimon 作为存储层，搭配 StarRocks 或 Doris 作为查询层，是目前最流行的实时数仓架构，兼顾数据新鲜度和查询性能。</p>
+
+  <div class="cw reveal">
+    <div class="ch"><div class="dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div><span class="ct">StarRocks — 创建 Paimon External Catalog</span><span></span></div>
+    <div class="cb"><pre><span class="cm">-- StarRocks 创建 Paimon External Catalog</span>
+<span class="fn">CREATE EXTERNAL CATALOG</span> <span class="vr">paimon_catalog</span>
+<span class="fn">PROPERTIES</span> (
+  <span class="str">"type"</span>                    = <span class="str">"paimon"</span>,
+  <span class="str">"paimon.catalog.type"</span>     = <span class="str">"hive"</span>,
+  <span class="str">"hive.metastore.uris"</span>     = <span class="str">"thrift://hive-metastore:9083"</span>,
+  <span class="str">"aws.s3.access_key"</span>       = <span class="str">"your-access-key"</span>,   <span class="cm">-- S3 存储时配置</span>
+  <span class="str">"aws.s3.secret_key"</span>       = <span class="str">"your-secret-key"</span>,
+  <span class="str">"aws.s3.region"</span>           = <span class="str">"cn-northwest-1"</span>
+)<span class="op">;</span>
+
+<span class="cm">-- 直接查询 Paimon 表（无需数据导入）</span>
+<span class="fn">SET</span> <span class="vr">CATALOG</span> <span class="vr">paimon_catalog</span><span class="op">;</span>
+<span class="fn">USE</span> <span class="vr">my_db</span><span class="op">;</span>
+
+<span class="cm">-- 实时查询（读取 Paimon 最新 Snapshot）</span>
+<span class="fn">SELECT</span>
+  <span class="vr">city</span>,
+  <span class="fn">COUNT</span>(<span class="op">*</span>) <span class="fn">AS</span> <span class="vr">order_cnt</span>,
+  <span class="fn">SUM</span>(<span class="vr">amount</span>) <span class="fn">AS</span> <span class="vr">total_gmv</span>
+<span class="fn">FROM</span> <span class="vr">dwd_orders</span>
+<span class="fn">WHERE</span> <span class="vr">dt</span> <span class="op">=</span> <span class="fn">CURDATE</span>()
+<span class="fn">GROUP BY</span> <span class="vr">city</span>
+<span class="fn">ORDER BY</span> <span class="vr">total_gmv</span> <span class="fn">DESC</span>
+<span class="fn">LIMIT</span> <span class="ind">20</span><span class="op">;</span>
+
+<span class="cm">-- 跨 Paimon + StarRocks Native 表的联邦查询</span>
+<span class="fn">SELECT</span>
+  <span class="vr">p</span>.<span class="vr">user_id</span>, <span class="vr">p</span>.<span class="vr">city</span>,
+  <span class="vr">n</span>.<span class="vr">credit_score</span>   <span class="cm">-- StarRocks native 表</span>
+<span class="fn">FROM</span> <span class="vr">paimon_catalog</span>.<span class="vr">my_db</span>.<span class="vr">dwd_orders</span> <span class="vr">p</span>
+<span class="fn">JOIN</span> <span class="vr">default_catalog</span>.<span class="vr">risk_db</span>.<span class="vr">user_credit</span> <span class="vr">n</span>
+  <span class="fn">ON</span> <span class="vr">p</span>.<span class="vr">user_id</span> <span class="op">=</span> <span class="vr">n</span>.<span class="vr">user_id</span><span class="op">;</span></pre>
+    </div>
+  </div>
+
+  <div class="cw reveal">
+    <div class="ch"><div class="dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div><span class="ct">Hive — 通过 HiveCatalog 兼容访问</span><span></span></div>
+    <div class="cb"><pre><span class="cm">-- Flink SQL 注册 HiveCatalog（让 Hive/Trino 可见 Paimon 表）</span>
+<span class="fn">CREATE CATALOG</span> <span class="vr">hive_catalog</span> <span class="fn">WITH</span> (
+  <span class="str">'type'</span>             = <span class="str">'paimon'</span>,
+  <span class="str">'metastore'</span>        = <span class="str">'hive'</span>,
+  <span class="str">'uri'</span>              = <span class="str">'thrift://hive-metastore:9083'</span>,
+  <span class="str">'warehouse'</span>        = <span class="str">'hdfs:///warehouse/paimon'</span>,
+  <span class="str">'lock.enabled'</span>     = <span class="str">'true'</span>   <span class="cm">-- 多引擎并发写入时开启分布式锁</span>
+)<span class="op">;</span>
+
+<span class="fn">USE CATALOG</span> <span class="vr">hive_catalog</span><span class="op">;</span>
+
+<span class="cm">-- Paimon 表自动在 HMS 中注册，Hive/Trino/Impala 可直接查询</span>
+<span class="cm">-- Hive SQL:</span>
+<span class="cm">-- SELECT * FROM paimon_db.dwd_orders WHERE dt = '2024-01-01';</span>
+
+<span class="cm">-- Trino/Presto（通过 Hive Connector 兼容）:</span>
+<span class="cm">-- SELECT * FROM hive.paimon_db.dwd_orders LIMIT 100;</span>
+
+<span class="cm">-- 多引擎并发读写注意事项：</span>
+<span class="cm">-- ✓ 多引擎并发读：完全支持，各引擎读各自 Snapshot</span>
+<span class="cm">-- ✓ 单引擎写 + 多引擎读：完全支持</span>
+<span class="cm">-- ⚠ 多引擎并发写：需开启 lock.enabled=true，通过 HMS 锁协调</span>
+<span class="cm">-- ✕ 多引擎同时 OVERWRITE 同一分区：有数据冲突风险，避免</span></pre>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ── S5: 多引擎能力对比 ── -->
+<section class="section reveal" id="s5">
+  <div class="stag">05 / ENGINE CAPABILITY MATRIX</div>
+  <h2 class="stitle">多引擎能力对比矩阵</h2>
+  <p class="ssub">在实际架构选型时，了解各引擎对 Paimon 的支持深度，是做出合理技术决策的前提。</p>
+
+  <div class="cmp-wrap reveal">
+    <div class="cmp-head">── 各引擎对 Paimon 的功能支持对比 &nbsp; ★★★ 完整支持 &nbsp; ★★ 部分支持 &nbsp; ★ 有限支持 &nbsp; — 不支持</div>
+    <table class="cmp-table">
+      <thead>
+        <tr>
+          <th>能力维度</th><th>Flink</th><th>Spark</th><th>StarRocks</th><th>Doris</th><th>Hive</th><th>Trino</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>流式写入（Upsert）</td>
+          <td><span class="star">★★★</span></td><td><span class="dim-star">—</span></td><td><span class="dim-star">—</span></td><td><span class="dim-star">—</span></td><td><span class="dim-star">—</span></td><td><span class="dim-star">—</span></td>
+        </tr>
+        <tr>
+          <td>批量读取（全量）</td>
+          <td><span class="star">★★★</span></td><td><span class="star">★★★</span></td><td><span class="star">★★★</span></td><td><span class="star">★★★</span></td><td><span class="star">★★</span></td><td><span class="star">★★</span></td>
+        </tr>
+        <tr>
+          <td>批量写入（Append）</td>
+          <td><span class="star">★★★</span></td><td><span class="star">★★★</span></td><td><span class="dim-star">—</span></td><td><span class="dim-star">—</span></td><td><span class="star">★</span></td><td><span class="dim-star">—</span></td>
+        </tr>
+        <tr>
+          <td>分区覆盖（OVERWRITE）</td>
+          <td><span class="star">★★★</span></td><td><span class="star">★★★</span></td><td><span class="dim-star">—</span></td><td><span class="dim-star">—</span></td><td><span class="star">★★</span></td><td><span class="dim-star">—</span></td>
+        </tr>
+        <tr>
+          <td>时间旅行查询</td>
+          <td><span class="star">★★★</span></td><td><span class="star">★★★</span></td><td><span class="star">★★</span></td><td><span class="star">★★</span></td><td><span class="dim-star">—</span></td><td><span class="dim-star">—</span></td>
+        </tr>
+        <tr>
+          <td>Schema Evolution 感知</td>
+          <td><span class="star">★★★</span></td><td><span class="star">★★★</span></td><td><span class="star">★★</span></td><td><span class="star">★★</span></td><td><span class="star">★</span></td><td><span class="star">★</span></td>
+        </tr>
+        <tr>
+          <td>Lookup Join（维表）</td>
+          <td><span class="star">★★★</span></td><td><span class="dim-star">—</span></td><td><span class="dim-star">—</span></td><td><span class="dim-star">—</span></td><td><span class="dim-star">—</span></td><td><span class="dim-star">—</span></td>
+        </tr>
+        <tr>
+          <td>增量 Changelog 消费</td>
+          <td><span class="star">★★★</span></td><td><span class="star">★★</span></td><td><span class="dim-star">—</span></td><td><span class="dim-star">—</span></td><td><span class="dim-star">—</span></td><td><span class="dim-star">—</span></td>
+        </tr>
+        <tr>
+          <td>谓词下推优化</td>
+          <td><span class="star">★★★</span></td><td><span class="star">★★★</span></td><td><span class="star">★★★</span></td><td><span class="star">★★★</span></td><td><span class="star">★★</span></td><td><span class="star">★★</span></td>
+        </tr>
+        <tr>
+          <td>查询性能（OLAP）</td>
+          <td><span class="star">★★</span></td><td><span class="star">★★</span></td><td><span class="star">★★★</span></td><td><span class="star">★★★</span></td><td><span class="star">★</span></td><td><span class="star">★★</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="ib note reveal">
+    <div class="il">ARCHITECTURE RECOMMENDATION</div>
+    生产环境推荐三引擎协作模式：<strong>Flink（实时写入）+ Spark（离线修正）+ StarRocks（查询服务）</strong>。三者分工明确，无竞争冲突：Flink 保障数据新鲜度（分钟级），Spark 保障数据质量（T+1 修正），StarRocks 保障查询性能（亚秒级响应）。
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ── S6: 高级集成模式 ── -->
+<section class="section reveal" id="s6">
+  <div class="stag">06 / ADVANCED INTEGRATION PATTERNS</div>
+  <h2 class="stitle">高级集成模式</h2>
+  <p class="ssub">基于前五章的原理积累，这些高级模式将 Paimon 的能力发挥到极致，是区分初级用户和高级用户的关键技能。</p>
+
+  <div class="tl reveal">
+
+    <div class="tl-item">
+      <div class="tl-dot">①</div>
+      <div class="tl-content">
+        <div class="tl-tag">PATTERN — 流式物化视图</div>
+        <h4>流式分层物化视图</h4>
+        <p>多个 Flink 作业串联：ODS → DWD → DWS，每层均写入独立 Paimon 表，每层的 changelog-producer 设为 <code style="font-family:var(--mono);font-size:12px;color:var(--a1)">input</code>，下游作业以流模式消费上层产出的 Changelog，实现全链路增量计算。整体延迟可控制在 2～5 分钟以内，彻底替代传统离线调度链路。</p>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot">②</div>
+      <div class="tl-content">
+        <div class="tl-tag">PATTERN — 双写保险策略</div>
+        <h4>Flink + Kafka 双写保险</h4>
+        <p>写入 Paimon 的同时，将同样数据写入 Kafka Topic 作为备份。当 Paimon 需要回滚或重建时，可从 Kafka 重新回放数据，无需依赖上游数据源重新全量同步，显著降低 RTO（恢复时间目标）。适合对数据可用性要求极高的核心业务表。</p>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot">③</div>
+      <div class="tl-content">
+        <div class="tl-tag">PATTERN — 聚合引擎下推</div>
+        <h4>Aggregation Merge Engine 预聚合</h4>
+        <p>使用 <code style="font-family:var(--mono);font-size:12px;color:var(--a1)">merge-engine=aggregation</code> 将 SUM/MAX/MIN/COUNT 等聚合操作下推到 Paimon 写入层，每次写入自动与存量数据合并。上层 StarRocks 查询时读到的已经是聚合结果，无需再做全量聚合扫描，查询性能提升 10x+，适合实时大屏/计数器类场景。</p>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot">④</div>
+      <div class="tl-content">
+        <div class="tl-tag">PATTERN — 多活写入</div>
+        <h4>多地域多活写入协调</h4>
+        <p>两个机房的 Flink 作业同时向同一 Paimon 表写入（不同 Bucket 分区），通过 <code style="font-family:var(--mono);font-size:12px;color:var(--a1)">sequence.field</code> 和 HMS 分布式锁保证写入幂等性和顺序性。Snapshot Commit 通过 HDFS/S3 的原子操作保证一致性，实现跨机房的数据合流。</p>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot">⑤</div>
+      <div class="tl-content">
+        <div class="tl-tag">PATTERN — 数据对账</div>
+        <h4>基于 Tag 的数据对账体系</h4>
+        <p>每日业务收盘后，对核心业务表创建 Tag（如 <code style="font-family:var(--mono);font-size:12px;color:var(--a1)">daily-2024-01-01</code>），对账系统通过 Spark 读取 Tag 对应版本进行历史对比，无需专门维护对账数据副本。对账差异时，可精确追溯到哪个 Snapshot 开始出现偏差，排查效率大幅提升。</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ── S7: 与竞品对比 & 未来展望 ── -->
+<section class="section reveal" id="s7">
+  <div class="stag">07 / COMPARISON & ROADMAP</div>
+  <h2 class="stitle">与竞品对比 & 未来展望</h2>
+  <p class="ssub">在 Lakehouse 存储格式领域，Paimon 与 Apache Iceberg、Delta Lake 并称三大主流方案，各有侧重，了解差异有助于做出正确的技术选型。</p>
+
+  <div class="cmp-wrap reveal" style="margin-top:0">
+    <div class="cmp-head">── Paimon vs Iceberg vs Delta Lake · 特性对比</div>
+    <table class="cmp-table">
+      <thead>
+        <tr><th>特性维度</th><th>Paimon</th><th>Iceberg</th><th>Delta Lake</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>流式 Upsert 写入</td><td><span class="ok">✓ 原生支持</span></td><td><span class="cond">需 Merge Into</span></td><td><span class="cond">需 Merge Into</span></td></tr>
+        <tr><td>Changelog 产出（CDC 语义）</td><td><span class="ok">✓ 原生支持</span></td><td><span class="no">✕</span></td><td><span class="no">✕</span></td></tr>
+        <tr><td>Lookup Join（维表）</td><td><span class="ok">✓ 原生支持</span></td><td><span class="no">✕</span></td><td><span class="no">✕</span></td></tr>
+        <tr><td>主键索引（LSM-Tree）</td><td><span class="ok">✓</span></td><td><span class="no">✕</span></td><td><span class="no">✕</span></td></tr>
+        <tr><td>时间旅行查询</td><td><span class="ok">✓</span></td><td><span class="ok">✓</span></td><td><span class="ok">✓</span></td></tr>
+        <tr><td>Schema Evolution</td><td><span class="ok">✓ 完整</span></td><td><span class="ok">✓ 完整</span></td><td><span class="cond">部分支持</span></td></tr>
+        <tr><td>Spark 生态成熟度</td><td><span class="cond">★★★</span></td><td><span class="cond">★★★★</span></td><td><span class="cond">★★★★★</span></td></tr>
+        <tr><td>Flink 生态成熟度</td><td><span class="cond">★★★★★</span></td><td><span class="cond">★★★★</span></td><td><span class="cond">★★★</span></td></tr>
+        <tr><td>OLAP 引擎集成</td><td><span class="cond">★★★★</span></td><td><span class="cond">★★★★</span></td><td><span class="cond">★★★</span></td></tr>
+        <tr><td>社区活跃度（2024）</td><td><span class="cond">★★★★</span></td><td><span class="cond">★★★★★</span></td><td><span class="cond">★★★★</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="roadmap reveal" style="margin-top:48px">
+    <div class="rm-card">
+      <div class="rm-top" style="background:linear-gradient(90deg,transparent,var(--a1),transparent)"></div>
+      <div class="rm-period">PAIMON 0.8 · 当前</div>
+      <h3 style="color:#fb7185">已落地特性</h3>
+      <div class="rm-items">
+        <div class="rm-item"><div class="rm-dot rmd-r"></div>二级索引（Secondary Index）</div>
+        <div class="rm-item"><div class="rm-dot rmd-r"></div>Deletion Vector（快速删除）</div>
+        <div class="rm-item"><div class="rm-dot rmd-r"></div>Unaware Bucket 动态扩缩</div>
+        <div class="rm-item"><div class="rm-dot rmd-r"></div>Branch 分支管理</div>
+        <div class="rm-item"><div class="rm-dot rmd-r"></div>Flink CDC 整库同步增强</div>
+      </div>
+    </div>
+    <div class="rm-card">
+      <div class="rm-top" style="background:linear-gradient(90deg,transparent,var(--a3),transparent)"></div>
+      <div class="rm-period">ROADMAP · 近期规划</div>
+      <h3 style="color:#a5b4fc">进行中特性</h3>
+      <div class="rm-items">
+        <div class="rm-item"><div class="rm-dot rmd-i"></div>Row-Level DELETE / UPDATE（SQL 标准）</div>
+        <div class="rm-item"><div class="rm-dot rmd-i"></div>Iceberg 格式兼容层</div>
+        <div class="rm-item"><div class="rm-dot rmd-i"></div>Auto Scaling Bucket（自动扩桶）</div>
+        <div class="rm-item"><div class="rm-dot rmd-i"></div>Native Spark Streaming Write</div>
+        <div class="rm-item"><div class="rm-dot rmd-i"></div>Compaction 智能调度优化</div>
+      </div>
+    </div>
+    <div class="rm-card">
+      <div class="rm-top" style="background:linear-gradient(90deg,transparent,var(--a4),transparent)"></div>
+      <div class="rm-period">ROADMAP · 中长期</div>
+      <h3 style="color:#6ee7b7">远期规划</h3>
+      <div class="rm-items">
+        <div class="rm-item"><div class="rm-dot rmd-g"></div>向量化读取引擎（Arrow Flight）</div>
+        <div class="rm-item"><div class="rm-dot rmd-g"></div>云原生存算分离架构</div>
+        <div class="rm-item"><div class="rm-dot rmd-g"></div>多模数据支持（半结构化）</div>
+        <div class="rm-item"><div class="rm-dot rmd-g"></div>湖仓统一元数据（与 Iceberg/Delta 互通）</div>
+      </div>
+    </div>
+    <div class="rm-card">
+      <div class="rm-top" style="background:linear-gradient(90deg,transparent,#fbbf24,transparent)"></div>
+      <div class="rm-period">SELECTION GUIDE · 选型建议</div>
+      <h3 style="color:#fde68a">何时选 Paimon</h3>
+      <div class="rm-items">
+        <div class="rm-item"><div class="rm-dot rmd-a"></div>流批一体是核心诉求</div>
+        <div class="rm-item"><div class="rm-dot rmd-a"></div>已有 Flink 技术栈</div>
+        <div class="rm-item"><div class="rm-dot rmd-a"></div>需要实时 CDC 摄取与消费</div>
+        <div class="rm-item"><div class="rm-dot rmd-a"></div>Lookup Join 维表场景</div>
+        <div class="rm-item"><div class="rm-dot rmd-a"></div>希望替代 Lambda 架构</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ── S8: 课程总结 ── -->
+<section class="section reveal" id="s8">
+  <div class="stag">08 / COURSE SUMMARY</div>
+  <h2 class="stitle">课程知识体系总结</h2>
+  <p class="ssub">六章学习旅程，从存储内核到引擎集成，构建了完整的 Apache Paimon 深度知识体系。以下是每章核心能力的简要回顾。</p>
+
+  <div class="summary-grid reveal">
+    <div class="sum-card" style="border-color:rgba(37,99,235,.25)">
+      <div class="sum-icon">🏗️</div>
+      <h3 style="color:#93c5fd">第一章 · 存储架构</h3>
+      <p>掌握 LSM-Tree 分层、Snapshot 事务机制、Manifest 文件链、Parquet/ORC 内部结构，理解数据从写入到持久化的完整链路。</p>
+    </div>
+    <div class="sum-card" style="border-color:rgba(6,214,160,.25)">
+      <div class="sum-icon">🔄</div>
+      <h3 style="color:#5eead4">第二章 · CDC 摄取</h3>
+      <p>掌握 Changelog 四种行类型语义、四种 changelog-producer 策略、多源 CDC 接入（MySQL/PG/MongoDB）、consumer-id 消费位移管理。</p>
+    </div>
+    <div class="sum-card" style="border-color:rgba(139,92,246,.25)">
+      <div class="sum-icon">⚡</div>
+      <h3 style="color:#c4b5fd">第三章 · 流批一体</h3>
+      <p>理解流式写入五阶段链路、批量 BulkWrite 路径、五种读取模式、Hybrid Source、Watermark 与乱序处理、sequence.field 防覆盖。</p>
+    </div>
+    <div class="sum-card" style="border-color:rgba(20,184,166,.25)">
+      <div class="sum-icon">🧬</div>
+      <h3 style="color:#5eead4">第四章 · Schema 变更</h3>
+      <p>掌握六种 DDL 操作、类型兼容矩阵、CDC Schema Change 自动同步流程、Tag 版本管理与回滚、Schema 变更对下游的影响分析。</p>
+    </div>
+    <div class="sum-card" style="border-color:rgba(251,191,36,.25)">
+      <div class="sum-icon">⚙️</div>
+      <h3 style="color:#fde68a">第五章 · 性能调优</h3>
+      <p>掌握六大核心调优参数、四种 Compaction 部署模式、小文件四大根因治理、GC 五步机制、监控指标体系、生产运维检查清单。</p>
+    </div>
+    <div class="sum-card" style="border-color:rgba(244,63,94,.25)">
+      <div class="sum-icon">🔗</div>
+      <h3 style="color:#fb7185">第六章 · 生态集成</h3>
+      <p>掌握六大引擎集成方式、Lookup Join 原理与调优、Spark 读写 API、StarRocks External Catalog、五种高级集成模式、与竞品选型对比。</p>
+    </div>
+  </div>
+
+  <div class="ib tip reveal" style="margin-top:48px">
+    <div class="il">LEARNING NEXT STEPS</div>
+    完成本课程后，建议的进阶路线：① 在真实项目中实践 CDC 全链路（MySQL → Paimon ODS → DWD → StarRocks）→ ② 深入研究 Paimon 源码（从 <code style="font-family:var(--mono);font-size:12px;color:var(--a4)">FileStoreTable</code> 和 <code style="font-family:var(--mono);font-size:12px;color:var(--a4)">AbstractFileStore</code> 入手）→ ③ 关注 Paimon 社区（Apache 邮件列表 + GitHub Issues），参与 Feature 讨论 → ④ 结合业务场景贡献 Bug Fix 或文档改进，成为社区贡献者。
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<div class="footer-nav">
+  <div>
+    <div class="toc">
+      <div class="toc-item done"><span class="tn">01</span><span>存储架构与文件格式深度解析</span></div>
+      <div class="toc-item done"><span class="tn">02</span><span>Changelog 与 CDC 数据摄取机制</span></div>
+      <div class="toc-item done"><span class="tn">03</span><span>流批一体写入与读取原理</span></div>
+      <div class="toc-item done"><span class="tn">04</span><span>Schema Evolution 与 DDL 变更</span></div>
+      <div class="toc-item done"><span class="tn">05</span><span>性能调优与生产运维最佳实践</span></div>
+      <div class="toc-item active"><span class="tn">06</span><span>与 Flink/Spark 集成深度实战</span></div>
+    </div>
+  </div>
+  <div class="course-complete">
+    <div class="cc-label">COURSE STATUS</div>
+    <div class="cc-badge">
+      <span style="font-size:18px">✦</span>
+      ALL CHAPTERS COMPLETE
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+const reveals = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) setTimeout(() => e.target.classList.add('visible'), i * 55);
+  });
+}, { threshold: 0.07 });
+reveals.forEach(r => io.observe(r));
+
+const sections = document.querySelectorAll('section[id]');
+const dots = document.querySelectorAll('.sdot');
+const sio = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const idx = Array.from(sections).indexOf(e.target);
+      dots.forEach(d => d.classList.remove('act'));
+      if (dots[idx]) dots[idx].classList.add('act');
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => sio.observe(s));
+</script>
+</body>
+</html>
