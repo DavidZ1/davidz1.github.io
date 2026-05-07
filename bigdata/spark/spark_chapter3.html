@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apache Spark 深度学习 · 第3章：结构化流处理</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #08080f;
+  --p1: #8b5cf6;
+  --p2: #e879f9;
+  --p3: #a78bfa;
+  --p-glow: rgba(139,92,246,0.3);
+  --p-glow2: rgba(232,121,249,0.2);
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --text-muted: #475569;
+  --border: rgba(139,92,246,0.18);
+  --border2: rgba(232,121,249,0.22);
+  --card: rgba(12,8,20,0.85);
+  --sidebar-w: 68px;
+  --font-title: 'Syne', sans-serif;
+  --font-code: 'JetBrains Mono', monospace;
+  --font-body: 'Noto Sans SC', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: var(--font-body); line-height: 1.7; overflow-x: hidden; }
+
+/* SIDEBAR */
+.sidebar {
+  position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-w);
+  background: rgba(8,8,15,0.96); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; align-items: center;
+  padding: 28px 0; z-index: 100; backdrop-filter: blur(14px);
+}
+.sidebar-label {
+  writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg);
+  font-family: var(--font-code); font-size: 10px; letter-spacing: 0.12em;
+  color: var(--text-muted); text-transform: uppercase; margin-bottom: auto;
+}
+.sidebar-chapter { font-family: var(--font-title); font-size: 11px; font-weight: 700; color: var(--p1); letter-spacing: 0.05em; margin-bottom: 24px; }
+.nav-dots { display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px; }
+.nav-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--text-muted);
+  cursor: pointer; transition: all 0.3s; position: relative;
+}
+.nav-dot.active { background: var(--p2); box-shadow: 0 0 8px var(--p2); transform: scale(1.4); }
+.nav-dot::after {
+  content: attr(data-label); position: absolute; left: 16px; top: 50%;
+  transform: translateY(-50%); font-family: var(--font-code); font-size: 10px;
+  color: var(--p2); white-space: nowrap; opacity: 0; transition: opacity 0.2s; pointer-events: none;
+}
+.nav-dot:hover::after { opacity: 1; }
+
+/* MAIN */
+.main { margin-left: var(--sidebar-w); min-height: 100vh; }
+
+/* HERO */
+.hero {
+  position: relative; padding: 100px 80px 120px; overflow: hidden;
+  min-height: 100vh; display: flex; flex-direction: column; justify-content: center;
+}
+.hero-bg { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.orb { position: absolute; border-radius: 50%; filter: blur(88px); opacity: 0.38; }
+.orb1 { width: 680px; height: 680px; background: radial-gradient(circle, #8b5cf6, transparent 70%); top: -180px; right: -120px; animation: fa 12s ease-in-out infinite; }
+.orb2 { width: 460px; height: 460px; background: radial-gradient(circle, #e879f9, transparent 70%); bottom: 0; left: 40px; animation: fb 9.5s ease-in-out infinite; }
+.orb3 { width: 340px; height: 340px; background: radial-gradient(circle, #6d28d9, transparent 70%); top: 38%; left: 38%; animation: fc 13.5s ease-in-out infinite; }
+@keyframes fa { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-28px,38px) scale(1.07)} }
+@keyframes fb { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(20px,-28px) scale(0.93)} }
+@keyframes fc { 0%,100%{transform:translate(0,0)} 33%{transform:translate(-32px,18px) scale(1.05)} 66%{transform:translate(26px,-20px) scale(0.95)} }
+.hero-grid {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(139,92,246,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(139,92,246,0.05) 1px, transparent 1px);
+  background-size: 58px 58px;
+}
+.hero-content { position: relative; z-index: 2; max-width: 900px; }
+.chapter-badge {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.28);
+  border-radius: 100px; padding: 8px 18px; margin-bottom: 40px;
+  font-family: var(--font-code); font-size: 12px; color: var(--p3); letter-spacing: 0.08em; text-transform: uppercase;
+}
+.badge-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--p2); box-shadow: 0 0 6px var(--p2); animation: breathe 2.2s ease-in-out infinite; }
+@keyframes breathe { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.35;transform:scale(0.65)} }
+.hero-title {
+  font-family: var(--font-title); font-size: clamp(48px, 6.5vw, 80px); font-weight: 800;
+  line-height: 1.05; letter-spacing: -0.025em; margin-bottom: 22px;
+  background: linear-gradient(135deg, #ffffff 0%, var(--p3) 40%, var(--p2) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  background-size: 200% 200%; animation: shimmer 5s ease infinite;
+}
+@keyframes shimmer { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+.hero-subtitle { font-size: 17px; color: var(--text-dim); margin-bottom: 36px; max-width: 650px; font-weight: 300; line-height: 1.75; }
+.pills { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 44px; }
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(139,92,246,0.09); border: 1px solid rgba(139,92,246,0.22);
+  border-radius: 6px; padding: 6px 14px; font-family: var(--font-code); font-size: 12px; color: var(--p3);
+}
+.pill::before { content: '◆'; font-size: 8px; color: var(--p2); }
+.meta-row { display: flex; gap: 32px; flex-wrap: wrap; }
+.meta-item { display: flex; flex-direction: column; gap: 4px; }
+.meta-label { font-family: var(--font-code); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); }
+.meta-value { font-family: var(--font-code); font-size: 13px; color: var(--p2); font-weight: 500; }
+
+/* SECTIONS */
+section { padding: 100px 80px; position: relative; }
+section:nth-child(even) { background: rgba(12,8,20,0.5); }
+.divider { height: 1px; background: linear-gradient(90deg, transparent, var(--p1), var(--p2), transparent); margin: 0 80px; opacity: 0.35; }
+.section-tag { font-family: var(--font-code); font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--p2); margin-bottom: 14px; opacity: 0.85; }
+.section-title { font-family: var(--font-title); font-size: clamp(28px, 3.8vw, 44px); font-weight: 700; line-height: 1.1; margin-bottom: 14px; color: #fff; }
+.section-desc { font-size: 15px; color: var(--text-dim); max-width: 650px; margin-bottom: 56px; font-weight: 300; }
+
+/* EXECUTION MODE COMPARE */
+.mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 28px 0; }
+.mode-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 30px; transition: all 0.3s; position: relative; overflow: hidden;
+}
+.mode-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  opacity: 0; transition: opacity 0.3s;
+}
+.mode-card:hover { transform: translateY(-4px); }
+.mode-card:hover::before { opacity: 1; }
+.mode-card.micro::before { background: linear-gradient(90deg, var(--p1), var(--p2)); }
+.mode-card.micro:hover { border-color: rgba(139,92,246,0.4); box-shadow: 0 12px 40px rgba(139,92,246,0.12); }
+.mode-card.cont::before { background: linear-gradient(90deg, var(--p2), #f0abfc); }
+.mode-card.cont:hover { border-color: rgba(232,121,249,0.4); box-shadow: 0 12px 40px rgba(232,121,249,0.12); }
+.mode-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-code); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em;
+  padding: 4px 10px; border-radius: 4px; margin-bottom: 16px;
+}
+.mode-badge.micro { background: rgba(139,92,246,0.12); color: var(--p3); border: 1px solid rgba(139,92,246,0.25); }
+.mode-badge.cont  { background: rgba(232,121,249,0.1); color: var(--p2); border: 1px solid rgba(232,121,249,0.25); }
+.mode-title { font-family: var(--font-title); font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 10px; }
+.mode-latency { font-family: var(--font-code); font-size: 13px; color: #fbbf24; margin-bottom: 16px; }
+.mode-list { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+.mode-list li { font-size: 13.5px; color: var(--text-dim); display: flex; gap: 10px; align-items: flex-start; line-height: 1.55; }
+.mode-list li::before { content: '→'; color: var(--p2); font-family: var(--font-code); font-size: 11px; flex-shrink: 0; margin-top: 3px; }
+
+/* WATERMARK TIMELINE */
+.watermark-vis {
+  position: relative; background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 36px; overflow: hidden; margin: 28px 0;
+}
+.wm-title { font-family: var(--font-title); font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 28px; }
+.wm-timeline {
+  position: relative; height: 80px; background: rgba(139,92,246,0.05);
+  border-radius: 8px; border: 1px solid var(--border); overflow: hidden;
+}
+.wm-track {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  display: flex; align-items: center; padding: 0 20px;
+}
+.wm-axis {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  display: flex; justify-content: space-between; padding: 6px 20px;
+  font-family: var(--font-code); font-size: 10px; color: var(--text-muted);
+}
+/* event dots */
+.ev-dot {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 10px; height: 10px; border-radius: 50%; cursor: default;
+}
+.ev-dot.ontime { background: var(--p1); box-shadow: 0 0 8px var(--p1); }
+.ev-dot.late   { background: #fbbf24; box-shadow: 0 0 8px rgba(251,191,36,0.6); }
+.ev-dot.drop   { background: #f43f5e; box-shadow: 0 0 8px rgba(244,63,94,0.6); }
+.ev-dot::after {
+  content: attr(data-time); position: absolute; bottom: 14px; left: 50%;
+  transform: translateX(-50%); font-family: var(--font-code); font-size: 9px;
+  color: var(--text-dim); white-space: nowrap;
+}
+/* watermark line */
+.wm-line {
+  position: absolute; top: 0; bottom: 0; width: 2px;
+  background: linear-gradient(to bottom, var(--p2), transparent);
+  border-left: 2px dashed rgba(232,121,249,0.6);
+}
+.wm-line::after {
+  content: 'Watermark'; position: absolute; top: 6px; left: 6px;
+  font-family: var(--font-code); font-size: 10px; color: var(--p2); white-space: nowrap;
+}
+.wm-legend {
+  display: flex; gap: 24px; margin-top: 20px; flex-wrap: wrap;
+}
+.wm-legend-item { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text-dim); font-family: var(--font-code); }
+.wm-dot { width: 9px; height: 9px; border-radius: 50%; }
+
+/* STATE STORE ARCH */
+.statestore-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 28px 0; }
+.ss-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px;
+  transition: all 0.3s; position: relative; overflow: hidden;
+}
+.ss-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--p1), var(--p2)); opacity: 0; transition: opacity 0.3s; }
+.ss-card:hover { transform: translateY(-4px); border-color: rgba(139,92,246,0.35); box-shadow: 0 12px 36px rgba(139,92,246,0.1); }
+.ss-card:hover::before { opacity: 1; }
+.ss-icon { font-size: 28px; margin-bottom: 14px; }
+.ss-title { font-family: var(--font-title); font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 10px; }
+.ss-desc { font-size: 13px; color: var(--text-dim); line-height: 1.65; margin-bottom: 12px; }
+.ss-tag { font-family: var(--font-code); font-size: 10px; color: var(--p2); background: rgba(232,121,249,0.09); border: 1px solid rgba(232,121,249,0.2); padding: 3px 9px; border-radius: 4px; display: inline-block; }
+
+/* TRIGGER TABLE / MATRIX */
+.matrix-table { width: 100%; border-collapse: collapse; font-family: var(--font-code); font-size: 13px; }
+.matrix-table th { padding: 12px 18px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.02); }
+.matrix-table td { padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--text-dim); font-size: 13px; transition: background 0.2s; }
+.matrix-table tr:hover td { background: rgba(139,92,246,0.05); }
+.matrix-table td:first-child { color: var(--text); font-weight: 500; }
+.compat-y { color: #4ade80; font-weight: 600; }
+.compat-w { color: #fbbf24; }
+.compat-n { color: #f87171; }
+
+/* PIPELINE */
+.pipeline { display: flex; flex-direction: column; gap: 0; max-width: 780px; }
+.pipeline-phase { display: flex; gap: 0; position: relative; }
+.pipeline-dot { width: 70px; display: flex; flex-direction: column; align-items: center; padding-top: 22px; }
+.pdot { width: 14px; height: 14px; border-radius: 50%; background: var(--p1); border: 2px solid var(--p2); box-shadow: 0 0 10px var(--p-glow); flex-shrink: 0; }
+.pline { width: 2px; flex: 1; min-height: 20px; background: linear-gradient(to bottom, var(--p2), var(--p1)); opacity: 0.5; margin-top: 4px; }
+.pipeline-node {
+  flex: 1; background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 22px 24px; margin-bottom: 6px;
+  transition: all 0.3s; position: relative; overflow: hidden;
+}
+.pipeline-node:hover { border-color: var(--p2); transform: translateX(6px); }
+.pipeline-node::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(to bottom, var(--p1), var(--p2)); }
+.pipeline-phase-num { font-family: var(--font-code); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--p2); margin-bottom: 8px; }
+.pipeline-node-title { font-family: var(--font-title); font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 8px; }
+.pipeline-node-desc { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+.pipeline-tags { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 12px; }
+.pipeline-tag { font-family: var(--font-code); font-size: 10px; padding: 3px 9px; border-radius: 4px; background: rgba(139,92,246,0.12); color: var(--p3); border: 1px solid rgba(139,92,246,0.22); }
+
+/* CODE BLOCKS */
+.code-block { background: #09060f; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin: 24px 0; }
+.code-header { display: flex; align-items: center; gap: 8px; padding: 14px 20px; background: rgba(255,255,255,0.025); border-bottom: 1px solid var(--border); }
+.code-dots { display: flex; gap: 7px; }
+.code-dot { width: 12px; height: 12px; border-radius: 50%; }
+.code-dot.r { background: #ff5f57; } .code-dot.y { background: #febc2e; } .code-dot.g { background: #28c840; }
+.code-filename { font-family: var(--font-code); font-size: 12px; color: var(--text-muted); margin-left: 8px; letter-spacing: 0.05em; }
+.code-lang { margin-left: auto; font-family: var(--font-code); font-size: 10px; color: var(--p2); background: rgba(232,121,249,0.1); padding: 3px 9px; border-radius: 4px; letter-spacing: 0.08em; text-transform: uppercase; }
+.code-body { padding: 24px; font-family: var(--font-code); font-size: 13.5px; line-height: 1.9; overflow-x: auto; }
+.code-body pre { white-space: pre; }
+.c-kw  { color: #a78bfa; }
+.c-fn  { color: #c4b5fd; }
+.c-str { color: #86efac; }
+.c-num { color: #fda4af; }
+.c-cm  { color: #3d3060; font-style: italic; }
+.c-cls { color: #e879f9; }
+.c-var { color: #e2e8f0; }
+.c-attr{ color: #f0abfc; }
+.c-kw2 { color: #7dd3fc; }
+
+/* INFO BOXES */
+.info-box { border-radius: 10px; padding: 18px 22px; margin: 20px 0; border-left: 3px solid; display: flex; gap: 14px; }
+.info-box-icon { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
+.info-box-title { font-family: var(--font-code); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+.info-box-text { font-size: 14px; color: var(--text-dim); line-height: 1.65; }
+.info-box.tip    { background: rgba(139,92,246,0.07); border-color: var(--p1); }
+.info-box.tip    .info-box-title { color: var(--p3); }
+.info-box.warn   { background: rgba(251,146,60,0.07); border-color: #fb923c; }
+.info-box.warn   .info-box-title { color: #fb923c; }
+.info-box.note   { background: rgba(232,121,249,0.07); border-color: var(--p2); }
+.info-box.note   .info-box-title { color: var(--p2); }
+.info-box.danger { background: rgba(244,63,94,0.07); border-color: #f43f5e; }
+.info-box.danger .info-box-title { color: #f43f5e; }
+
+/* EXACTLY ONCE MATRIX */
+.eo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin: 28px 0; }
+.eo-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 26px;
+  transition: all 0.3s;
+}
+.eo-card:hover { border-color: rgba(139,92,246,0.35); transform: translateY(-3px); }
+.eo-semantic { font-family: var(--font-code); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+.eo-semantic.exactly { color: #4ade80; }
+.eo-semantic.atleast { color: #fbbf24; }
+.eo-semantic.atmost  { color: var(--p2); }
+.eo-title { font-family: var(--font-title); font-size: 17px; font-weight: 600; color: #fff; margin-bottom: 10px; }
+.eo-desc { font-size: 13px; color: var(--text-dim); line-height: 1.6; margin-bottom: 14px; }
+.eo-req { font-family: var(--font-code); font-size: 11px; color: var(--text-muted); }
+.eo-req span { color: var(--p3); }
+
+/* TRAPS */
+.traps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 28px 0; }
+.trap-card { background: rgba(244,63,94,0.04); border: 1px solid rgba(244,63,94,0.15); border-radius: 10px; padding: 22px; transition: all 0.3s; position: relative; overflow: hidden; }
+.trap-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, #f43f5e, #fb7185); opacity: 0; transition: opacity 0.3s; }
+.trap-card:hover { border-color: rgba(244,63,94,0.3); transform: translateY(-3px); }
+.trap-card:hover::before { opacity: 1; }
+.trap-icon { font-size: 24px; margin-bottom: 12px; }
+.trap-title { font-family: var(--font-title); font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 8px; }
+.trap-desc { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+
+/* PROGRESS */
+.progress-section { display: flex; flex-direction: column; gap: 18px; }
+.progress-label { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.progress-name { font-family: var(--font-code); font-size: 13px; color: var(--text); }
+.progress-val  { font-family: var(--font-code); font-size: 12px; color: var(--p2); }
+.progress-track { height: 6px; background: rgba(255,255,255,0.06); border-radius: 100px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 100px; width: 0; transition: width 1.4s cubic-bezier(0.23,1,0.32,1); background: linear-gradient(90deg, var(--p1), var(--p2)); }
+
+/* KNOB */
+.knob-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin: 28px 0; }
+.knob-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; transition: all 0.3s; }
+.knob-card:hover { border-color: rgba(139,92,246,0.35); box-shadow: 0 8px 30px rgba(139,92,246,0.1); }
+.knob-name { font-family: var(--font-code); font-size: 14px; color: var(--p2); font-weight: 500; margin-bottom: 6px; }
+.knob-default { font-family: var(--font-code); font-size: 11px; color: var(--text-muted); margin-bottom: 12px; }
+.knob-default span { color: #fbbf24; font-weight: 500; }
+.knob-desc { font-size: 13px; color: var(--text-dim); line-height: 1.6; margin-bottom: 16px; }
+.knob-bar-wrap { background: rgba(255,255,255,0.05); border-radius: 100px; height: 5px; margin-bottom: 10px; overflow: hidden; }
+.knob-bar { height: 100%; border-radius: 100px; background: linear-gradient(90deg, var(--p1), var(--p2)); width: 0; transition: width 1.2s cubic-bezier(0.23,1,0.32,1); }
+.knob-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.knob-tag { font-family: var(--font-code); font-size: 10px; padding: 2px 8px; border-radius: 4px; background: rgba(139,92,246,0.1); color: var(--p3); border: 1px solid rgba(139,92,246,0.2); }
+
+/* FOOTER */
+.footer-nav { padding: 80px; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 60px; background: rgba(8,8,15,0.85); }
+.footer-toc-title { font-family: var(--font-code); font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-muted); margin-bottom: 20px; }
+.footer-toc-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.footer-toc-item { font-size: 14px; display: flex; align-items: center; gap: 10px; }
+.footer-toc-item .num { font-family: var(--font-code); font-size: 11px; color: var(--text-muted); width: 22px; }
+.footer-toc-item.done     { text-decoration: line-through; color: var(--text-muted); }
+.footer-toc-item.current  { color: var(--p2); font-weight: 500; }
+.footer-toc-item.upcoming { color: var(--text-dim); }
+.footer-next-label { font-family: var(--font-code); font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-muted); margin-bottom: 20px; }
+.footer-next-card { background: rgba(139,92,246,0.07); border: 1px solid rgba(139,92,246,0.22); border-radius: 12px; padding: 28px; transition: all 0.3s; cursor: pointer; }
+.footer-next-card:hover { border-color: var(--p1); background: rgba(139,92,246,0.13); transform: translateX(4px); }
+.footer-next-ch { font-family: var(--font-code); font-size: 12px; color: var(--p2); margin-bottom: 10px; }
+.footer-next-title { font-family: var(--font-title); font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 10px; }
+.footer-next-desc { font-size: 13px; color: var(--text-dim); }
+
+/* REVEAL */
+.reveal { opacity: 0; transform: translateY(22px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+@media (max-width: 768px) {
+  .sidebar { display: none; } .main { margin-left: 0; }
+  .hero { padding: 60px 24px 80px; } section { padding: 60px 24px; }
+  .divider { margin: 0 24px; }
+  .mode-grid, .eo-grid, .knob-grid { grid-template-columns: 1fr; }
+  .statestore-grid, .traps-grid { grid-template-columns: 1fr; }
+  .footer-nav { padding: 40px 24px; grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <span class="sidebar-label">Apache Spark · Deep Learning</span>
+  <span class="sidebar-chapter">CH·03</span>
+  <div class="nav-dots">
+    <div class="nav-dot active" data-section="s1" data-label="执行模式对比"></div>
+    <div class="nav-dot" data-section="s2" data-label="Micro-Batch 内部"></div>
+    <div class="nav-dot" data-section="s3" data-label="Watermark 机制"></div>
+    <div class="nav-dot" data-section="s4" data-label="State Store"></div>
+    <div class="nav-dot" data-section="s5" data-label="Trigger 策略"></div>
+    <div class="nav-dot" data-section="s6" data-label="Exactly-Once"></div>
+    <div class="nav-dot" data-section="s7" data-label="生产调优"></div>
+    <div class="nav-dot" data-section="s8" data-label="常见陷阱"></div>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- HERO -->
+<div class="hero" id="s0">
+  <div class="hero-bg">
+    <div class="hero-grid"></div>
+    <div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div>
+  </div>
+  <div class="hero-content">
+    <div class="chapter-badge"><span class="badge-dot"></span>Chapter 03 · Apache Spark Deep Dive</div>
+    <h1 class="hero-title">结构化流处理<br>Structured Streaming</h1>
+    <p class="hero-subtitle">Structured Streaming 将流处理统一于 DataFrame/SQL 语义之上，以"无界表"模型屏蔽批流差异。深入理解 Micro-Batch 与 Continuous Processing 的执行机制、State Store 的 RocksDB 持久化、Watermark 延迟容忍，以及生产级 Exactly-Once 的实现条件。</p>
+    <div class="pills">
+      <span class="pill">Micro-Batch Engine</span>
+      <span class="pill">Continuous Processing</span>
+      <span class="pill">Watermark</span>
+      <span class="pill">State Store / RocksDB</span>
+      <span class="pill">Trigger Strategy</span>
+      <span class="pill">Exactly-Once Semantics</span>
+      <span class="pill">Kafka Source/Sink</span>
+    </div>
+    <div class="meta-row">
+      <div class="meta-item"><span class="meta-label">难度</span><span class="meta-value">⬛⬛⬛⬛⬜ 高级</span></div>
+      <div class="meta-item"><span class="meta-label">阅读时长</span><span class="meta-value">约 55 分钟</span></div>
+      <div class="meta-item"><span class="meta-label">前置章节</span><span class="meta-value">Ch.01 架构 / Ch.02 Catalyst</span></div>
+      <div class="meta-item"><span class="meta-label">版本</span><span class="meta-value">Spark 3.4 / 3.5</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ══ S1: 执行模式 ══ -->
+<section id="s1">
+  <div class="section-tag">01 / Execution Modes</div>
+  <h2 class="section-title">两种执行模式：Micro-Batch vs Continuous</h2>
+  <p class="section-desc">Structured Streaming 提供两套执行引擎，选择时需在延迟、吞吐、语义保证之间权衡。绝大多数生产场景使用 Micro-Batch。</p>
+
+  <div class="mode-grid reveal">
+    <div class="mode-card micro">
+      <div class="mode-badge micro">⚙ 默认引擎</div>
+      <div class="mode-title">Micro-Batch Processing</div>
+      <div class="mode-latency">延迟：100ms ~ 数秒（可配置）</div>
+      <ul class="mode-list">
+        <li>将流数据切分为微批次，每批次是一个完整的 Spark Job</li>
+        <li>天然支持 Exactly-Once（通过 Offset + WAL 机制）</li>
+        <li>吞吐量高，可充分利用批处理优化（Catalyst、Codegen）</li>
+        <li>支持全部算子：聚合、Join、窗口函数、去重</li>
+        <li>Trigger 间隔可设为 0（尽快处理）或固定间隔</li>
+        <li>Spark 3.x 新增 Available-Now Trigger（一次性消费全量积压）</li>
+      </ul>
+    </div>
+    <div class="mode-card cont">
+      <div class="mode-badge cont">⚡ 实验性</div>
+      <div class="mode-title">Continuous Processing</div>
+      <div class="mode-latency">延迟：~1ms（接近真实流）</div>
+      <ul class="mode-list">
+        <li>Spark 2.3 引入，至今仍为实验特性（Experimental）</li>
+        <li>Record 级别处理，无批次概念，Driver 周期性同步 offset</li>
+        <li>仅支持 At-Least-Once（checkpoint epoch 间可能重复）</li>
+        <li>算子受限：只支持 map、filter、flatMap 等无状态操作</li>
+        <li>不支持聚合、窗口、去重、Sort 等有状态算子</li>
+        <li>生产中极少使用，延迟敏感场景建议用 Flink</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="info-box note reveal">
+    <div class="info-box-icon">💡</div>
+    <div>
+      <div class="info-box-title">无界表（Unbounded Table）模型</div>
+      <div class="info-box-text">
+        Structured Streaming 将流数据抽象为一张<strong>持续追加行的无界表</strong>。用户写 DataFrame/SQL 操作这张表，引擎负责将其翻译为增量计算。这意味着：任何批处理的 DataFrame 逻辑，理论上只需换 Source 和启动方式，即可转为流处理——这是 Flink 等传统流框架无法做到的统一性。
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ S2: Micro-Batch 内部机制 ══ -->
+<section id="s2">
+  <div class="section-tag">02 / Micro-Batch Internals</div>
+  <h2 class="section-title">Micro-Batch 引擎内部执行流程</h2>
+  <p class="section-desc">每一次 Trigger 触发后，Micro-Batch 引擎经历固定的六步执行序列。理解这个流程是排查流作业卡顿、数据丢失和重复处理的基础。</p>
+
+  <div class="pipeline reveal">
+    <div class="pipeline-phase">
+      <div class="pipeline-dot"><div class="pdot"></div><div class="pline"></div></div>
+      <div class="pipeline-node">
+        <div class="pipeline-phase-num">Step 01 · Trigger</div>
+        <div class="pipeline-node-title">触发器激活，确定本批次 Offset 范围</div>
+        <div class="pipeline-node-desc">StreamExecution 轮询 Source，调用 <code style="font-family:var(--font-code);color:#e879f9">getOffset()</code> 获取当前最新 Offset。与上次 Checkpoint 记录的 startOffset 对比，确定本批次的 <code style="font-family:var(--font-code);color:#e879f9">endOffset</code>。若无新数据，根据 Trigger 类型决定等待或退出。</div>
+        <div class="pipeline-tags"><span class="pipeline-tag">StreamExecution</span><span class="pipeline-tag">getOffset()</span><span class="pipeline-tag">batchId 递增</span></div>
+      </div>
+    </div>
+    <div class="pipeline-phase">
+      <div class="pipeline-dot"><div class="pdot"></div><div class="pline"></div></div>
+      <div class="pipeline-node">
+        <div class="pipeline-phase-num">Step 02 · WAL Write</div>
+        <div class="pipeline-node-title">Offset 写入 WAL（Write-Ahead Log）</div>
+        <div class="pipeline-node-desc">Offset 范围 <strong>先于数据处理</strong> 写入 Checkpoint 目录下的 <code style="font-family:var(--font-code);color:#e879f9">offsets/</code> WAL 文件。即使后续处理失败，重启后也能从此 Offset 重新消费，这是 Exactly-Once 的第一道保障。写入使用原子操作（HDFS rename）。</div>
+        <div class="pipeline-tags"><span class="pipeline-tag">WAL</span><span class="pipeline-tag">offsets/ 目录</span><span class="pipeline-tag">原子写入</span></div>
+      </div>
+    </div>
+    <div class="pipeline-phase">
+      <div class="pipeline-dot"><div class="pdot"></div><div class="pline"></div></div>
+      <div class="pipeline-node">
+        <div class="pipeline-phase-num">Step 03 · Batch Execution</div>
+        <div class="pipeline-node-title">触发标准 Spark Job 处理本批次数据</div>
+        <div class="pipeline-node-desc">调用 <code style="font-family:var(--font-code);color:#e879f9">getBatch(startOffset, endOffset)</code> 生成该批次的 DataFrame，经过完整 Catalyst 优化 → 物理计划 → Codegen，作为普通 Spark Job 执行。有状态操作（聚合/Join）会读写 State Store。</div>
+        <div class="pipeline-tags"><span class="pipeline-tag">getBatch()</span><span class="pipeline-tag">Catalyst 优化</span><span class="pipeline-tag">State Store 读写</span></div>
+      </div>
+    </div>
+    <div class="pipeline-phase">
+      <div class="pipeline-dot"><div class="pdot"></div><div class="pline"></div></div>
+      <div class="pipeline-node">
+        <div class="pipeline-phase-num">Step 04 · Sink Commit</div>
+        <div class="pipeline-node-title">幂等写入 Sink，提交 batchId</div>
+        <div class="pipeline-node-desc">结果写入 Sink（Kafka/文件/数据库）。可靠 Sink 实现幂等提交：相同 batchId 的数据写入两次结果相同。Kafka Sink 使用事务 Producer；文件 Sink 通过原子 rename 实现。</div>
+        <div class="pipeline-tags"><span class="pipeline-tag">幂等 Sink</span><span class="pipeline-tag">batchId</span><span class="pipeline-tag">Kafka 事务</span></div>
+      </div>
+    </div>
+    <div class="pipeline-phase">
+      <div class="pipeline-dot"><div class="pdot"></div><div class="pline"></div></div>
+      <div class="pipeline-node">
+        <div class="pipeline-phase-num">Step 05 · Checkpoint Commit</div>
+        <div class="pipeline-node-title">将 Offset 写入 commits/ 标记批次完成</div>
+        <div class="pipeline-node-desc">数据写出成功后，将 endOffset 写入 <code style="font-family:var(--font-code);color:#e879f9">commits/</code> 目录，标记本批次彻底完成。下次重启时，若 offsets 中有记录但 commits 中没有，说明上次处理失败，需重新执行该批次。</div>
+        <div class="pipeline-tags"><span class="pipeline-tag">commits/ 目录</span><span class="pipeline-tag">故障恢复标记</span></div>
+      </div>
+    </div>
+    <div class="pipeline-phase">
+      <div class="pipeline-dot"><div class="pdot"></div></div>
+      <div class="pipeline-node">
+        <div class="pipeline-phase-num">Step 06 · State Checkpoint</div>
+        <div class="pipeline-node-title">异步将 State Store 快照写入持久化存储</div>
+        <div class="pipeline-node-desc">有状态查询还需将 State Store 的内存状态异步 checkpoint 到 HDFS/S3。RocksDB State Store（Spark 3.2+）支持增量 checkpoint，只写出变化的 SST 文件，大幅减少 checkpoint 时间和存储开销。</div>
+        <div class="pipeline-tags"><span class="pipeline-tag">State Checkpoint</span><span class="pipeline-tag">RocksDB 增量</span><span class="pipeline-tag">异步写出</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ S3: Watermark ══ -->
+<section id="s3">
+  <div class="section-tag">03 / Watermark & Late Data Handling</div>
+  <h2 class="section-title">Watermark 机制与乱序数据处理</h2>
+  <p class="section-desc">流数据天然存在乱序——网络延迟、设备离线都可能导致事件时间远落后于处理时间。Watermark 定义了引擎愿意等待延迟数据的最大容忍边界。</p>
+
+  <!-- Watermark 可视化 -->
+  <div class="watermark-vis reveal">
+    <div class="wm-title">Watermark 边界示意（延迟容忍 = 10 分钟）</div>
+    <div class="wm-timeline">
+      <!-- 事件点 -->
+      <div class="ev-dot ontime"  style="left:10%" data-time="12:00 准时"></div>
+      <div class="ev-dot ontime"  style="left:20%" data-time="12:05 准时"></div>
+      <div class="ev-dot late"    style="left:35%" data-time="12:08 晚到"></div>
+      <div class="ev-dot ontime"  style="left:50%" data-time="12:18 准时"></div>
+      <div class="ev-dot late"    style="left:62%" data-time="12:14 晚到"></div>
+      <div class="ev-dot drop"    style="left:75%" data-time="12:03 丢弃"></div>
+      <div class="ev-dot ontime"  style="left:88%" data-time="12:30 准时"></div>
+      <!-- Watermark 线 -->
+      <div class="wm-line" style="left:65%"></div>
+      <div class="wm-axis">
+        <span>12:00</span><span>12:06</span><span>12:12</span><span>12:18</span><span>12:24</span><span>12:30</span>
+      </div>
+    </div>
+    <div class="wm-legend">
+      <div class="wm-legend-item"><div class="wm-dot" style="background:#8b5cf6"></div>准时到达（纳入计算）</div>
+      <div class="wm-legend-item"><div class="wm-dot" style="background:#fbbf24"></div>延迟但在容忍范围内（纳入计算）</div>
+      <div class="wm-legend-item"><div class="wm-dot" style="background:#f43f5e"></div>超出 Watermark（丢弃）</div>
+      <div class="wm-legend-item"><div class="wm-dot" style="background:#e879f9;border-radius:2px;width:12px;height:3px"></div>Watermark 边界（max_event_time − 10min）</div>
+    </div>
+  </div>
+
+  <div class="code-block reveal">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div>
+      <span class="code-filename">watermark_window.py</span>
+      <span class="code-lang">PySpark</span>
+    </div>
+    <div class="code-body"><pre>
+<span class="c-kw">from</span> <span class="c-cls">pyspark.sql</span> <span class="c-kw">import</span> <span class="c-fn">SparkSession</span>
+<span class="c-kw">from</span> <span class="c-cls">pyspark.sql.functions</span> <span class="c-kw">import</span> <span class="c-fn">window</span>, <span class="c-fn">col</span>, <span class="c-fn">count</span>, <span class="c-fn">from_json</span>
+<span class="c-kw">from</span> <span class="c-cls">pyspark.sql.types</span> <span class="c-kw">import</span> <span class="c-fn">StructType</span>, <span class="c-fn">StringType</span>, <span class="c-fn">TimestampType</span>
+
+spark = <span class="c-cls">SparkSession</span>.<span class="c-fn">builder</span> \
+    .<span class="c-fn">config</span>(<span class="c-str">"spark.sql.streaming.statefulOperator.checkCorrectness.enabled"</span>, <span class="c-str">"true"</span>) \
+    .<span class="c-fn">getOrCreate</span>()
+
+schema = <span class="c-cls">StructType</span>() \
+    .<span class="c-fn">add</span>(<span class="c-str">"user_id"</span>, <span class="c-cls">StringType</span>()) \
+    .<span class="c-fn">add</span>(<span class="c-str">"event_type"</span>, <span class="c-cls">StringType</span>()) \
+    .<span class="c-fn">add</span>(<span class="c-str">"event_time"</span>, <span class="c-cls">TimestampType</span>())  <span class="c-cm"># 事件时间（不是处理时间）</span>
+
+<span class="c-cm"># ── Kafka Source ─────────────────────────────────────</span>
+raw = spark.readStream \
+    .<span class="c-fn">format</span>(<span class="c-str">"kafka"</span>) \
+    .<span class="c-fn">option</span>(<span class="c-str">"kafka.bootstrap.servers"</span>, <span class="c-str">"broker:9092"</span>) \
+    .<span class="c-fn">option</span>(<span class="c-str">"subscribe"</span>, <span class="c-str">"user_events"</span>) \
+    .<span class="c-fn">option</span>(<span class="c-str">"startingOffsets"</span>, <span class="c-str">"latest"</span>) \
+    .<span class="c-fn">option</span>(<span class="c-str">"maxOffsetsPerTrigger"</span>, <span class="c-str">"100000"</span>) \  <span class="c-cm"># 限制每批数据量</span>
+    .<span class="c-fn">load</span>()
+
+events = raw.<span class="c-fn">select</span>(<span class="c-fn">from_json</span>(<span class="c-fn">col</span>(<span class="c-str">"value"</span>).<span class="c-fn">cast</span>(<span class="c-str">"string"</span>), schema).<span class="c-fn">alias</span>(<span class="c-str">"data"</span>)) \
+            .<span class="c-fn">select</span>(<span class="c-str">"data.*"</span>)
+
+<span class="c-cm"># ── Watermark + 滑动窗口聚合 ─────────────────────────</span>
+windowed = events \
+    .<span class="c-fn">withWatermark</span>(<span class="c-str">"event_time"</span>, <span class="c-str">"10 minutes"</span>) \  <span class="c-cm"># 容忍最多10分钟延迟</span>
+    .<span class="c-fn">groupBy</span>(
+        <span class="c-fn">window</span>(<span class="c-fn">col</span>(<span class="c-str">"event_time"</span>), <span class="c-str">"5 minutes"</span>, <span class="c-str">"1 minute"</span>),  <span class="c-cm"># 5分钟窗口,1分钟滑动</span>
+        <span class="c-fn">col</span>(<span class="c-str">"event_type"</span>)
+    ) \
+    .<span class="c-fn">agg</span>(<span class="c-fn">count</span>(<span class="c-str">"*"</span>).<span class="c-fn">alias</span>(<span class="c-str">"event_count"</span>))
+
+<span class="c-cm"># ── 输出模式选择（关键！）────────────────────────────
+# append  - 只输出已关闭窗口的最终结果（需要 watermark）
+# update  - 每次 trigger 输出所有变化的行（无需 watermark）
+# complete- 每次输出全量结果（只适合小结果集）</span>
+
+query = windowed.writeStream \
+    .<span class="c-fn">outputMode</span>(<span class="c-str">"append"</span>) \         <span class="c-cm"># 窗口关闭后才输出，保证准确性</span>
+    .<span class="c-fn">format</span>(<span class="c-str">"kafka"</span>) \
+    .<span class="c-fn">option</span>(<span class="c-str">"kafka.bootstrap.servers"</span>, <span class="c-str">"broker:9092"</span>) \
+    .<span class="c-fn">option</span>(<span class="c-str">"topic"</span>, <span class="c-str">"event_counts"</span>) \
+    .<span class="c-fn">option</span>(<span class="c-str">"checkpointLocation"</span>, <span class="c-str">"hdfs://checkpoints/event_count_job"</span>) \
+    .<span class="c-fn">trigger</span>(<span class="c-fn">processingTime</span>=<span class="c-str">"30 seconds"</span>) \
+    .<span class="c-fn">start</span>()
+
+query.<span class="c-fn">awaitTermination</span>()
+</pre></div>
+  </div>
+
+  <div class="info-box warn reveal">
+    <div class="info-box-icon">⚠️</div>
+    <div>
+      <div class="info-box-title">Watermark 的三个关键约束</div>
+      <div class="info-box-text">
+        <strong>① append 模式必须设置 Watermark</strong>：没有 Watermark，引擎不知道窗口何时可以关闭，状态无限增长。<br>
+        <strong>② Watermark 基于最大事件时间</strong>：<code style="font-family:var(--font-code)">watermark = max(event_time) − delay</code>，由所有分区的最大值决定。某个分区停止消费会导致 Watermark 停滞！<br>
+        <strong>③ 多流 Join 的 Watermark</strong>：多流 Join 时，全局 Watermark 取所有流中最小的那个，必须为每个流都设置 Watermark。
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ S4: State Store ══ -->
+<section id="s4">
+  <div class="section-tag">04 / State Store Internals</div>
+  <h2 class="section-title">State Store：有状态计算的核心</h2>
+  <p class="section-desc">所有有状态算子（聚合、流-流 Join、去重、mapGroupsWithState）都依赖 State Store 在批次间保存中间状态。Spark 3.2 引入 RocksDB 后端彻底改变了大状态场景的可行性。</p>
+
+  <div class="statestore-grid reveal">
+    <div class="ss-card">
+      <div class="ss-icon">🏠</div>
+      <div class="ss-title">HDFS-Based State Store（默认）</div>
+      <div class="ss-desc">状态存储在 Executor 内存中（Java HashMap），每次 checkpoint 将全量状态序列化写入 HDFS。状态大时内存压力极大，checkpoint 时间随状态线性增长，可能引发长暂停。</div>
+      <div class="ss-tag">适合状态 &lt; 1GB</div>
+    </div>
+    <div class="ss-card">
+      <div class="ss-icon">🪨</div>
+      <div class="ss-title">RocksDB State Store（3.2+）</div>
+      <div class="ss-desc">使用 RocksDB LSM-Tree 存储状态于堆外（Native Memory），支持增量 checkpoint（仅写出变化的 SST 文件）。状态可超过 Executor 内存限制，checkpoint 时间基本恒定，是生产大状态场景的推荐选择。</div>
+      <div class="ss-tag">适合状态 &gt; 1GB · 增量 Checkpoint</div>
+    </div>
+    <div class="ss-card">
+      <div class="ss-icon">🔑</div>
+      <div class="ss-title">State Schema Evolution（3.4+）</div>
+      <div class="ss-desc">在不丢失历史状态的前提下，允许向 State Schema 新增列（仅支持追加，不支持删除/修改类型）。需要在 <code style="font-family:var(--font-code);color:#e879f9">mapGroupsWithState</code> 中显式声明新旧 schema 的兼容性。</div>
+      <div class="ss-tag">Spark 3.4+ · 仅追加列</div>
+    </div>
+  </div>
+
+  <div class="code-block reveal">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div>
+      <span class="code-filename">rocksdb_statestore.py</span>
+      <span class="code-lang">PySpark</span>
+    </div>
+    <div class="code-body"><pre>
+<span class="c-cm"># ── 启用 RocksDB State Store ──────────────────────────</span>
+spark = <span class="c-cls">SparkSession</span>.<span class="c-fn">builder</span> \
+    .<span class="c-fn">config</span>(
+        <span class="c-str">"spark.sql.streaming.stateStore.providerClass"</span>,
+        <span class="c-str">"org.apache.spark.sql.execution.streaming.state.RocksDBStateStoreProvider"</span>
+    ) \
+    <span class="c-cm"># RocksDB 关键参数</span>
+    .<span class="c-fn">config</span>(<span class="c-str">"spark.sql.streaming.stateStore.rocksdb.changelogCheckpointing.enabled"</span>, <span class="c-str">"true"</span>) \  <span class="c-cm"># 增量 checkpoint</span>
+    .<span class="c-fn">config</span>(<span class="c-str">"spark.sql.streaming.stateStore.rocksdb.compactOnCommit"</span>, <span class="c-str">"false"</span>) \    <span class="c-cm"># 不在提交时做 Compaction</span>
+    .<span class="c-fn">config</span>(<span class="c-str">"spark.sql.streaming.stateStore.rocksdb.blockSizeKB"</span>, <span class="c-str">"4"</span>) \
+    .<span class="c-fn">config</span>(<span class="c-str">"spark.sql.streaming.stateStore.rocksdb.blockCacheSizeMB"</span>, <span class="c-str">"8"</span>) \
+    .<span class="c-fn">getOrCreate</span>()
+
+<span class="c-cm"># ── 自定义状态管理：mapGroupsWithState ───────────────</span>
+<span class="c-kw">from</span> <span class="c-cls">pyspark.sql.streaming.state</span> <span class="c-kw">import</span> <span class="c-cls">GroupState</span>, <span class="c-cls">GroupStateTimeout</span>
+<span class="c-kw">from</span> <span class="c-cls">dataclasses</span> <span class="c-kw">import</span> <span class="c-fn">dataclass</span>
+<span class="c-kw">from</span> <span class="c-cls">typing</span> <span class="c-kw">import</span> <span class="c-cls">Iterator</span>
+
+<span class="c-attr">@dataclass</span>
+<span class="c-kw">class</span> <span class="c-cls">UserSessionState</span>:
+    session_count: <span class="c-cls">int</span> = <span class="c-num">0</span>
+    total_amount: <span class="c-cls">float</span> = <span class="c-num">0.0</span>
+    last_active_ts: <span class="c-cls">int</span> = <span class="c-num">0</span>
+
+<span class="c-kw">def</span> <span class="c-fn">update_session</span>(
+    user_id: <span class="c-cls">str</span>,
+    events: <span class="c-cls">Iterator</span>,
+    state: <span class="c-cls">GroupState</span>[<span class="c-cls">UserSessionState</span>]
+) -> <span class="c-cls">Iterator</span>:
+    <span class="c-cm"># 超时处理（EventTime Timeout = 30分钟无活动视为会话结束）</span>
+    <span class="c-kw">if</span> state.<span class="c-fn">hasTimedOut</span>():
+        final = state.<span class="c-fn">get</span>()
+        state.<span class="c-fn">remove</span>()
+        <span class="c-kw">yield</span> (user_id, final.session_count, final.total_amount, <span class="c-str">"CLOSED"</span>)
+        <span class="c-kw">return</span>
+
+    cur = state.<span class="c-fn">getOption</span>() <span class="c-kw">or</span> <span class="c-cls">UserSessionState</span>()
+    <span class="c-kw">for</span> ev <span class="c-kw">in</span> events:
+        cur.session_count += <span class="c-num">1</span>
+        cur.total_amount += ev.amount
+        cur.last_active_ts = ev.event_time
+
+    state.<span class="c-fn">update</span>(cur)
+    state.<span class="c-fn">setTimeoutDuration</span>(<span class="c-str">"30 minutes"</span>)  <span class="c-cm"># 重置超时计时器</span>
+    <span class="c-kw">yield</span> (user_id, cur.session_count, cur.total_amount, <span class="c-str">"ACTIVE"</span>)
+</pre></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ S5: Trigger 策略 ══ -->
+<section id="s5">
+  <div class="section-tag">05 / Trigger Strategies</div>
+  <h2 class="section-title">Trigger 策略选择指南</h2>
+  <p class="section-desc">Trigger 决定了流作业何时启动下一个 Micro-Batch，不同策略对延迟、吞吐、资源消耗有截然不同的影响。</p>
+
+  <div style="overflow-x:auto;border-radius:12px;border:1px solid var(--border);margin-bottom:40px">
+    <table class="matrix-table reveal">
+      <thead>
+        <tr>
+          <th>Trigger 类型</th>
+          <th>API</th>
+          <th>行为</th>
+          <th>延迟</th>
+          <th>吞吐</th>
+          <th>适用场景</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Default（Unspecified）</td>
+          <td><code style="font-family:var(--font-code)">.trigger()</code> 不传参</td>
+          <td>上批完成立即执行下批</td>
+          <td><span class="compat-y">极低</span></td>
+          <td><span class="compat-y">高</span></td>
+          <td>需要最低延迟的场景</td>
+        </tr>
+        <tr>
+          <td>Fixed Interval</td>
+          <td><code style="font-family:var(--font-code)">processingTime="30s"</code></td>
+          <td>每 N 秒执行一次，上批超时则立即启动</td>
+          <td><span class="compat-w">中</span></td>
+          <td><span class="compat-y">高</span></td>
+          <td>均衡延迟与资源消耗</td>
+        </tr>
+        <tr>
+          <td>Once</td>
+          <td><code style="font-family:var(--font-code)">once=True</code></td>
+          <td>消费当前所有数据，处理一次后停止</td>
+          <td><span class="compat-n">高（批处理）</span></td>
+          <td><span class="compat-y">高</span></td>
+          <td>定时批处理场景（已弃用）</td>
+        </tr>
+        <tr>
+          <td>Available-Now（3.3+）</td>
+          <td><code style="font-family:var(--font-code)">availableNow=True</code></td>
+          <td>消费所有积压数据（多批次），完成后停止</td>
+          <td><span class="compat-n">高（批处理）</span></td>
+          <td><span class="compat-y">极高</span></td>
+          <td>代替 Once，支持流控</td>
+        </tr>
+        <tr>
+          <td>Continuous（实验性）</td>
+          <td><code style="font-family:var(--font-code)">continuous="1s"</code></td>
+          <td>Record 级别处理，定期同步 checkpoint</td>
+          <td><span class="compat-y">~1ms</span></td>
+          <td><span class="compat-w">中</span></td>
+          <td>极低延迟无状态管道</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="code-block reveal">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div>
+      <span class="code-filename">trigger_examples.py</span>
+      <span class="code-lang">PySpark</span>
+    </div>
+    <div class="code-body"><pre>
+<span class="c-kw">from</span> <span class="c-cls">pyspark.sql.streaming</span> <span class="c-kw">import</span> <span class="c-cls">Trigger</span>
+
+<span class="c-cm"># ✅ 生产推荐：固定间隔，平衡延迟与吞吐</span>
+query = df.writeStream \
+    .<span class="c-fn">trigger</span>(<span class="c-fn">processingTime</span>=<span class="c-str">"30 seconds"</span>) \
+    .<span class="c-fn">start</span>()
+
+<span class="c-cm"># ✅ 最低延迟（适合延迟敏感 + 数据量不大）</span>
+query = df.writeStream \
+    .<span class="c-fn">trigger</span>(<span class="c-fn">processingTime</span>=<span class="c-str">"0 seconds"</span>) \  <span class="c-cm"># 等价于默认</span>
+    .<span class="c-fn">start</span>()
+
+<span class="c-cm"># ✅ Available-Now：消费积压数据后自动停止（Spark 3.3+）</span>
+<span class="c-cm"># 适合每小时运行一次、处理过去1小时积压的调度场景</span>
+query = df.writeStream \
+    .<span class="c-fn">trigger</span>(<span class="c-fn">availableNow</span>=<span class="c-kw">True</span>) \
+    .<span class="c-fn">start</span>()
+query.<span class="c-fn">awaitTermination</span>()  <span class="c-cm"># 等待处理完成</span>
+
+<span class="c-cm"># ── 监控流查询状态 ───────────────────────────────────</span>
+query = df.writeStream.<span class="c-fn">start</span>()
+
+<span class="c-cm"># 实时进度（包含处理速率、batch耗时、输入行数等）</span>
+progress = query.<span class="c-fn">lastProgress</span>
+<span class="c-fn">print</span>(f<span class="c-str">"输入速率: {progress['inputRowsPerSecond']:.1f} 行/秒"</span>)
+<span class="c-fn">print</span>(f<span class="c-str">"处理速率: {progress['processedRowsPerSecond']:.1f} 行/秒"</span>)
+<span class="c-fn">print</span>(f<span class="c-str">"Batch 耗时: {progress['batchDuration']} ms"</span>)
+
+<span class="c-cm"># 流状态（ACTIVE / TERMINATED）</span>
+<span class="c-fn">print</span>(query.<span class="c-fn">status</span>)
+</pre></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ S6: Exactly-Once ══ -->
+<section id="s6">
+  <div class="section-tag">06 / Delivery Semantics & Exactly-Once</div>
+  <h2 class="section-title">端到端 Exactly-Once 语义实现</h2>
+  <p class="section-desc">Exactly-Once 是流处理最难保证的语义。Structured Streaming 通过 Source 可重放 + WAL + 幂等 Sink 三者协同实现，缺一不可。</p>
+
+  <div class="eo-grid reveal">
+    <div class="eo-card">
+      <div class="eo-semantic exactly">✓ Exactly-Once</div>
+      <div class="eo-title">恰好一次</div>
+      <div class="eo-desc">每条消息被处理且仅被处理一次，结果幂等写入 Sink。需要 Source 可重放 + 幂等 Sink + WAL 三者同时满足。</div>
+      <div class="eo-req">必需条件：<span>可重放 Source + 幂等/事务 Sink</span></div>
+    </div>
+    <div class="eo-card">
+      <div class="eo-semantic atleast">~ At-Least-Once</div>
+      <div class="eo-title">至少一次</div>
+      <div class="eo-desc">每条消息至少被处理一次，失败重试可能导致重复处理。Sink 不支持幂等时（如 JDBC append）会产生重复数据。</div>
+      <div class="eo-req">条件：<span>可重放 Source，任意 Sink</span></div>
+    </div>
+    <div class="eo-card">
+      <div class="eo-semantic atmost">○ At-Most-Once</div>
+      <div class="eo-title">至多一次</div>
+      <div class="eo-desc">消息可能丢失，但不重复。Source 不可重放（如直接 Socket）或不保存 Offset 时退化为此语义。生产中应避免。</div>
+      <div class="eo-req">条件：<span>不可重放 Source</span></div>
+    </div>
+    <div class="eo-card">
+      <div class="eo-semantic exactly">✓ Kafka → Kafka 端到端</div>
+      <div class="eo-title">实际生产中最常见的 E2E 配置</div>
+      <div class="eo-desc">Kafka Source（可重放）+ WAL Checkpoint + Kafka Sink（事务 Producer）。Kafka Sink 使用两阶段提交：先写入事务，Batch 成功后 commit，失败则 abort，下次重放时写入新事务。</div>
+      <div class="eo-req">配置：<span>kafka.isolation.level = read_committed</span></div>
+    </div>
+  </div>
+
+  <div class="code-block reveal">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div>
+      <span class="code-filename">exactly_once_kafka.py</span>
+      <span class="code-lang">PySpark</span>
+    </div>
+    <div class="code-body"><pre>
+<span class="c-cm"># ── Kafka → Spark Streaming → Kafka 端到端 Exactly-Once ──</span>
+
+<span class="c-cm"># Source: Kafka（天然可重放，通过 Checkpoint 记录 Offset）</span>
+source = spark.readStream \
+    .<span class="c-fn">format</span>(<span class="c-str">"kafka"</span>) \
+    .<span class="c-fn">option</span>(<span class="c-str">"kafka.bootstrap.servers"</span>, <span class="c-str">"broker:9092"</span>) \
+    .<span class="c-fn">option</span>(<span class="c-str">"subscribe"</span>, <span class="c-str">"input_topic"</span>) \
+    .<span class="c-fn">option</span>(<span class="c-str">"startingOffsets"</span>, <span class="c-str">"earliest"</span>) \
+    .<span class="c-fn">load</span>()
+
+processed = source.<span class="c-fn">selectExpr</span>(<span class="c-str">"CAST(value AS STRING) as value"</span>)
+
+<span class="c-cm"># Sink: Kafka（事务 Producer，开启后自动 Exactly-Once）</span>
+query = processed.writeStream \
+    .<span class="c-fn">format</span>(<span class="c-str">"kafka"</span>) \
+    .<span class="c-fn">option</span>(<span class="c-str">"kafka.bootstrap.servers"</span>, <span class="c-str">"broker:9092"</span>) \
+    .<span class="c-fn">option</span>(<span class="c-str">"topic"</span>, <span class="c-str">"output_topic"</span>) \
+    .<span class="c-fn">option</span>(<span class="c-str">"checkpointLocation"</span>, <span class="c-str">"hdfs://checkpoints/e2e_job"</span>) \  <span class="c-cm"># 必须！</span>
+    .<span class="c-fn">option</span>(<span class="c-str">"kafka.enable.idempotence"</span>, <span class="c-str">"true"</span>) \   <span class="c-cm"># Producer 幂等</span>
+    .<span class="c-fn">option</span>(<span class="c-str">"kafka.transactional.id"</span>, <span class="c-str">"spark-stream-job-1"</span>) \  <span class="c-cm"># 事务 ID（唯一）</span>
+    .<span class="c-fn">option</span>(<span class="c-str">"kafka.transaction.timeout.ms"</span>, <span class="c-str">"900000"</span>) \  <span class="c-cm"># 15分钟超时</span>
+    .<span class="c-fn">trigger</span>(<span class="c-fn">processingTime</span>=<span class="c-str">"10 seconds"</span>) \
+    .<span class="c-fn">start</span>()
+
+<span class="c-cm"># ── 消费侧也需配置隔离级别 ───────────────────────────</span>
+<span class="c-cm"># Consumer 必须设置 isolation.level=read_committed
+# 否则会读到事务中间状态（uncommitted 消息）</span>
+consumer_config = {
+    <span class="c-str">"kafka.isolation.level"</span>: <span class="c-str">"read_committed"</span>
+}
+</pre></div>
+  </div>
+
+  <div class="info-box danger reveal">
+    <div class="info-box-icon">🚨</div>
+    <div>
+      <div class="info-box-title">Checkpoint 目录：不可随意删除</div>
+      <div class="info-box-text">
+        Checkpoint 目录存储了 Offset WAL、State Store 快照、Schema 信息。删除后重启 = 从头消费，可能产生数据重复或丢失。<br>
+        变更 query 逻辑（如新增列、修改 schema）有时需要新建 checkpoint，此时必须手动处理历史 Offset 的重放逻辑。<br>
+        <strong>生产铁律：checkpoint 目录绑定作业版本，升级时用新路径，旧路径归档保留至少 7 天。</strong>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ S7: 生产调优 ══ -->
+<section id="s7">
+  <div class="section-tag">07 / Production Tuning</div>
+  <h2 class="section-title">生产关键配置与调优参数</h2>
+  <p class="section-desc">流作业长期运行的稳定性调优，与批处理有本质区别——需要重点关注状态增长、Trigger 延迟抖动和背压控制。</p>
+
+  <div class="knob-grid reveal">
+    <div class="knob-card">
+      <div class="knob-name">maxOffsetsPerTrigger</div>
+      <div class="knob-default">默认值：<span>无限制</span> · 推荐：按数据量设置</div>
+      <div class="knob-desc">限制每个 Micro-Batch 消费的最大 Offset 数量（即消息数）。避免积压时单批次数据量爆炸导致 OOM 或 Trigger 时间过长。Kafka Source 下每个 Partition 独立计算。</div>
+      <div class="knob-bar-wrap"><div class="knob-bar" data-w="85%"></div></div>
+      <div class="knob-tags"><span class="knob-tag">背压控制</span><span class="knob-tag">Kafka 专用</span></div>
+    </div>
+    <div class="knob-card">
+      <div class="knob-name">minBatchesToRetain</div>
+      <div class="knob-default">默认值：<span>100</span> · 生产推荐：保持默认</div>
+      <div class="knob-desc">Checkpoint 中保留的最小批次数。用于故障恢复时的 Offset 回溯。设置过小会导致历史 Offset 被清理，无法恢复到更早的检查点。</div>
+      <div class="knob-bar-wrap"><div class="knob-bar" data-w="45%"></div></div>
+      <div class="knob-tags"><span class="knob-tag">故障恢复</span><span class="knob-tag">Checkpoint 保留</span></div>
+    </div>
+    <div class="knob-card">
+      <div class="knob-name">statefulOperator.stateStoreMetrics</div>
+      <div class="knob-default">默认：<span>false</span> · 生产推荐：true</div>
+      <div class="knob-desc">开启后 Spark UI 的 Streaming 页面显示详细 State Store 指标：状态行数、大小、读写延迟。是排查状态膨胀和 RocksDB 性能问题的必要工具。</div>
+      <div class="knob-bar-wrap"><div class="knob-bar" data-w="70%"></div></div>
+      <div class="knob-tags"><span class="knob-tag">可观测性</span><span class="knob-tag">State 监控</span></div>
+    </div>
+    <div class="knob-card">
+      <div class="knob-name">shuffle.partitions（流式场景）</div>
+      <div class="knob-default">默认值：<span>200</span> · 推荐：与 Kafka 分区数对齐</div>
+      <div class="knob-desc">流式场景下不建议开启 AQE 的 coalescePartitions（会导致分区数在批次间变化，破坏状态亲和性）。应固定设置为 Kafka Topic 分区数的整数倍，保证 State Store 本地性。</div>
+      <div class="knob-bar-wrap"><div class="knob-bar" data-w="65%"></div></div>
+      <div class="knob-tags"><span class="knob-tag">State 亲和性</span><span class="knob-tag">慎用 AQE</span></div>
+    </div>
+  </div>
+
+  <div style="margin-top:44px">
+    <h3 style="font-family:var(--font-title);font-size:20px;margin-bottom:24px;color:#fff;">流作业关键监控指标</h3>
+    <div class="progress-section reveal">
+      <div class="progress-item">
+        <div class="progress-label">
+          <span class="progress-name">inputRowsPerSecond vs processedRowsPerSecond（追上速率 = 健康）</span>
+          <span class="progress-val">目标：处理 ≥ 输入</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" data-w="90%"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-label">
+          <span class="progress-name">batchDuration（批次处理时间，应 &lt; Trigger 间隔）</span>
+          <span class="progress-val">目标：&lt; triggerInterval</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" data-w="75%"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-label">
+          <span class="progress-name">State Store 行数增长率（无 Watermark 时应有上界）</span>
+          <span class="progress-val">目标：稳定或缓慢增长</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" data-w="60%"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-label">
+          <span class="progress-name">Kafka Consumer Lag（积压消息数，应趋近于0）</span>
+          <span class="progress-val">目标：Lag → 0</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" data-w="80%"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ S8: 常见陷阱 ══ -->
+<section id="s8">
+  <div class="section-tag">08 / Common Pitfalls</div>
+  <h2 class="section-title">生产常见陷阱与排查清单</h2>
+  <p class="section-desc">流作业的陷阱往往比批处理更隐蔽——问题可能在运行数天后才显现，且难以复现。</p>
+
+  <div class="traps-grid reveal">
+    <div class="trap-card">
+      <div class="trap-icon">📈</div>
+      <div class="trap-title">State 无限膨胀</div>
+      <div class="trap-desc">未设置 Watermark 或 TTL 的聚合/去重操作，State Store 随时间线性增长，最终 OOM。必须为所有有状态算子设置 <code style="font-family:var(--font-code);color:#a78bfa">withWatermark</code> 或 <code style="font-family:var(--font-code);color:#a78bfa">flatMapGroupsWithState</code> 中的超时清理逻辑。</div>
+    </div>
+    <div class="trap-card">
+      <div class="trap-icon">🧊</div>
+      <div class="trap-title">Watermark 停滞</div>
+      <div class="trap-desc">某个 Kafka 分区长期无数据，其 max_event_time 不更新，导致全局 Watermark 停滞，窗口永不关闭，数据堆积。需监控各分区消费活跃度，考虑设置 <code style="font-family:var(--font-code);color:#a78bfa">kafka.group.id</code> 专属，避免与其他消费者干扰。</div>
+    </div>
+    <div class="trap-card">
+      <div class="trap-icon">🔀</div>
+      <div class="trap-title">输出模式选择错误</div>
+      <div class="trap-desc">对聚合结果使用 <code style="font-family:var(--font-code);color:#a78bfa">append</code> 模式但未设 Watermark，运行报错；使用 <code style="font-family:var(--font-code);color:#a78bfa">complete</code> 模式写 Kafka 导致每批全量重写。需严格匹配算子类型与输出模式的兼容矩阵。</div>
+    </div>
+    <div class="trap-card">
+      <div class="trap-icon">🔄</div>
+      <div class="trap-title">AQE 与 State 亲和性冲突</div>
+      <div class="trap-desc">流式作业开启 AQE 的 coalescePartitions 后，不同 Batch 的 Shuffle 分区数可能不同，导致 State Store 的 Key 被路由到不同 Executor，状态读取失败或性能骤降。流式场景应固定 shuffle.partitions 并禁用分区合并。</div>
+    </div>
+    <div class="trap-card">
+      <div class="trap-icon">💸</div>
+      <div class="trap-title">Checkpoint 写入成为瓶颈</div>
+      <div class="trap-desc">大状态作业使用默认 HDFS State Store 时，全量 Checkpoint 时间可能超过 Trigger 间隔，导致 Batch 时间持续累积。升级到 RocksDB State Store + 增量 Checkpoint 是根本解决方案。</div>
+    </div>
+    <div class="trap-card">
+      <div class="trap-icon">🕳️</div>
+      <div class="trap-title">流-流 Join 的笛卡尔积陷阱</div>
+      <div class="trap-desc">两个流做 Join 时，若未设置 Watermark 和 Join 时间范围条件，引擎需要缓存所有历史数据等待匹配，状态无限增长。必须同时设置双流 Watermark 和 <code style="font-family:var(--font-code);color:#a78bfa">interval join</code> 条件。</div>
+    </div>
+  </div>
+
+  <div class="info-box tip reveal" style="margin-top:16px">
+    <div class="info-box-icon">🛠</div>
+    <div>
+      <div class="info-box-title">流作业排查黄金检查清单</div>
+      <div class="info-box-text">
+        <strong>Batch 变慢</strong> → 查 lastProgress.batchDuration 趋势；检查 State Store 大小；检查 Kafka Lag 是否在增长<br>
+        <strong>数据重复</strong> → 确认 Checkpoint 目录未被删除；Sink 是否幂等；Kafka 是否开启事务<br>
+        <strong>窗口不关闭</strong> → 确认 Watermark 在正常推进；检查是否有 Kafka 分区消费停滞<br>
+        <strong>OOM</strong> → 检查 State Store 行数；切换 RocksDB；检查 maxOffsetsPerTrigger 是否过大
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FOOTER -->
+<footer class="footer-nav">
+  <div>
+    <div class="footer-toc-title">完整课程目录</div>
+    <ul class="footer-toc-list">
+      <li class="footer-toc-item done"><span class="num">01</span>核心架构与执行引擎原理</li>
+      <li class="footer-toc-item done"><span class="num">02</span>Catalyst 优化器与 Tungsten 引擎</li>
+      <li class="footer-toc-item current"><span class="num">03</span>结构化流处理（Structured Streaming）</li>
+      <li class="footer-toc-item upcoming"><span class="num">04</span>存储格式与数据湖集成（Delta/Iceberg）</li>
+      <li class="footer-toc-item upcoming"><span class="num">05</span>性能调优：诊断方法论与实战</li>
+      <li class="footer-toc-item upcoming"><span class="num">06</span>生产运维：部署、监控与故障恢复</li>
+    </ul>
+  </div>
+  <div>
+    <div class="footer-next-label">下一章预告</div>
+    <div class="footer-next-card">
+      <div class="footer-next-ch">Chapter 04 · Storage Formats & Lakehouse</div>
+      <div class="footer-next-title">存储格式与数据湖集成</div>
+      <div class="footer-next-desc">深入 Parquet/ORC 的列式存储编码机制（字典编码、RLE、Delta 编码）；剖析 Delta Lake 的事务日志（Transaction Log）实现 ACID 的原理；对比 Delta Lake vs Apache Iceberg vs Apache Hudi 的架构差异与选型建议。</div>
+    </div>
+  </div>
+</footer>
+
+</main>
+
+<script>
+// REVEAL
+const ro = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const el = e.target;
+      const sibs = [...el.parentElement.querySelectorAll('.reveal')];
+      el.style.transitionDelay = `${sibs.indexOf(el) * 60}ms`;
+      el.classList.add('visible');
+      ro.unobserve(el);
+    }
+  });
+}, { threshold: 0.07 });
+document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
+
+// BARS
+const bo = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('.knob-bar, .progress-fill').forEach(b => {
+        setTimeout(() => b.style.width = b.getAttribute('data-w'), 180);
+      });
+      bo.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.2 });
+document.querySelectorAll('.knob-card, .progress-item').forEach(el => bo.observe(el));
+
+// SIDEBAR
+const sections = document.querySelectorAll('section[id]');
+const dots = document.querySelectorAll('.nav-dot');
+const so = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) dots.forEach(d => d.classList.toggle('active', d.dataset.section === e.target.id));
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => so.observe(s));
+dots.forEach(d => d.addEventListener('click', () => document.getElementById(d.dataset.section)?.scrollIntoView({ behavior: 'smooth' })));
+</script>
+</body>
+</html>

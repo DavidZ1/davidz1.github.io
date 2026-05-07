@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apache Spark 深度学习 · 第2章：Catalyst 优化器与 Tungsten 引擎</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #08080f;
+  --bg2: #0a0f0d;
+  --bg3: #0d1a14;
+  --p1: #06d6a0;
+  --p2: #00b4d8;
+  --p3: #34d399;
+  --p-glow: rgba(6,214,160,0.3);
+  --p-glow2: rgba(0,180,216,0.2);
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --text-muted: #475569;
+  --border: rgba(6,214,160,0.15);
+  --border2: rgba(0,180,216,0.22);
+  --card: rgba(10,15,13,0.85);
+  --sidebar-w: 68px;
+  --font-title: 'Syne', sans-serif;
+  --font-code: 'JetBrains Mono', monospace;
+  --font-body: 'Noto Sans SC', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ══════════════ SIDEBAR ══════════════ */
+.sidebar {
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  width: var(--sidebar-w);
+  background: rgba(8,8,15,0.96);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 0;
+  z-index: 100;
+  backdrop-filter: blur(14px);
+}
+
+.sidebar-label {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  font-family: var(--font-code);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: auto;
+}
+
+.sidebar-chapter {
+  font-family: var(--font-title);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--p1);
+  letter-spacing: 0.05em;
+  margin-bottom: 24px;
+}
+
+.nav-dots { display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px; }
+
+.nav-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+}
+.nav-dot.active {
+  background: var(--p1);
+  box-shadow: 0 0 8px var(--p1);
+  transform: scale(1.4);
+}
+.nav-dot::after {
+  content: attr(data-label);
+  position: absolute;
+  left: 16px; top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-code);
+  font-size: 10px;
+  color: var(--p1);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+.nav-dot:hover::after { opacity: 1; }
+
+/* ══════════════ MAIN ══════════════ */
+.main { margin-left: var(--sidebar-w); min-height: 100vh; }
+
+/* ══════════════ HERO ══════════════ */
+.hero {
+  position: relative;
+  padding: 100px 80px 120px;
+  overflow: hidden;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.hero-bg { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.35;
+}
+.orb1 {
+  width: 700px; height: 700px;
+  background: radial-gradient(circle, #06d6a0, transparent 70%);
+  top: -200px; right: -150px;
+  animation: floatA 12s ease-in-out infinite;
+}
+.orb2 {
+  width: 450px; height: 450px;
+  background: radial-gradient(circle, #00b4d8, transparent 70%);
+  bottom: 0; left: 50px;
+  animation: floatB 9s ease-in-out infinite;
+}
+.orb3 {
+  width: 320px; height: 320px;
+  background: radial-gradient(circle, #0891b2, transparent 70%);
+  top: 35%; left: 35%;
+  animation: floatC 14s ease-in-out infinite;
+}
+
+@keyframes floatA { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-25px,35px) scale(1.06)} }
+@keyframes floatB { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(18px,-25px) scale(0.94)} }
+@keyframes floatC { 0%,100%{transform:translate(0,0)} 33%{transform:translate(-30px,15px) scale(1.04)} 66%{transform:translate(25px,-18px) scale(0.96)} }
+
+.hero-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(6,214,160,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6,214,160,0.04) 1px, transparent 1px);
+  background-size: 55px 55px;
+}
+
+/* Hex decoration */
+.hero-hex {
+  position: absolute;
+  right: 8%;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.06;
+  pointer-events: none;
+}
+
+.hero-content { position: relative; z-index: 2; max-width: 880px; }
+
+.chapter-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(6,214,160,0.1);
+  border: 1px solid rgba(6,214,160,0.25);
+  border-radius: 100px;
+  padding: 8px 18px;
+  margin-bottom: 40px;
+  font-family: var(--font-code);
+  font-size: 12px;
+  color: var(--p1);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.badge-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--p1);
+  box-shadow: 0 0 6px var(--p1);
+  animation: breathe 2.2s ease-in-out infinite;
+}
+@keyframes breathe { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.35;transform:scale(0.65)} }
+
+.hero-title {
+  font-family: var(--font-title);
+  font-size: clamp(50px, 6.5vw, 82px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  margin-bottom: 22px;
+  background: linear-gradient(135deg, #ffffff 0%, var(--p1) 45%, var(--p2) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  background-size: 200% 200%;
+  animation: shimmer 5s ease infinite;
+}
+@keyframes shimmer { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+
+.hero-subtitle {
+  font-size: 17px;
+  color: var(--text-dim);
+  margin-bottom: 36px;
+  max-width: 640px;
+  font-weight: 300;
+  line-height: 1.75;
+}
+
+.pills { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 44px; }
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(6,214,160,0.08);
+  border: 1px solid rgba(6,214,160,0.2);
+  border-radius: 6px; padding: 6px 14px;
+  font-family: var(--font-code); font-size: 12px; color: var(--p3);
+}
+.pill::before { content: '◆'; font-size: 8px; color: var(--p1); }
+
+.meta-row { display: flex; gap: 32px; flex-wrap: wrap; }
+.meta-item { display: flex; flex-direction: column; gap: 4px; }
+.meta-label {
+  font-family: var(--font-code); font-size: 10px;
+  text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted);
+}
+.meta-value { font-family: var(--font-code); font-size: 13px; color: var(--p1); font-weight: 500; }
+
+/* ══════════════ SECTIONS ══════════════ */
+section { padding: 100px 80px; position: relative; }
+section:nth-child(even) { background: rgba(10,15,13,0.5); }
+
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--p1), var(--p2), transparent);
+  margin: 0 80px; opacity: 0.35;
+}
+
+.section-tag {
+  font-family: var(--font-code); font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.15em;
+  color: var(--p1); margin-bottom: 14px; opacity: 0.85;
+}
+.section-title {
+  font-family: var(--font-title);
+  font-size: clamp(28px, 3.8vw, 44px);
+  font-weight: 700; line-height: 1.1;
+  margin-bottom: 14px; color: #fff;
+}
+.section-desc {
+  font-size: 15px; color: var(--text-dim);
+  max-width: 640px; margin-bottom: 56px; font-weight: 300;
+}
+
+/* ══════════════ CATALYST 4-PHASE FLOW ══════════════ */
+.catalyst-flow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  position: relative;
+  margin-bottom: 48px;
+}
+
+.catalyst-flow::before {
+  content: '';
+  position: absolute;
+  top: 54px;
+  left: calc(12.5% + 10px);
+  right: calc(12.5% + 10px);
+  height: 2px;
+  background: linear-gradient(90deg, var(--p1), var(--p2), var(--p1), var(--p2));
+  z-index: 0;
+}
+
+.catalyst-phase {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 0 12px;
+  position: relative; z-index: 1;
+}
+
+.catalyst-num-wrap {
+  width: 48px; height: 48px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.catalyst-num-wrap::before {
+  content: '';
+  position: absolute; inset: -3px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--p1), var(--p2));
+  z-index: -1;
+}
+
+.catalyst-num {
+  width: 100%; height: 100%; border-radius: 50%;
+  background: #0a0f0d;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-title); font-size: 16px;
+  font-weight: 700; color: var(--p1);
+}
+
+.catalyst-phase-name {
+  font-family: var(--font-title); font-size: 15px;
+  font-weight: 600; color: #fff;
+  text-align: center; margin-bottom: 10px;
+}
+
+.catalyst-phase-sub {
+  font-family: var(--font-code); font-size: 10px;
+  color: var(--p1); text-align: center;
+  margin-bottom: 14px; opacity: 0.8;
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+
+.catalyst-phase-body {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+  width: 100%;
+  transition: all 0.3s;
+}
+.catalyst-phase-body:hover {
+  border-color: var(--p1);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 36px rgba(6,214,160,0.12);
+}
+
+.catalyst-phase-body ul {
+  list-style: none; display: flex; flex-direction: column; gap: 8px;
+}
+.catalyst-phase-body li {
+  font-size: 12.5px; color: var(--text-dim);
+  display: flex; gap: 8px; align-items: flex-start;
+  line-height: 1.5;
+}
+.catalyst-phase-body li::before {
+  content: '→'; color: var(--p1); font-family: var(--font-code);
+  font-size: 11px; flex-shrink: 0; margin-top: 2px;
+}
+
+/* ══════════════ RULE TREE ══════════════ */
+.rule-tree {
+  display: flex; flex-direction: column; gap: 12px;
+  max-width: 820px;
+}
+
+.rule-group {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden;
+  transition: all 0.3s;
+}
+.rule-group:hover { border-color: rgba(6,214,160,0.3); }
+
+.rule-group-header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 22px;
+  background: rgba(6,214,160,0.05);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.rule-group-icon { font-size: 18px; }
+
+.rule-group-name {
+  font-family: var(--font-title); font-size: 15px;
+  font-weight: 600; color: #fff;
+}
+
+.rule-group-count {
+  margin-left: auto;
+  font-family: var(--font-code); font-size: 11px;
+  color: var(--p1); background: rgba(6,214,160,0.1);
+  padding: 3px 9px; border-radius: 100px;
+}
+
+.rule-items {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  padding: 16px 22px;
+}
+
+.rule-item {
+  font-family: var(--font-code); font-size: 12px;
+  color: var(--p2);
+  background: rgba(0,180,216,0.07);
+  border: 1px solid rgba(0,180,216,0.18);
+  border-radius: 6px; padding: 5px 12px;
+  cursor: default; transition: all 0.2s;
+}
+.rule-item:hover {
+  background: rgba(0,180,216,0.15);
+  border-color: var(--p2);
+  transform: translateY(-2px);
+}
+
+/* ══════════════ CODE BLOCKS ══════════════ */
+.code-block {
+  background: #050a07;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden; margin: 24px 0;
+}
+
+.code-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 14px 20px;
+  background: rgba(255,255,255,0.025);
+  border-bottom: 1px solid var(--border);
+}
+
+.code-dots { display: flex; gap: 7px; }
+.code-dot { width: 12px; height: 12px; border-radius: 50%; }
+.code-dot.r { background: #ff5f57; }
+.code-dot.y { background: #febc2e; }
+.code-dot.g { background: #28c840; }
+
+.code-filename {
+  font-family: var(--font-code); font-size: 12px;
+  color: var(--text-muted); margin-left: 8px; letter-spacing: 0.05em;
+}
+.code-lang {
+  margin-left: auto;
+  font-family: var(--font-code); font-size: 10px;
+  color: var(--p1); background: rgba(6,214,160,0.1);
+  padding: 3px 9px; border-radius: 4px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+
+.code-body {
+  padding: 24px;
+  font-family: var(--font-code); font-size: 13.5px;
+  line-height: 1.9; overflow-x: auto;
+}
+.code-body pre { white-space: pre; }
+
+.c-kw  { color: #67e8f9; }
+.c-fn  { color: #86efac; }
+.c-str { color: #fde68a; }
+.c-num { color: #fda4af; }
+.c-cm  { color: #3d5a48; font-style: italic; }
+.c-cls { color: #c4b5fd; }
+.c-var { color: #e2e8f0; }
+.c-op  { color: #6b7280; }
+.c-attr{ color: #06d6a0; }
+.c-kw2 { color: #a5f3fc; }
+
+/* ══════════════ INFO BOXES ══════════════ */
+.info-box {
+  border-radius: 10px; padding: 18px 22px; margin: 20px 0;
+  border-left: 3px solid; display: flex; gap: 14px;
+}
+.info-box-icon { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
+.info-box-title {
+  font-family: var(--font-code); font-size: 12px;
+  font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+.info-box-text { font-size: 14px; color: var(--text-dim); line-height: 1.65; }
+
+.info-box.tip   { background: rgba(6,214,160,0.07); border-color: var(--p1); }
+.info-box.tip   .info-box-title { color: var(--p1); }
+.info-box.warn  { background: rgba(251,146,60,0.07); border-color: #fb923c; }
+.info-box.warn  .info-box-title { color: #fb923c; }
+.info-box.note  { background: rgba(0,180,216,0.07); border-color: var(--p2); }
+.info-box.note  .info-box-title { color: var(--p2); }
+.info-box.danger{ background: rgba(244,63,94,0.07); border-color: #f43f5e; }
+.info-box.danger .info-box-title { color: #f43f5e; }
+
+/* ══════════════ CODEGEN VISUALIZER ══════════════ */
+.codegen-split {
+  display: grid; grid-template-columns: 1fr 80px 1fr; gap: 0;
+  align-items: center; margin: 32px 0;
+}
+
+.codegen-panel {
+  background: #050a07;
+  border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden;
+}
+
+.codegen-panel-header {
+  padding: 12px 18px;
+  background: rgba(6,214,160,0.05);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+
+.codegen-label {
+  font-family: var(--font-code); font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.1em;
+}
+.codegen-label.before { color: #f87171; }
+.codegen-label.after  { color: var(--p1); }
+
+.codegen-arrow {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 6px;
+}
+.codegen-arrow-line {
+  width: 2px; height: 50px;
+  background: linear-gradient(to bottom, var(--p1), var(--p2));
+}
+.codegen-arrow-text {
+  font-family: var(--font-code); font-size: 9px;
+  color: var(--p1); text-transform: uppercase;
+  letter-spacing: 0.1em; text-align: center;
+  writing-mode: horizontal-tb;
+}
+
+/* ══════════════ TUNGSTEN CARDS ══════════════ */
+.tungsten-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+  margin: 28px 0;
+}
+
+.tungsten-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 26px;
+  transition: all 0.3s; position: relative; overflow: hidden;
+}
+.tungsten-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 2px; opacity: 0; transition: opacity 0.3s;
+  background: linear-gradient(90deg, var(--p1), var(--p2));
+}
+.tungsten-card:hover { transform: translateY(-4px); border-color: rgba(6,214,160,0.3); box-shadow: 0 12px 36px rgba(6,214,160,0.1); }
+.tungsten-card:hover::before { opacity: 1; }
+
+.tungsten-icon { font-size: 28px; margin-bottom: 14px; }
+.tungsten-title { font-family: var(--font-title); font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 10px; }
+.tungsten-desc { font-size: 13px; color: var(--text-dim); line-height: 1.65; }
+.tungsten-tag {
+  display: inline-block; margin-top: 12px;
+  font-family: var(--font-code); font-size: 10px;
+  color: var(--p1); background: rgba(6,214,160,0.09);
+  border: 1px solid rgba(6,214,160,0.2);
+  padding: 3px 9px; border-radius: 4px;
+}
+
+/* ══════════════ JOIN STRATEGY TABLE ══════════════ */
+.matrix-table {
+  width: 100%; border-collapse: collapse;
+  font-family: var(--font-code); font-size: 13px;
+}
+.matrix-table th {
+  padding: 12px 18px; text-align: left;
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--text-muted); border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
+}
+.matrix-table td {
+  padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.04);
+  color: var(--text-dim); font-size: 13px; transition: background 0.2s;
+}
+.matrix-table tr:hover td { background: rgba(6,214,160,0.04); }
+.matrix-table td:first-child { color: var(--text); font-weight: 500; }
+
+.compat-y { color: #4ade80; font-weight: 600; }
+.compat-w { color: #fbbf24; }
+.compat-n { color: #f87171; }
+.compat-b { color: var(--p2); font-weight: 600; }
+
+/* ══════════════ PLAN DIFF ══════════════ */
+.plan-diff {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 28px 0;
+}
+
+.plan-panel {
+  background: #050a07; border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden;
+}
+
+.plan-header {
+  padding: 12px 18px;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-code); font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.plan-header.before { color: #f87171; }
+.plan-header.after  { color: var(--p1); }
+
+.plan-body {
+  padding: 20px;
+  font-family: var(--font-code); font-size: 12.5px;
+  line-height: 2; color: var(--text-dim);
+}
+
+.plan-line { display: flex; gap: 8px; align-items: flex-start; }
+.plan-indent { padding-left: 22px; }
+.plan-indent2 { padding-left: 44px; }
+
+.ph-removed { color: #f87171; text-decoration: line-through; opacity: 0.7; }
+.ph-added   { color: var(--p1); font-weight: 500; }
+.ph-changed { color: #fbbf24; }
+.ph-op      { color: #60a5fa; }
+.ph-neutral { color: var(--text-dim); }
+
+/* ══════════════ PROGRESS BARS ══════════════ */
+.progress-section { display: flex; flex-direction: column; gap: 18px; }
+.progress-label { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.progress-name { font-family: var(--font-code); font-size: 13px; color: var(--text); }
+.progress-val  { font-family: var(--font-code); font-size: 12px; color: var(--p1); }
+.progress-track {
+  height: 6px; background: rgba(255,255,255,0.06);
+  border-radius: 100px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; border-radius: 100px; width: 0;
+  transition: width 1.4s cubic-bezier(0.23,1,0.32,1);
+  background: linear-gradient(90deg, var(--p1), var(--p2));
+}
+
+/* ══════════════ TRAPS ══════════════ */
+.traps-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 16px; margin: 28px 0;
+}
+.trap-card {
+  background: rgba(244,63,94,0.04);
+  border: 1px solid rgba(244,63,94,0.15);
+  border-radius: 10px; padding: 22px;
+  transition: all 0.3s; position: relative; overflow: hidden;
+}
+.trap-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, #f43f5e, #fb7185);
+  opacity: 0; transition: opacity 0.3s;
+}
+.trap-card:hover { border-color: rgba(244,63,94,0.3); transform: translateY(-3px); }
+.trap-card:hover::before { opacity: 1; }
+.trap-icon { font-size: 24px; margin-bottom: 12px; }
+.trap-title { font-family: var(--font-title); font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 8px; }
+.trap-desc  { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+
+/* ══════════════ KNOB CARDS ══════════════ */
+.knob-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin: 28px 0; }
+.knob-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 24px; transition: all 0.3s;
+}
+.knob-card:hover { border-color: rgba(6,214,160,0.3); box-shadow: 0 8px 30px rgba(6,214,160,0.08); }
+.knob-name  { font-family: var(--font-code); font-size: 14px; color: var(--p1); font-weight: 500; margin-bottom: 6px; }
+.knob-default { font-family: var(--font-code); font-size: 11px; color: var(--text-muted); margin-bottom: 12px; }
+.knob-default span { color: #fbbf24; font-weight: 500; }
+.knob-desc  { font-size: 13px; color: var(--text-dim); line-height: 1.6; margin-bottom: 16px; }
+.knob-bar-wrap { background: rgba(255,255,255,0.05); border-radius: 100px; height: 5px; margin-bottom: 10px; overflow: hidden; }
+.knob-bar { height: 100%; border-radius: 100px; background: linear-gradient(90deg, var(--p1), var(--p2)); width: 0; transition: width 1.2s cubic-bezier(0.23,1,0.32,1); }
+.knob-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.knob-tag {
+  font-family: var(--font-code); font-size: 10px; padding: 2px 8px;
+  border-radius: 4px; background: rgba(6,214,160,0.08);
+  color: var(--p3); border: 1px solid rgba(6,214,160,0.15);
+}
+
+/* ══════════════ FOOTER ══════════════ */
+.footer-nav {
+  padding: 80px;
+  border-top: 1px solid var(--border);
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 60px; background: rgba(8,8,15,0.85);
+}
+.footer-toc-title {
+  font-family: var(--font-code); font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--text-muted); margin-bottom: 20px;
+}
+.footer-toc-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.footer-toc-item { font-size: 14px; display: flex; align-items: center; gap: 10px; }
+.footer-toc-item .num { font-family: var(--font-code); font-size: 11px; color: var(--text-muted); width: 22px; }
+.footer-toc-item.done    { text-decoration: line-through; color: var(--text-muted); }
+.footer-toc-item.current { color: var(--p1); font-weight: 500; }
+.footer-toc-item.upcoming{ color: var(--text-dim); }
+
+.footer-next-label { font-family: var(--font-code); font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-muted); margin-bottom: 20px; }
+.footer-next-card {
+  background: rgba(6,214,160,0.06); border: 1px solid rgba(6,214,160,0.2);
+  border-radius: 12px; padding: 28px; transition: all 0.3s; cursor: pointer;
+}
+.footer-next-card:hover { border-color: var(--p1); background: rgba(6,214,160,0.11); transform: translateX(4px); }
+.footer-next-ch { font-family: var(--font-code); font-size: 12px; color: var(--p1); margin-bottom: 10px; }
+.footer-next-title { font-family: var(--font-title); font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 10px; }
+.footer-next-desc { font-size: 13px; color: var(--text-dim); }
+
+/* ══════════════ REVEAL ══════════════ */
+.reveal {
+  opacity: 0; transform: translateY(22px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ══════════════ RESPONSIVE ══════════════ */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; }
+  .hero { padding: 60px 24px 80px; }
+  section { padding: 60px 24px; }
+  .divider { margin: 0 24px; }
+  .catalyst-flow { grid-template-columns: 1fr 1fr; }
+  .catalyst-flow::before { display: none; }
+  .tungsten-grid { grid-template-columns: 1fr; }
+  .traps-grid, .knob-grid { grid-template-columns: 1fr; }
+  .plan-diff, .codegen-split { grid-template-columns: 1fr; }
+  .footer-nav { padding: 40px 24px; grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ SIDEBAR ══════════════ -->
+<nav class="sidebar">
+  <span class="sidebar-label">Apache Spark · Deep Learning</span>
+  <span class="sidebar-chapter">CH·02</span>
+  <div class="nav-dots">
+    <div class="nav-dot active" data-section="s1" data-label="Catalyst 四阶段"></div>
+    <div class="nav-dot" data-section="s2" data-label="优化规则"></div>
+    <div class="nav-dot" data-section="s3" data-label="物理计划与 Join"></div>
+    <div class="nav-dot" data-section="s4" data-label="Tungsten 引擎"></div>
+    <div class="nav-dot" data-section="s5" data-label="Codegen 原理"></div>
+    <div class="nav-dot" data-section="s6" data-label="AQE 深度"></div>
+    <div class="nav-dot" data-section="s7" data-label="陷阱与调优"></div>
+  </div>
+</nav>
+
+<!-- ══════════════ MAIN ══════════════ -->
+<main class="main">
+
+<!-- HERO -->
+<div class="hero" id="s0">
+  <div class="hero-bg">
+    <div class="hero-grid"></div>
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+  </div>
+  <div class="hero-content">
+    <div class="chapter-badge">
+      <span class="badge-dot"></span>
+      Chapter 02 · Apache Spark Deep Dive
+    </div>
+    <h1 class="hero-title">Catalyst 优化器<br>与 Tungsten 引擎</h1>
+    <p class="hero-subtitle">深入 Catalyst 四阶段优化管道——从 Unresolved 逻辑计划到生成字节码的全过程；剖析 Tungsten 如何通过 Whole-Stage Codegen、堆外内存与 Cache-Aware 数据结构，将 Spark 执行速度逼近 C 语言。</p>
+    <div class="pills">
+      <span class="pill">Catalyst Optimizer</span>
+      <span class="pill">Logical / Physical Plan</span>
+      <span class="pill">Predicate Pushdown</span>
+      <span class="pill">Join Strategy Selection</span>
+      <span class="pill">Tungsten Codegen</span>
+      <span class="pill">Off-Heap Memory</span>
+      <span class="pill">AQE Runtime Reoptimization</span>
+    </div>
+    <div class="meta-row">
+      <div class="meta-item">
+        <span class="meta-label">难度</span>
+        <span class="meta-value">⬛⬛⬛⬛⬜ 高级</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">阅读时长</span>
+        <span class="meta-value">约 50 分钟</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">前置章节</span>
+        <span class="meta-value">Ch.01 核心架构</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">版本</span>
+        <span class="meta-value">Spark 3.4 / 3.5</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ══════════════ SECTION 1: Catalyst 四阶段 ══════════════ -->
+<section id="s1">
+  <div class="section-tag">01 / Catalyst Four-Phase Pipeline</div>
+  <h2 class="section-title">Catalyst 优化器：四阶段管道</h2>
+  <p class="section-desc">Catalyst 是 Spark SQL 的核心优化引擎。一条 SQL 或 DataFrame 操作从用户代码到物理执行，经过四个严格有序的阶段变换，每一阶段都是一棵树形结构（TreeNode）的转换。</p>
+
+  <div class="catalyst-flow reveal">
+
+    <div class="catalyst-phase">
+      <div class="catalyst-num-wrap"><div class="catalyst-num">1</div></div>
+      <div class="catalyst-phase-name">Analysis</div>
+      <div class="catalyst-phase-sub">解析 · 绑定</div>
+      <div class="catalyst-phase-body">
+        <ul>
+          <li>将 SQL / DataFrame API 解析为 Unresolved Logical Plan</li>
+          <li>通过 Catalog 绑定表名、列名、数据类型</li>
+          <li>隐式类型转换（如 INT → LONG）</li>
+          <li>输出：Resolved Logical Plan</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="catalyst-phase">
+      <div class="catalyst-num-wrap"><div class="catalyst-num">2</div></div>
+      <div class="catalyst-phase-name">Logical Optimization</div>
+      <div class="catalyst-phase-sub">逻辑 · 优化</div>
+      <div class="catalyst-phase-body">
+        <ul>
+          <li>应用 ~100 条基于规则的优化（Rule-based）</li>
+          <li>谓词下推、列裁剪、常量折叠</li>
+          <li>子查询消除、Limit 下推</li>
+          <li>输出：Optimized Logical Plan</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="catalyst-phase">
+      <div class="catalyst-num-wrap"><div class="catalyst-num">3</div></div>
+      <div class="catalyst-phase-name">Physical Planning</div>
+      <div class="catalyst-phase-sub">物理 · 规划</div>
+      <div class="catalyst-phase-body">
+        <ul>
+          <li>将逻辑算子映射为物理算子</li>
+          <li>基于代价模型（CBO）选择 Join 策略</li>
+          <li>分区裁剪、数据分布感知</li>
+          <li>输出：Physical Plan（SparkPlan）</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="catalyst-phase">
+      <div class="catalyst-num-wrap"><div class="catalyst-num">4</div></div>
+      <div class="catalyst-phase-name">Code Generation</div>
+      <div class="catalyst-phase-sub">代码 · 生成</div>
+      <div class="catalyst-phase-body">
+        <ul>
+          <li>Whole-Stage Codegen 合并算子链</li>
+          <li>动态生成 Java 字节码</li>
+          <li>消除虚函数调用开销</li>
+          <li>输出：可直接执行的 JVM 字节码</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="info-box note reveal">
+    <div class="info-box-icon">🔍</div>
+    <div>
+      <div class="info-box-title">查看执行计划的正确方式</div>
+      <div class="info-box-text">
+        <code style="font-family:var(--font-code);color:#06d6a0">df.explain()</code> — 只看物理计划（默认）<br>
+        <code style="font-family:var(--font-code);color:#06d6a0">df.explain("extended")</code> — 同时展示逻辑计划（解析前/后/优化后）+ 物理计划<br>
+        <code style="font-family:var(--font-code);color:#06d6a0">df.explain("formatted")</code> — Spark 3.0+ 新格式，带树形缩进和算子注释，可读性最强<br>
+        <code style="font-family:var(--font-code);color:#06d6a0">df.explain("codegen")</code> — 展示最终生成的 Java 源码（调试 Codegen 必用）
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══════════════ SECTION 2: 优化规则 ══════════════ -->
+<section id="s2">
+  <div class="section-tag">02 / Logical Optimization Rules</div>
+  <h2 class="section-title">逻辑优化规则分类详解</h2>
+  <p class="section-desc">Catalyst 的逻辑优化由约 100 条规则组成，分批（Batch）执行，每批固定点迭代直到计划不再变化。掌握关键规则类别，才能读懂 explain() 输出并判断优化是否生效。</p>
+
+  <div class="rule-tree reveal">
+
+    <div class="rule-group">
+      <div class="rule-group-header">
+        <span class="rule-group-icon">⬇️</span>
+        <span class="rule-group-name">谓词下推（Predicate Pushdown）</span>
+        <span class="rule-group-count">最高收益</span>
+      </div>
+      <div class="rule-items">
+        <span class="rule-item">PushPredicateThroughFilter</span>
+        <span class="rule-item">PushPredicateThroughJoin</span>
+        <span class="rule-item">PushDownPredicates</span>
+        <span class="rule-item">PushFoldableIntoBranches</span>
+        <span class="rule-item">InferFiltersFromConstraints</span>
+      </div>
+    </div>
+
+    <div class="rule-group">
+      <div class="rule-group-header">
+        <span class="rule-group-icon">✂️</span>
+        <span class="rule-group-name">列裁剪（Column Pruning）</span>
+        <span class="rule-group-count">减少 IO</span>
+      </div>
+      <div class="rule-items">
+        <span class="rule-item">ColumnPruning</span>
+        <span class="rule-item">PruneFilters</span>
+        <span class="rule-item">RemoveRedundantAliases</span>
+        <span class="rule-item">RemoveNoopOperators</span>
+      </div>
+    </div>
+
+    <div class="rule-group">
+      <div class="rule-group-header">
+        <span class="rule-group-icon">🔢</span>
+        <span class="rule-group-name">常量折叠与化简（Constant Folding）</span>
+        <span class="rule-group-count">减少运行时计算</span>
+      </div>
+      <div class="rule-items">
+        <span class="rule-item">ConstantFolding</span>
+        <span class="rule-item">BooleanSimplification</span>
+        <span class="rule-item">SimplifyConditionals</span>
+        <span class="rule-item">NullPropagation</span>
+        <span class="rule-item">SimplifyExtractValueOps</span>
+      </div>
+    </div>
+
+    <div class="rule-group">
+      <div class="rule-group-header">
+        <span class="rule-group-icon">🔀</span>
+        <span class="rule-group-name">Join 重排序与消除（Join Reordering）</span>
+        <span class="rule-group-count">需开启 CBO</span>
+      </div>
+      <div class="rule-items">
+        <span class="rule-item">ReorderJoin</span>
+        <span class="rule-item">EliminateOuterJoin</span>
+        <span class="rule-item">PushPredicateThroughJoin</span>
+        <span class="rule-item">ExtractLeftSemiOrAntiJoin</span>
+      </div>
+    </div>
+
+    <div class="rule-group">
+      <div class="rule-group-header">
+        <span class="rule-group-icon">📦</span>
+        <span class="rule-group-name">子查询与集合操作优化</span>
+        <span class="rule-group-count">SQL 特定</span>
+      </div>
+      <div class="rule-items">
+        <span class="rule-item">RewriteCorrelatedScalarSubquery</span>
+        <span class="rule-item">PullupCorrelatedPredicates</span>
+        <span class="rule-item">ReplaceDistinctWithAggregate</span>
+        <span class="rule-item">CombineUnions</span>
+        <span class="rule-item">OptimizeSubqueries</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="code-block reveal">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div>
+      <span class="code-filename">predicate_pushdown_demo.py</span>
+      <span class="code-lang">PySpark</span>
+    </div>
+    <div class="code-body"><pre>
+<span class="c-kw">from</span> <span class="c-cls">pyspark.sql</span> <span class="c-kw">import</span> <span class="c-fn">SparkSession</span>
+<span class="c-kw">import</span> <span class="c-cls">pyspark.sql.functions</span> <span class="c-kw">as</span> F
+
+spark = <span class="c-cls">SparkSession</span>.<span class="c-fn">builder</span>.<span class="c-fn">getOrCreate</span>()
+
+<span class="c-cm"># ── 谓词下推验证 ──────────────────────────────────────</span>
+<span class="c-cm"># Parquet 文件：Catalyst 会将 filter 下推到 scan 层，</span>
+<span class="c-cm"># 只读取满足条件的 row group，大幅减少 IO</span>
+
+df = spark.<span class="c-fn">read</span>.<span class="c-fn">parquet</span>(<span class="c-str">"hdfs://data/events"</span>)
+
+<span class="c-cm"># ✅ 这个 filter 会被下推到 FileScan</span>
+result = df.<span class="c-fn">filter</span>(F.<span class="c-fn">col</span>(<span class="c-str">"event_date"</span>) >= <span class="c-str">"2024-01-01"</span>) \
+            .<span class="c-fn">filter</span>(F.<span class="c-fn">col</span>(<span class="c-str">"country"</span>) == <span class="c-str">"CN"</span>) \
+            .<span class="c-fn">select</span>(<span class="c-str">"user_id"</span>, <span class="c-str">"event_type"</span>, <span class="c-str">"amount"</span>)
+
+<span class="c-cm"># 验证：PushedFilters 字段出现在 FileScan 节点中即为成功</span>
+result.<span class="c-fn">explain</span>(<span class="c-str">"formatted"</span>)
+<span class="c-cm"># 输出示例：
+# == Physical Plan ==
+# *(1) Project [user_id, event_type, amount]
+# +- *(1) Filter (event_date >= 2024-01-01 AND country = CN)
+#    +- FileScan parquet [...]
+#       PushedFilters: [GreaterThanOrEqual(event_date,2024-01-01), EqualTo(country,CN)]
+#       ReadSchema: struct<user_id:bigint,event_type:string,amount:double></span>
+
+<span class="c-cm"># ── 列裁剪验证 ────────────────────────────────────────</span>
+<span class="c-cm"># ReadSchema 中只包含 select 的列，宽表中其余列完全跳过</span>
+
+<span class="c-cm"># ❌ 陷阱：UDF 会阻断谓词下推！</span>
+<span class="c-kw">from</span> <span class="c-cls">pyspark.sql.functions</span> <span class="c-kw">import</span> <span class="c-fn">udf</span>
+<span class="c-kw">from</span> <span class="c-cls">pyspark.sql.types</span> <span class="c-kw">import</span> <span class="c-cls">BooleanType</span>
+
+<span class="c-attr">@udf</span>(<span class="c-cls">BooleanType</span>())
+<span class="c-kw">def</span> <span class="c-fn">my_filter</span>(country):
+    <span class="c-kw">return</span> country == <span class="c-str">"CN"</span>
+
+<span class="c-cm"># 此 filter 无法下推，Catalyst 无法分析 UDF 内部逻辑</span>
+bad = df.<span class="c-fn">filter</span>(<span class="c-fn">my_filter</span>(F.<span class="c-fn">col</span>(<span class="c-str">"country"</span>)))  <span class="c-cm"># ❌</span>
+
+<span class="c-cm"># ✅ 替换为内置函数或 SQL 表达式</span>
+good = df.<span class="c-fn">filter</span>(F.<span class="c-fn">col</span>(<span class="c-str">"country"</span>) == <span class="c-str">"CN"</span>)       <span class="c-cm"># ✅</span>
+</pre></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══════════════ SECTION 3: 物理计划与 Join ══════════════ -->
+<section id="s3">
+  <div class="section-tag">03 / Physical Planning & Join Strategies</div>
+  <h2 class="section-title">物理计划生成与 Join 策略选择</h2>
+  <p class="section-desc">物理规划阶段将逻辑算子映射为真实的执行算子，最关键的决策是 Join 策略的选择——这直接决定是否触发 Shuffle、数据分布代价和并行度。</p>
+
+  <div style="overflow-x:auto;border-radius:12px;border:1px solid var(--border);margin-bottom:40px">
+    <table class="matrix-table reveal">
+      <thead>
+        <tr>
+          <th>Join 策略</th>
+          <th>触发条件</th>
+          <th>Shuffle</th>
+          <th>Sort</th>
+          <th>适用场景</th>
+          <th>性能</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Broadcast Hash Join</td>
+          <td>小表 &lt; autoBroadcastJoinThreshold</td>
+          <td><span class="compat-y">无</span></td>
+          <td><span class="compat-y">无</span></td>
+          <td>大表 JOIN 小维度表</td>
+          <td><span class="compat-y">★★★★★ 最快</span></td>
+        </tr>
+        <tr>
+          <td>Shuffle Hash Join</td>
+          <td>两表均需 Shuffle，小侧可放内存</td>
+          <td><span class="compat-n">有</span></td>
+          <td><span class="compat-y">无</span></td>
+          <td>一侧明显小于另一侧</td>
+          <td><span class="compat-w">★★★☆☆ 中</span></td>
+        </tr>
+        <tr>
+          <td>Sort-Merge Join</td>
+          <td>两表均大，默认策略</td>
+          <td><span class="compat-n">有</span></td>
+          <td><span class="compat-n">有</span></td>
+          <td>大表 JOIN 大表</td>
+          <td><span class="compat-w">★★★☆☆ 稳定</span></td>
+        </tr>
+        <tr>
+          <td>Cartesian Product Join</td>
+          <td>无 Join Key（cross join）</td>
+          <td><span class="compat-n">有</span></td>
+          <td><span class="compat-n">有</span></td>
+          <td>极少用，危险操作</td>
+          <td><span class="compat-n">★☆☆☆☆ 极慢</span></td>
+        </tr>
+        <tr>
+          <td>Broadcast Nested Loop Join</td>
+          <td>非等值 JOIN，小表广播</td>
+          <td><span class="compat-y">无</span></td>
+          <td><span class="compat-y">无</span></td>
+          <td>范围条件 JOIN</td>
+          <td><span class="compat-w">★★☆☆☆ 慢</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="plan-diff reveal">
+    <div class="plan-panel">
+      <div class="plan-header before">⚠ 未优化：Sort-Merge Join（触发双侧 Shuffle）</div>
+      <div class="plan-body">
+        <div class="plan-line"><span class="ph-op">*(5) SortMergeJoin</span></div>
+        <div class="plan-line plan-indent"><span class="ph-neutral">:- *(2) Sort [user_id ASC]</span></div>
+        <div class="plan-line plan-indent2"><span class="ph-removed">+- Exchange hashpartitioning(user_id, 200)</span></div>
+        <div class="plan-line plan-indent2"><span class="ph-neutral">   +- *(1) FileScan orders</span></div>
+        <div class="plan-line plan-indent"><span class="ph-neutral">+- *(4) Sort [user_id ASC]</span></div>
+        <div class="plan-line plan-indent2"><span class="ph-removed">   +- Exchange hashpartitioning(user_id, 200)</span></div>
+        <div class="plan-line plan-indent2"><span class="ph-neutral">      +- *(3) FileScan users [ALL COLUMNS]</span></div>
+        <br>
+        <div class="plan-line"><span class="ph-removed">// 双侧 Shuffle + Sort，代价极高</span></div>
+        <div class="plan-line"><span class="ph-removed">// users 表读取全部列（未裁剪）</span></div>
+      </div>
+    </div>
+    <div class="plan-panel">
+      <div class="plan-header after">✅ 优化后：Broadcast Hash Join（无 Shuffle）</div>
+      <div class="plan-body">
+        <div class="plan-line"><span class="ph-op">*(2) BroadcastHashJoin</span></div>
+        <div class="plan-line plan-indent"><span class="ph-neutral">:- *(1) FileScan orders</span></div>
+        <div class="plan-line plan-indent2"><span class="ph-added">   PushedFilters: [IsNotNull(user_id)]</span></div>
+        <div class="plan-line plan-indent"><span class="ph-added">+- BroadcastExchange HashedRelationBroadcast</span></div>
+        <div class="plan-line plan-indent2"><span class="ph-added">   +- *(1) FileScan users [user_id, name]</span></div>
+        <div class="plan-line plan-indent2"><span class="ph-added">      ReadSchema: struct&lt;user_id,name&gt;</span></div>
+        <br>
+        <div class="plan-line"><span class="ph-added">// 无 Exchange（无 Shuffle）</span></div>
+        <div class="plan-line"><span class="ph-added">// 列裁剪：users 只读 user_id + name</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="code-block reveal">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div>
+      <span class="code-filename">join_hints.py</span>
+      <span class="code-lang">PySpark</span>
+    </div>
+    <div class="code-body"><pre>
+<span class="c-cm"># ── 手动指定 Join 策略 Hint ────────────────────────────</span>
+
+<span class="c-cm"># ✅ 强制广播（当 Catalyst 估算失准时）</span>
+<span class="c-kw">from</span> <span class="c-cls">pyspark.sql.functions</span> <span class="c-kw">import</span> <span class="c-fn">broadcast</span>
+
+result = orders.<span class="c-fn">join</span>(<span class="c-fn">broadcast</span>(dim_users), <span class="c-str">"user_id"</span>)
+
+<span class="c-cm"># ✅ SQL Hint 语法（等效）</span>
+spark.<span class="c-fn">sql</span>(<span class="c-str">"""
+    SELECT /*+ BROADCAST(u) */ o.*, u.name
+    FROM orders o
+    JOIN users u ON o.user_id = u.user_id
+"""</span>)
+
+<span class="c-cm"># ✅ 强制 Sort-Merge Join（当自动广播不符合预期时）</span>
+spark.<span class="c-fn">sql</span>(<span class="c-str">"""
+    SELECT /*+ MERGE(o, u) */ o.*, u.name
+    FROM orders o JOIN users u ON o.user_id = u.user_id
+"""</span>)
+
+<span class="c-cm"># ── 开启 CBO（Cost-Based Optimizer）────────────────────</span>
+<span class="c-cm"># CBO 依赖表统计信息，需手动收集</span>
+spark.<span class="c-fn">sql</span>(<span class="c-str">"ANALYZE TABLE orders COMPUTE STATISTICS FOR ALL COLUMNS"</span>)
+spark.<span class="c-fn">sql</span>(<span class="c-str">"ANALYZE TABLE users COMPUTE STATISTICS FOR ALL COLUMNS"</span>)
+
+spark.<span class="c-fn">conf</span>.<span class="c-fn">set</span>(<span class="c-str">"spark.sql.cbo.enabled"</span>, <span class="c-str">"true"</span>)
+spark.<span class="c-fn">conf</span>.<span class="c-fn">set</span>(<span class="c-str">"spark.sql.cbo.joinReorder.enabled"</span>, <span class="c-str">"true"</span>)
+
+<span class="c-cm"># CBO 开启后，Catalyst 会根据行数/NDV/列分布选择最优 Join 顺序</span>
+<span class="c-cm"># 多表 JOIN 时收益尤其显著（从指数复杂度降至近线性）</span>
+</pre></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══════════════ SECTION 4: Tungsten ══════════════ -->
+<section id="s4">
+  <div class="section-tag">04 / Tungsten Execution Engine</div>
+  <h2 class="section-title">Tungsten 引擎：三大核心技术</h2>
+  <p class="section-desc">Tungsten（Spark 1.4 引入）是 Spark 执行层的底层革命，通过三项关键技术突破 JVM 限制，大幅提升 CPU 和内存效率。</p>
+
+  <div class="tungsten-grid reveal">
+
+    <div class="tungsten-card">
+      <div class="tungsten-icon">🧠</div>
+      <div class="tungsten-title">堆外内存管理</div>
+      <div class="tungsten-desc">使用 <code style="font-family:var(--font-code);color:#06d6a0">sun.misc.Unsafe</code> 直接操作堆外内存，绕过 GC 管理。数据以二进制格式存储，避免 Java 对象头开销（通常节省 2~5x 空间）。紧凑的 UnsafeRow 格式让数据可直接在网络上传输而无需反序列化。</div>
+      <div class="tungsten-tag">Off-Heap · UnsafeRow · GC 消除</div>
+    </div>
+
+    <div class="tungsten-card">
+      <div class="tungsten-icon">⚡</div>
+      <div class="tungsten-title">Whole-Stage Codegen</div>
+      <div class="tungsten-desc">将多个算子融合为单个 Java 函数动态生成字节码，消除虚函数调用、内存对象实例化和迭代器模型的开销。生成的代码利用 CPU 流水线和 SIMD 指令，实测比解释执行快 5~10 倍，接近手写 C 代码性能。</div>
+      <div class="tungsten-tag">Codegen · JIT · CPU 流水线</div>
+    </div>
+
+    <div class="tungsten-card">
+      <div class="tungsten-icon">🗄️</div>
+      <div class="tungsten-title">Cache-Aware 数据结构</div>
+      <div class="tungsten-desc">传统 HashMap 中 key-value 散落堆内存各处，缓存命中率极低。Tungsten 的 <code style="font-family:var(--font-code);color:#06d6a0">BytesToBytesMap</code> 将数据紧凑排列，大幅提升 L1/L2 缓存命中率。Sort 算法也经过重新设计，优化内存访问模式。</div>
+      <div class="tungsten-tag">Cache-Friendly · BytesToBytesMap</div>
+    </div>
+
+  </div>
+
+  <div class="info-box note reveal">
+    <div class="info-box-icon">📐</div>
+    <div>
+      <div class="info-box-title">UnsafeRow 二进制格式</div>
+      <div class="info-box-text">
+        每行数据在内存中的布局：<code style="font-family:var(--font-code);color:#00b4d8">[null bitmap (8 bytes/列)] + [fixed-length values] + [variable-length data]</code><br>
+        整数、长整型、浮点型直接原地存储；字符串存偏移量 + 长度指针指向变长区。<br>
+        这意味着：无论 schema 多复杂，<strong>访问任意列的时间复杂度均为 O(1)</strong>，且数据可在 Executor 间零拷贝传输（Shuffle 写出时直接 memcpy）。
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══════════════ SECTION 5: Codegen 原理 ══════════════ -->
+<section id="s5">
+  <div class="section-tag">05 / Whole-Stage Codegen Internals</div>
+  <h2 class="section-title">Whole-Stage Codegen 原理剖析</h2>
+  <p class="section-desc">传统 Volcano 模型（迭代器模式）中每条记录都要经过无数次虚函数调用。Codegen 将多个算子"融合"成一个紧密循环，让 JIT 编译器大展身手。</p>
+
+  <div class="codegen-split reveal">
+    <div class="codegen-panel">
+      <div class="codegen-panel-header">
+        <span class="codegen-label before">❌ Volcano 迭代器模型（解释执行）</span>
+      </div>
+      <div class="code-body" style="font-size:12.5px;line-height:1.9;">
+<pre>
+<span class="c-cm">// 每个算子独立迭代，每条记录
+// 都要经历 N 次虚函数调用
+// CPU 分支预测失败率高</span>
+
+<span class="c-kw">class</span> <span class="c-cls">FilterIterator</span>:
+  <span class="c-kw">def</span> <span class="c-fn">next</span>():
+    row = child.<span class="c-fn">next</span>()  <span class="c-cm">← 虚调用1</span>
+    <span class="c-kw">if</span> <span class="c-fn">predicate</span>(row):  <span class="c-cm">← 虚调用2</span>
+      <span class="c-kw">return</span> row
+
+<span class="c-kw">class</span> <span class="c-cls">ProjectIterator</span>:
+  <span class="c-kw">def</span> <span class="c-fn">next</span>():
+    row = child.<span class="c-fn">next</span>()  <span class="c-cm">← 虚调用3</span>
+    <span class="c-kw">return</span> <span class="c-fn">evaluate</span>(row) <span class="c-cm">← 虚调用4</span>
+
+<span class="c-cm">// 每行 = 4次虚调用 + 对象分配</span>
+<span class="c-cm">// 1亿行 = 4亿次虚调用 ❌</span>
+</pre>
+      </div>
+    </div>
+    <div class="codegen-arrow">
+      <div style="width:2px;height:60px;background:linear-gradient(to bottom,var(--p1),var(--p2))"></div>
+      <div style="font-family:var(--font-code);font-size:9px;color:var(--p1);text-transform:uppercase;letter-spacing:0.1em;text-align:center;padding:8px 4px">Code<br>Gen</div>
+      <div style="width:2px;height:60px;background:linear-gradient(to bottom,var(--p2),var(--p1))"></div>
+    </div>
+    <div class="codegen-panel">
+      <div class="codegen-panel-header">
+        <span class="codegen-label after">✅ Whole-Stage Codegen（生成字节码）</span>
+      </div>
+      <div class="code-body" style="font-size:12.5px;line-height:1.9;">
+<pre>
+<span class="c-cm">// Catalyst 动态生成的 Java 代码：
+// Filter + Project 融合为单一循环
+// 无虚调用，JIT 可激进优化</span>
+
+<span class="c-kw">void</span> <span class="c-fn">processPartition</span>(Iterator rows) {
+  <span class="c-kw">while</span> (rows.<span class="c-fn">hasNext</span>()) {
+    UnsafeRow row = rows.<span class="c-fn">next</span>();
+    <span class="c-cm">// Filter 内联</span>
+    <span class="c-kw">long</span> age = row.<span class="c-fn">getLong</span>(<span class="c-num">2</span>);
+    <span class="c-kw">if</span> (age < <span class="c-num">18</span>) <span class="c-kw">continue</span>;
+    <span class="c-cm">// Project 内联</span>
+    <span class="c-kw">long</span> uid = row.<span class="c-fn">getLong</span>(<span class="c-num">0</span>);
+    result.<span class="c-fn">append</span>(uid, age);
+  }
+}
+<span class="c-cm">// 1亿行 ≈ 1亿次循环迭代
+// 无对象分配，寄存器优化 ✅</span>
+</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="code-block reveal">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div>
+      <span class="code-filename">codegen_debug.scala</span>
+      <span class="code-lang">Scala</span>
+    </div>
+    <div class="code-body"><pre>
+<span class="c-cm">// ── 查看生成的 Java 源代码 ────────────────────────────</span>
+<span class="c-kw">val</span> <span class="c-var">df</span> = spark.<span class="c-fn">range</span>(<span class="c-num">1000000</span>)
+              .<span class="c-fn">filter</span>($<span class="c-str">"id"</span> % <span class="c-num">2</span> === <span class="c-num">0</span>)
+              .<span class="c-fn">select</span>($<span class="c-str">"id"</span> * <span class="c-num">2</span> <span class="c-kw">as</span> <span class="c-str">"doubled"</span>)
+
+<span class="c-cm">// 展示生成的 Java 源码（算子标注 * 表示参与了 Codegen）</span>
+<span class="c-var">df</span>.<span class="c-fn">explain</span>(<span class="c-str">"codegen"</span>)
+
+<span class="c-cm">// ── Codegen 边界：以下算子会打断 Codegen ─────────────
+// ① Python UDF / Pandas UDF（跨进程，需序列化）
+// ② 某些复杂聚合（HashAggregate 可 Codegen，SortAggregate 不行）
+// ③ 生成的函数体超过 JVM 单方法 64KB 字节码限制
+// ④ 某些窗口函数</span>
+
+<span class="c-cm">// 查看哪些算子标注了 * （参与 Whole-Stage Codegen）</span>
+<span class="c-cm">// *(1) Project → *(1) Filter → FileScan
+// 相同编号 = 同一 Codegen Stage，无边界虚调用</span>
+
+<span class="c-cm">// 禁用 Codegen（对比性能时使用）</span>
+spark.<span class="c-fn">conf</span>.<span class="c-fn">set</span>(<span class="c-str">"spark.sql.codegen.wholeStage"</span>, <span class="c-str">"false"</span>)
+</pre></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══════════════ SECTION 6: AQE ══════════════ -->
+<section id="s6">
+  <div class="section-tag">06 / Adaptive Query Execution (AQE)</div>
+  <h2 class="section-title">AQE：运行时动态重优化</h2>
+  <p class="section-desc">AQE（Spark 3.0 正式发布）在每个 Shuffle 阶段完成后，利用真实统计数据重新规划后续执行，弥补静态 Catalyst 对数据分布估算不准的天然缺陷。</p>
+
+  <div class="knob-grid reveal">
+
+    <div class="knob-card">
+      <div class="knob-name">自动合并小分区</div>
+      <div class="knob-default">coalescePartitions.enabled = <span>true</span></div>
+      <div class="knob-desc">Shuffle 完成后，若某些 Reduce 分区数据量远小于 <code style="font-family:var(--font-code);color:#06d6a0">advisoryPartitionSizeInBytes</code>（默认 64MB），AQE 自动将相邻小分区合并，避免产生大量小 Task。从 200 分区合并为 20 分区是常见场景。</div>
+      <div class="knob-bar-wrap"><div class="knob-bar" data-w="80%"></div></div>
+      <div class="knob-tags"><span class="knob-tag">小文件</span><span class="knob-tag">Task 调度开销</span></div>
+    </div>
+
+    <div class="knob-card">
+      <div class="knob-name">动态切换 Join 策略</div>
+      <div class="knob-default">canChangeBroadcastJoin = <span>true</span></div>
+      <div class="knob-desc">Shuffle 阶段完成前，Catalyst 仅能估算表大小；完成后 AQE 获得精确数据量，若某侧实际数据量低于广播阈值，可在运行时将 Sort-Merge Join 升级为 Broadcast Hash Join，无需重启作业。</div>
+      <div class="knob-bar-wrap"><div class="knob-bar" data-w="75%"></div></div>
+      <div class="knob-tags"><span class="knob-tag">动态 Broadcast</span><span class="knob-tag">消除 Shuffle</span></div>
+    </div>
+
+    <div class="knob-card">
+      <div class="knob-name">自动处理数据倾斜</div>
+      <div class="knob-default">skewJoin.enabled = <span>true</span></div>
+      <div class="knob-desc">检测到某个 Reduce 分区数据量超过中位数 × <code style="font-family:var(--font-code);color:#06d6a0">skewedPartitionFactor</code>（默认5倍）且超过 <code style="font-family:var(--font-code);color:#06d6a0">skewedPartitionThresholdInBytes</code>（默认256MB），自动将倾斜分区分裂为多个子分区并行处理。</div>
+      <div class="knob-bar-wrap"><div class="knob-bar" data-w="85%"></div></div>
+      <div class="knob-tags"><span class="knob-tag">Skew Join</span><span class="knob-tag">自动 Salting</span></div>
+    </div>
+
+    <div class="knob-card">
+      <div class="knob-name">动态分区裁剪（DPP）</div>
+      <div class="knob-default">dynamicPartitionPruning.enabled = <span>true</span></div>
+      <div class="knob-desc">当星型模型中维度表经过 filter 后，DPP 将 filter 结果广播到事实表的分区扫描中，只扫描实际匹配分区。Hive 分区表上效果尤其显著，可减少 90%+ 的 IO。Spark 3.0+ 自动开启。</div>
+      <div class="knob-bar-wrap"><div class="knob-bar" data-w="70%"></div></div>
+      <div class="knob-tags"><span class="knob-tag">分区裁剪</span><span class="knob-tag">星型模型</span><span class="knob-tag">IO 减少</span></div>
+    </div>
+
+  </div>
+
+  <div class="code-block reveal">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div>
+      <span class="code-filename">aqe_config.py</span>
+      <span class="code-lang">PySpark</span>
+    </div>
+    <div class="code-body"><pre>
+<span class="c-cm"># ── AQE 完整配置参考 ──────────────────────────────────</span>
+
+spark = <span class="c-cls">SparkSession</span>.<span class="c-fn">builder</span> \
+  <span class="c-cm"># AQE 总开关（Spark 3.2+ 默认 true）</span>
+  .<span class="c-fn">config</span>(<span class="c-str">"spark.sql.adaptive.enabled"</span>, <span class="c-str">"true"</span>) \
+
+  <span class="c-cm"># 自动合并小分区</span>
+  .<span class="c-fn">config</span>(<span class="c-str">"spark.sql.adaptive.coalescePartitions.enabled"</span>, <span class="c-str">"true"</span>) \
+  .<span class="c-fn">config</span>(<span class="c-str">"spark.sql.adaptive.advisoryPartitionSizeInBytes"</span>, <span class="c-str">"128m"</span>) \  <span class="c-cm"># 目标分区大小</span>
+  .<span class="c-fn">config</span>(<span class="c-str">"spark.sql.adaptive.coalescePartitions.minPartitionNum"</span>, <span class="c-str">"1"</span>) \
+
+  <span class="c-cm"># 数据倾斜处理</span>
+  .<span class="c-fn">config</span>(<span class="c-str">"spark.sql.adaptive.skewJoin.enabled"</span>, <span class="c-str">"true"</span>) \
+  .<span class="c-fn">config</span>(<span class="c-str">"spark.sql.adaptive.skewJoin.skewedPartitionFactor"</span>, <span class="c-str">"5"</span>) \   <span class="c-cm"># 超过中位数5倍触发</span>
+  .<span class="c-fn">config</span>(<span class="c-str">"spark.sql.adaptive.skewJoin.skewedPartitionThresholdInBytes"</span>, <span class="c-str">"256m"</span>) \
+
+  <span class="c-cm"># 局部 Shuffle 优化（Spark 3.3+）</span>
+  .<span class="c-fn">config</span>(<span class="c-str">"spark.sql.adaptive.optimizeSkewsInRebalancePartitions.enabled"</span>, <span class="c-str">"true"</span>) \
+
+  <span class="c-cm"># 动态分区裁剪</span>
+  .<span class="c-fn">config</span>(<span class="c-str">"spark.sql.optimizer.dynamicPartitionPruning.enabled"</span>, <span class="c-str">"true"</span>) \
+  .<span class="c-fn">getOrCreate</span>()
+
+<span class="c-cm"># ── 验证 AQE 是否生效 ────────────────────────────────
+# 执行计划中出现 AdaptiveSparkPlan 节点即为生效
+# Spark UI → SQL 页面 → 点击查询 → 观察执行计划变化</span>
+</pre></div>
+  </div>
+
+  <div class="info-box warn reveal">
+    <div class="info-box-icon">⚠️</div>
+    <div>
+      <div class="info-box-title">AQE 的局限性与注意事项</div>
+      <div class="info-box-text">
+        <strong>① 流式计算不支持</strong>：AQE 依赖 Shuffle 边界的物化统计，Structured Streaming 中无法使用。<br>
+        <strong>② DPP 需要等值 Join</strong>：动态分区裁剪仅适用于等值 Join，范围 Join 无效。<br>
+        <strong>③ 与 Hint 冲突</strong>：显式指定 <code style="font-family:var(--font-code)">/*+ BROADCAST */</code> 会覆盖 AQE 的动态 Join 策略选择。<br>
+        <strong>④ 调试复杂度增加</strong>：AQE 下执行计划在运行时变化，需在 Spark UI 中查看最终实际执行计划。
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══════════════ SECTION 7: 陷阱与调优 ══════════════ -->
+<section id="s7">
+  <div class="section-tag">07 / Pitfalls & Tuning Checklist</div>
+  <h2 class="section-title">常见陷阱与优化器调优清单</h2>
+  <p class="section-desc">Catalyst 虽然强大，但有若干典型场景会让优化器"失灵"，导致性能远低于预期。</p>
+
+  <div class="traps-grid reveal">
+
+    <div class="trap-card">
+      <div class="trap-icon">🧱</div>
+      <div class="trap-title">UDF 阻断谓词下推</div>
+      <div class="trap-desc">Python UDF 对 Catalyst 不透明，任何包含 UDF 的 filter 均无法下推至 FileScan。始终用内置函数或 Pandas UDF（向量化）替代逐行 Python UDF。</div>
+    </div>
+
+    <div class="trap-card">
+      <div class="trap-icon">📊</div>
+      <div class="trap-title">统计信息过期导致 CBO 失效</div>
+      <div class="trap-desc">CBO 依赖 <code style="font-family:var(--font-code);color:#06d6a0">ANALYZE TABLE</code> 收集的统计，数据更新后不会自动刷新。大量写入后需重新执行 ANALYZE，否则 Join 策略选择可能严重偏差。</div>
+    </div>
+
+    <div class="trap-card">
+      <div class="trap-icon">💥</div>
+      <div class="trap-title">Codegen 64KB 限制</div>
+      <div class="trap-desc">JVM 单方法字节码不能超过 64KB。宽表（数百列）的聚合/JOIN 常触发此限制，Codegen 自动退化为解释执行，性能骤降。可通过 <code style="font-family:var(--font-code);color:#06d6a0">spark.sql.codegen.hugeMethodLimit</code> 调整分割阈值。</div>
+    </div>
+
+    <div class="trap-card">
+      <div class="trap-icon">🔄</div>
+      <div class="trap-title">count(distinct) 的代价</div>
+      <div class="trap-desc"><code style="font-family:var(--font-code);color:#06d6a0">count(distinct col)</code> 在 Spark 中需要两阶段 Shuffle，代价极高。多列 distinct count 更是指数级。使用 <code style="font-family:var(--font-code);color:#06d6a0">approx_count_distinct()</code> 或 HyperLogLog 在 99%+ 精度下快 5~10 倍。</div>
+    </div>
+
+    <div class="trap-card">
+      <div class="trap-icon">🪞</div>
+      <div class="trap-title">笛卡尔积隐患</div>
+      <div class="trap-desc">SQL 中忘写 ON 条件，或 Join key 包含 NULL（NULL ≠ NULL，等值 JOIN 不匹配），导致隐式笛卡尔积。<code style="font-family:var(--font-code);color:#06d6a0">spark.sql.crossJoin.enabled=false</code>（默认）可保护，但某些框架会绕过此保护。</div>
+    </div>
+
+    <div class="trap-card">
+      <div class="trap-icon">🐢</div>
+      <div class="trap-title">过度嵌套子查询</div>
+      <div class="trap-desc">复杂 SQL 中多层嵌套子查询有时无法被 Catalyst 完全展开，生成次优物理计划。建议通过 <code style="font-family:var(--font-code);color:#06d6a0">df.explain("extended")</code> 验证优化后的逻辑计划，必要时手动重写为 JOIN 或 CTE 形式。</div>
+    </div>
+
+  </div>
+
+  <div style="margin-top:44px">
+    <h3 style="font-family:var(--font-title);font-size:20px;margin-bottom:24px;color:#fff;">优化器效果量化对比</h3>
+    <div class="progress-section reveal">
+      <div class="progress-item">
+        <div class="progress-label">
+          <span class="progress-name">谓词下推 + 列裁剪（Parquet 宽表，扫描 IO 减少）</span>
+          <span class="progress-val">减少 IO 60~95%</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" data-w="88%"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-label">
+          <span class="progress-name">Whole-Stage Codegen vs 解释执行（CPU 密集型算子）</span>
+          <span class="progress-val">提速 5~10x</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" data-w="82%"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-label">
+          <span class="progress-name">AQE Skew Join vs 手动 Salting（实现成本对比）</span>
+          <span class="progress-val">效果相当，开发成本降低 90%</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" data-w="76%"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-label">
+          <span class="progress-name">CBO Join 重排序（4表以上 JOIN，典型 ETL）</span>
+          <span class="progress-val">提速 2~8x</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" data-w="65%"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-label">
+          <span class="progress-name">approx_count_distinct vs count(distinct)（精度 &gt;99%）</span>
+          <span class="progress-val">提速 5~10x</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" data-w="78%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-box tip reveal" style="margin-top:40px">
+    <div class="info-box-icon">✅</div>
+    <div>
+      <div class="info-box-title">Catalyst 调优黄金法则</div>
+      <div class="info-box-text">
+        <strong>1. 优先使用内置函数</strong>——任何能替代 UDF 的内置函数都应替代，以保证优化器透明度<br>
+        <strong>2. 先看计划再优化</strong>——所有性能问题先 <code style="font-family:var(--font-code)">explain("formatted")</code>，确认问题根因再动手<br>
+        <strong>3. 让 AQE 先跑</strong>——大多数数据倾斜和分区问题 AQE 能自动处理，不要过早手动干预<br>
+        <strong>4. 收集统计信息</strong>——多表 JOIN 作业，每次大批量写入后执行 ANALYZE TABLE<br>
+        <strong>5. Codegen 验证</strong>——关键路径确认物理计划中出现 <code style="font-family:var(--font-code)">*(N)</code> 标记
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══════════════ FOOTER ══════════════ -->
+<footer class="footer-nav">
+  <div>
+    <div class="footer-toc-title">完整课程目录</div>
+    <ul class="footer-toc-list">
+      <li class="footer-toc-item done"><span class="num">01</span>核心架构与执行引擎原理</li>
+      <li class="footer-toc-item current"><span class="num">02</span>Catalyst 优化器与 Tungsten 引擎</li>
+      <li class="footer-toc-item upcoming"><span class="num">03</span>结构化流处理（Structured Streaming）</li>
+      <li class="footer-toc-item upcoming"><span class="num">04</span>存储格式与数据湖集成（Delta/Iceberg）</li>
+      <li class="footer-toc-item upcoming"><span class="num">05</span>性能调优：诊断方法论与实战</li>
+      <li class="footer-toc-item upcoming"><span class="num">06</span>生产运维：部署、监控与故障恢复</li>
+    </ul>
+  </div>
+  <div>
+    <div class="footer-next-label">下一章预告</div>
+    <div class="footer-next-card">
+      <div class="footer-next-ch">Chapter 03 · Structured Streaming</div>
+      <div class="footer-next-title">结构化流处理深度实战</div>
+      <div class="footer-next-desc">深入 Continuous Processing 与 Micro-Batch 两种执行模式的内部机制；剖析 State Store 的 RocksDB 后端实现、Watermark 延迟容忍机制、Trigger 策略选择，以及如何在生产中实现端到端 Exactly-Once 语义。</div>
+    </div>
+  </div>
+</footer>
+
+</main>
+
+<script>
+// REVEAL
+const revealObs = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const el = entry.target;
+      const siblings = [...el.parentElement.querySelectorAll('.reveal')];
+      el.style.transitionDelay = `${siblings.indexOf(el) * 60}ms`;
+      el.classList.add('visible');
+      revealObs.unobserve(el);
+    }
+  });
+}, { threshold: 0.07 });
+document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+
+// PROGRESS + KNOB BARS
+const barObs = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.querySelectorAll('.knob-bar, .progress-fill').forEach(bar => {
+        setTimeout(() => bar.style.width = bar.getAttribute('data-w'), 180);
+      });
+      barObs.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.2 });
+document.querySelectorAll('.knob-card, .progress-item').forEach(el => barObs.observe(el));
+
+// SIDEBAR NAV
+const sections = document.querySelectorAll('section[id]');
+const dots = document.querySelectorAll('.nav-dot');
+const secObs = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      dots.forEach(d => d.classList.toggle('active', d.dataset.section === id));
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => secObs.observe(s));
+dots.forEach(dot => dot.addEventListener('click', () => {
+  document.getElementById(dot.dataset.section)?.scrollIntoView({ behavior: 'smooth' });
+}));
+</script>
+
+</body>
+</html>

@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apache Spark 深度学习 · 第5章：性能调优诊断方法论</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0a06;
+  --p1: #fbbf24;
+  --p2: #fb923c;
+  --p3: #fcd34d;
+  --p-glow: rgba(251,191,36,0.28);
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --text-muted: #475569;
+  --border: rgba(251,191,36,0.15);
+  --border2: rgba(251,146,60,0.2);
+  --card: rgba(13,10,6,0.88);
+  --sidebar-w: 68px;
+  --font-title: 'Syne', sans-serif;
+  --font-code: 'JetBrains Mono', monospace;
+  --font-body: 'Noto Sans SC', sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.7;overflow-x:hidden}
+
+/* SIDEBAR */
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);background:rgba(13,10,6,.97);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:28px 0;z-index:100;backdrop-filter:blur(14px)}
+.sidebar-label{writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);font-family:var(--font-code);font-size:10px;letter-spacing:.12em;color:var(--text-muted);text-transform:uppercase;margin-bottom:auto}
+.sidebar-chapter{font-family:var(--font-title);font-size:11px;font-weight:700;color:var(--p1);letter-spacing:.05em;margin-bottom:24px}
+.nav-dots{display:flex;flex-direction:column;gap:14px;margin-bottom:24px}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--text-muted);cursor:pointer;transition:all .3s;position:relative}
+.nav-dot.active{background:var(--p1);box-shadow:0 0 9px var(--p1);transform:scale(1.45)}
+.nav-dot::after{content:attr(data-label);position:absolute;left:16px;top:50%;transform:translateY(-50%);font-family:var(--font-code);font-size:10px;color:var(--p1);white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none}
+.nav-dot:hover::after{opacity:1}
+
+/* MAIN */
+.main{margin-left:var(--sidebar-w);min-height:100vh}
+
+/* HERO */
+.hero{position:relative;padding:100px 80px 120px;overflow:hidden;min-height:100vh;display:flex;flex-direction:column;justify-content:center}
+.hero-bg{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.33}
+.orb1{width:700px;height:700px;background:radial-gradient(circle,#fbbf24,transparent 70%);top:-200px;right:-140px;animation:fa 11s ease-in-out infinite}
+.orb2{width:460px;height:460px;background:radial-gradient(circle,#fb923c,transparent 70%);bottom:0;left:50px;animation:fb 9s ease-in-out infinite}
+.orb3{width:340px;height:340px;background:radial-gradient(circle,#d97706,transparent 70%);top:38%;left:37%;animation:fc 13s ease-in-out infinite}
+@keyframes fa{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-26px,36px) scale(1.07)}}
+@keyframes fb{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(18px,-26px) scale(.93)}}
+@keyframes fc{0%,100%{transform:translate(0,0)}33%{transform:translate(-28px,14px) scale(1.05)}66%{transform:translate(22px,-16px) scale(.95)}}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(251,191,36,.042) 1px,transparent 1px),linear-gradient(90deg,rgba(251,191,36,.042) 1px,transparent 1px);background-size:58px 58px}
+.hero-content{position:relative;z-index:2;max-width:900px}
+.chapter-badge{display:inline-flex;align-items:center;gap:10px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.28);border-radius:100px;padding:8px 18px;margin-bottom:40px;font-family:var(--font-code);font-size:12px;color:var(--p3);letter-spacing:.08em;text-transform:uppercase}
+.badge-dot{width:7px;height:7px;border-radius:50%;background:var(--p2);box-shadow:0 0 6px var(--p2);animation:breathe 2.2s ease-in-out infinite}
+@keyframes breathe{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.65)}}
+.hero-title{font-family:var(--font-title);font-size:clamp(48px,6.4vw,80px);font-weight:800;line-height:1.05;letter-spacing:-.025em;margin-bottom:22px;background:linear-gradient(135deg,#ffffff 0%,var(--p1) 42%,var(--p2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200% 200%;animation:shimmer 5s ease infinite}
+@keyframes shimmer{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.hero-subtitle{font-size:17px;color:var(--text-dim);margin-bottom:36px;max-width:650px;font-weight:300;line-height:1.75}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:44px}
+.pill{display:inline-flex;align-items:center;gap:6px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);border-radius:6px;padding:6px 14px;font-family:var(--font-code);font-size:12px;color:var(--p3)}
+.pill::before{content:'◆';font-size:8px;color:var(--p2)}
+.meta-row{display:flex;gap:32px;flex-wrap:wrap}
+.meta-item{display:flex;flex-direction:column;gap:4px}
+.meta-label{font-family:var(--font-code);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted)}
+.meta-value{font-family:var(--font-code);font-size:13px;color:var(--p1);font-weight:500}
+
+/* SECTIONS */
+section{padding:100px 80px;position:relative}
+section:nth-child(even){background:rgba(13,10,6,.55)}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--p1),var(--p2),transparent);margin:0 80px;opacity:.35}
+.section-tag{font-family:var(--font-code);font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:var(--p2);margin-bottom:14px;opacity:.85}
+.section-title{font-family:var(--font-title);font-size:clamp(28px,3.8vw,44px);font-weight:700;line-height:1.1;margin-bottom:14px;color:#fff}
+.section-desc{font-size:15px;color:var(--text-dim);max-width:650px;margin-bottom:56px;font-weight:300}
+
+/* DIAGNOSIS FLOWCHART */
+.diag-flow{display:flex;flex-direction:column;gap:0;max-width:840px}
+.diag-step{display:flex;gap:24px;align-items:flex-start;position:relative}
+.diag-left{display:flex;flex-direction:column;align-items:center;width:52px;flex-shrink:0}
+.diag-circle{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-title);font-size:18px;font-weight:800;flex-shrink:0;position:relative;z-index:1}
+.diag-line{width:2px;flex:1;min-height:24px;background:linear-gradient(to bottom,var(--p1),var(--p2));opacity:.4;margin-top:2px}
+.diag-card{flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px 26px;margin-bottom:10px;transition:all .3s;position:relative;overflow:hidden}
+.diag-card:hover{border-color:rgba(251,191,36,.4);transform:translateX(5px);box-shadow:0 8px 32px rgba(251,191,36,.1)}
+.diag-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(to bottom,var(--p1),var(--p2))}
+.diag-badge{font-family:var(--font-code);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--p2);margin-bottom:8px}
+.diag-title{font-family:var(--font-title);font-size:16px;font-weight:600;color:#fff;margin-bottom:8px}
+.diag-body{font-size:13px;color:var(--text-dim);line-height:1.65}
+.diag-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.diag-tag{font-family:var(--font-code);font-size:10px;padding:2px 9px;border-radius:4px;background:rgba(251,191,36,.1);color:var(--p3);border:1px solid rgba(251,191,36,.2)}
+
+/* SPARK UI ANATOMY */
+.ui-anatomy{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:28px 0}
+.ui-panel{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:all .3s}
+.ui-panel:hover{border-color:rgba(251,191,36,.35);box-shadow:0 10px 36px rgba(251,191,36,.08)}
+.ui-panel-header{padding:14px 20px;background:rgba(251,191,36,.06);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.ui-panel-icon{font-size:18px}
+.ui-panel-title{font-family:var(--font-title);font-size:15px;font-weight:600;color:#fff}
+.ui-panel-tab{font-family:var(--font-code);font-size:10px;color:var(--p2);background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.2);padding:2px 8px;border-radius:4px;margin-left:auto}
+.ui-panel-body{padding:18px 20px;display:flex;flex-direction:column;gap:10px}
+.ui-metric{display:flex;flex-direction:column;gap:3px}
+.ui-metric-name{font-family:var(--font-code);font-size:11px;color:var(--p1)}
+.ui-metric-desc{font-size:12.5px;color:var(--text-dim);line-height:1.55}
+.ui-metric-alert{font-family:var(--font-code);font-size:10px;color:#f87171;background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.2);padding:2px 8px;border-radius:4px;display:inline-block;margin-top:3px}
+
+/* SKEW DETECTOR */
+.skew-vis{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:28px;margin:28px 0;overflow:hidden}
+.skew-title{font-family:var(--font-title);font-size:16px;font-weight:600;color:#fff;margin-bottom:6px}
+.skew-sub{font-size:13px;color:var(--text-dim);margin-bottom:24px}
+.skew-bars{display:flex;align-items:flex-end;gap:8px;height:160px;padding-bottom:28px;position:relative;border-bottom:1px solid var(--border)}
+.skew-bar-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1}
+.skew-bar{width:100%;border-radius:6px 6px 0 0;transition:all .3s;position:relative;min-height:4px}
+.skew-bar.normal{background:linear-gradient(to top,var(--p1),#fde68a);opacity:.8}
+.skew-bar.skewed{background:linear-gradient(to top,#f43f5e,#fb7185);box-shadow:0 0 18px rgba(244,63,94,.4)}
+.skew-bar.skewed::after{content:'⚠ 倾斜!';position:absolute;top:-24px;left:50%;transform:translateX(-50%);font-family:var(--font-code);font-size:9px;color:#f87171;white-space:nowrap}
+.skew-label{font-family:var(--font-code);font-size:10px;color:var(--text-muted)}
+.skew-axis{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;padding:6px 0 0;font-family:var(--font-code);font-size:10px;color:var(--text-muted)}
+.skew-legend{display:flex;gap:24px;margin-top:16px;flex-wrap:wrap}
+.skew-legend-item{display:flex;align-items:center;gap:8px;font-family:var(--font-code);font-size:11px;color:var(--text-dim)}
+.sl-dot{width:10px;height:10px;border-radius:3px}
+
+/* GC TIMELINE */
+.gc-timeline{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:28px;margin:28px 0}
+.gc-timeline-title{font-family:var(--font-title);font-size:16px;font-weight:600;color:#fff;margin-bottom:20px}
+.gc-track{height:48px;background:rgba(255,255,255,.03);border-radius:8px;border:1px solid var(--border);position:relative;overflow:hidden;margin-bottom:12px}
+.gc-segment{position:absolute;top:0;bottom:0;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:var(--font-code);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.gc-seg-work{background:rgba(251,191,36,.25);color:var(--p1);border-right:1px dashed rgba(251,191,36,.3)}
+.gc-seg-gc{background:rgba(244,63,94,.3);color:#fb7185;border-right:1px dashed rgba(244,63,94,.3)}
+.gc-seg-stall{background:rgba(139,92,246,.25);color:#c4b5fd}
+.gc-labels{display:flex;gap:20px;flex-wrap:wrap}
+.gc-label{display:flex;align-items:center;gap:7px;font-family:var(--font-code);font-size:11px;color:var(--text-dim)}
+.gc-dot{width:12px;height:8px;border-radius:3px}
+
+/* FLAME GRAPH MOCK */
+.flame-wrap{background:#0a0804;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:28px 0}
+.flame-header{padding:14px 20px;background:rgba(251,191,36,.05);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.flame-title{font-family:var(--font-code);font-size:12px;color:var(--text-muted)}
+.flame-body{padding:20px;display:flex;flex-direction:column;gap:3px}
+.flame-row{display:flex;gap:2px;height:22px}
+.flame-block{border-radius:3px;display:flex;align-items:center;padding:0 8px;font-family:var(--font-code);font-size:10px;font-weight:500;cursor:default;transition:all .2s;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.flame-block:hover{opacity:.85;transform:scaleY(1.05)}
+.fb-hot{background:#c2410c;color:#fed7aa}
+.fb-warm{background:#d97706;color:#fef3c7}
+.fb-mid{background:#059669;color:#d1fae5}
+.fb-cool{background:#1d4ed8;color:#bfdbfe}
+.fb-gray{background:#374151;color:#9ca3af}
+
+/* COMPARE CARDS */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:28px 0}
+.compare-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:28px;transition:all .3s;position:relative;overflow:hidden}
+.compare-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;opacity:0;transition:opacity .3s}
+.compare-card:hover{transform:translateY(-3px)}.compare-card:hover::before{opacity:1}
+.compare-card.good::before{background:linear-gradient(90deg,#22c55e,#4ade80)}.compare-card.good:hover{border-color:rgba(34,197,94,.4)}
+.compare-card.bad::before{background:linear-gradient(90deg,#f43f5e,#fb7185)}.compare-card.bad:hover{border-color:rgba(244,63,94,.4)}
+.compare-label{font-family:var(--font-code);font-size:11px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;font-weight:600}
+.compare-card.good .compare-label{color:#4ade80}.compare-card.bad .compare-label{color:#f43f5e}
+.compare-title{font-family:var(--font-title);font-size:17px;font-weight:700;color:#fff;margin-bottom:14px}
+.compare-list{list-style:none;display:flex;flex-direction:column;gap:10px}
+.compare-list li{font-size:13.5px;color:var(--text-dim);display:flex;gap:10px;align-items:flex-start;line-height:1.55}
+.compare-list li::before{flex-shrink:0;margin-top:3px;font-size:11px}
+.compare-card.good .compare-list li::before{content:'✓';color:#4ade80}
+.compare-card.bad .compare-list li::before{content:'✕';color:#f43f5e}
+
+/* KNOB CARDS */
+.knob-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin:28px 0}
+.knob-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;transition:all .3s}
+.knob-card:hover{border-color:rgba(251,191,36,.35);box-shadow:0 8px 30px rgba(251,191,36,.08)}
+.knob-name{font-family:var(--font-code);font-size:14px;color:var(--p2);font-weight:500;margin-bottom:6px}
+.knob-default{font-family:var(--font-code);font-size:11px;color:var(--text-muted);margin-bottom:12px}
+.knob-default span{color:var(--p1);font-weight:500}
+.knob-desc{font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:16px}
+.knob-bar-wrap{background:rgba(255,255,255,.05);border-radius:100px;height:5px;margin-bottom:10px;overflow:hidden}
+.knob-bar{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--p1),var(--p2));width:0;transition:width 1.2s cubic-bezier(.23,1,.32,1)}
+.knob-tags{display:flex;gap:6px;flex-wrap:wrap}
+.knob-tag{font-family:var(--font-code);font-size:10px;padding:2px 8px;border-radius:4px;background:rgba(251,191,36,.08);color:var(--p3);border:1px solid rgba(251,191,36,.18)}
+
+/* CHECKLIST */
+.checklist{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;margin:28px 0}
+.checklist-group{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px}
+.checklist-group-title{font-family:var(--font-title);font-size:15px;font-weight:600;color:#fff;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.checklist-items{display:flex;flex-direction:column;gap:10px}
+.check-item{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--text-dim);line-height:1.55}
+.check-icon{width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;margin-top:2px}
+.check-icon.ok{background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3)}
+.check-icon.warn{background:rgba(251,191,36,.12);color:var(--p1);border:1px solid rgba(251,191,36,.25)}
+.check-icon.danger{background:rgba(244,63,94,.1);color:#f87171;border:1px solid rgba(244,63,94,.2)}
+
+/* MATRIX TABLE */
+.matrix-table{width:100%;border-collapse:collapse;font-family:var(--font-code);font-size:13px}
+.matrix-table th{padding:12px 18px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);border-bottom:1px solid var(--border);background:rgba(255,255,255,.02)}
+.matrix-table td{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text-dim);transition:background .2s}
+.matrix-table tr:hover td{background:rgba(251,191,36,.04)}
+.matrix-table td:first-child{color:var(--text);font-weight:500}
+.cy{color:#4ade80;font-weight:600}.cw{color:#fbbf24}.cn{color:#f87171}
+
+/* CODE BLOCKS */
+.code-block{background:#0a0802;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:24px 0}
+.code-header{display:flex;align-items:center;gap:8px;padding:14px 20px;background:rgba(255,255,255,.022);border-bottom:1px solid var(--border)}
+.code-dots{display:flex;gap:7px}
+.code-dot{width:12px;height:12px;border-radius:50%}
+.code-dot.r{background:#ff5f57}.code-dot.y{background:#febc2e}.code-dot.g{background:#28c840}
+.code-filename{font-family:var(--font-code);font-size:12px;color:var(--text-muted);margin-left:8px;letter-spacing:.05em}
+.code-lang{margin-left:auto;font-family:var(--font-code);font-size:10px;color:var(--p2);background:rgba(251,146,60,.1);padding:3px 9px;border-radius:4px;letter-spacing:.08em;text-transform:uppercase}
+.code-body{padding:24px;font-family:var(--font-code);font-size:13.5px;line-height:1.9;overflow-x:auto}
+.code-body pre{white-space:pre}
+.c-kw{color:#93c5fd}.c-fn{color:#fbbf24}.c-str{color:#86efac}.c-num{color:#fda4af}
+.c-cm{color:#3a2f0f;font-style:italic}.c-cls{color:#f0abfc}.c-var{color:#e2e8f0}.c-attr{color:#fb923c}
+
+/* INFO BOXES */
+.info-box{border-radius:10px;padding:18px 22px;margin:20px 0;border-left:3px solid;display:flex;gap:14px}
+.info-box-icon{font-size:18px;flex-shrink:0;margin-top:2px}
+.info-box-title{font-family:var(--font-code);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.info-box-text{font-size:14px;color:var(--text-dim);line-height:1.65}
+.info-box.tip{background:rgba(251,191,36,.07);border-color:var(--p1)}.info-box.tip .info-box-title{color:var(--p1)}
+.info-box.warn{background:rgba(251,146,60,.07);border-color:var(--p2)}.info-box.warn .info-box-title{color:var(--p2)}
+.info-box.note{background:rgba(96,165,250,.07);border-color:#60a5fa}.info-box.note .info-box-title{color:#60a5fa}
+.info-box.danger{background:rgba(244,63,94,.07);border-color:#f43f5e}.info-box.danger .info-box-title{color:#f43f5e}
+
+/* PROGRESS */
+.progress-section{display:flex;flex-direction:column;gap:18px}
+.progress-label{display:flex;justify-content:space-between;margin-bottom:8px}
+.progress-name{font-family:var(--font-code);font-size:13px;color:var(--text)}
+.progress-val{font-family:var(--font-code);font-size:12px;color:var(--p1)}
+.progress-track{height:6px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden}
+.progress-fill{height:100%;border-radius:100px;width:0;transition:width 1.4s cubic-bezier(.23,1,.32,1);background:linear-gradient(90deg,var(--p1),var(--p2))}
+
+/* TRAP */
+.traps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:28px 0}
+.trap-card{background:rgba(244,63,94,.04);border:1px solid rgba(244,63,94,.15);border-radius:10px;padding:22px;transition:all .3s;position:relative;overflow:hidden}
+.trap-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#f43f5e,#fb7185);opacity:0;transition:opacity .3s}
+.trap-card:hover{border-color:rgba(244,63,94,.3);transform:translateY(-3px)}.trap-card:hover::before{opacity:1}
+.trap-icon{font-size:24px;margin-bottom:12px}
+.trap-title{font-family:var(--font-title);font-size:15px;font-weight:600;color:#fff;margin-bottom:8px}
+.trap-desc{font-size:13px;color:var(--text-dim);line-height:1.6}
+
+/* FOOTER */
+.footer-nav{padding:80px;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:60px;background:rgba(13,10,6,.9)}
+.footer-toc-title{font-family:var(--font-code);font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-muted);margin-bottom:20px}
+.footer-toc-list{list-style:none;display:flex;flex-direction:column;gap:10px}
+.footer-toc-item{font-size:14px;display:flex;align-items:center;gap:10px}
+.footer-toc-item .num{font-family:var(--font-code);font-size:11px;color:var(--text-muted);width:22px}
+.footer-toc-item.done{text-decoration:line-through;color:var(--text-muted)}
+.footer-toc-item.current{color:var(--p1);font-weight:500}
+.footer-toc-item.upcoming{color:var(--text-dim)}
+.footer-next-label{font-family:var(--font-code);font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-muted);margin-bottom:20px}
+.footer-next-card{background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.2);border-radius:12px;padding:28px;transition:all .3s;cursor:pointer}
+.footer-next-card:hover{border-color:var(--p1);background:rgba(251,191,36,.13);transform:translateX(4px)}
+.footer-next-ch{font-family:var(--font-code);font-size:12px;color:var(--p2);margin-bottom:10px}
+.footer-next-title{font-family:var(--font-title);font-size:22px;font-weight:700;color:#fff;margin-bottom:10px}
+.footer-next-desc{font-size:13px;color:var(--text-dim)}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+@media(max-width:768px){
+  .sidebar{display:none}.main{margin-left:0}
+  .hero{padding:60px 24px 80px}section{padding:60px 24px}
+  .divider{margin:0 24px}
+  .ui-anatomy,.compare-grid,.knob-grid,.checklist{grid-template-columns:1fr}
+  .traps-grid{grid-template-columns:1fr}
+  .footer-nav{padding:40px 24px;grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <span class="sidebar-label">Apache Spark · Deep Learning</span>
+  <span class="sidebar-chapter">CH·05</span>
+  <div class="nav-dots">
+    <div class="nav-dot active" data-section="s1" data-label="诊断方法论"></div>
+    <div class="nav-dot" data-section="s2" data-label="Spark UI 解读"></div>
+    <div class="nav-dot" data-section="s3" data-label="数据倾斜根治"></div>
+    <div class="nav-dot" data-section="s4" data-label="GC 调优"></div>
+    <div class="nav-dot" data-section="s5" data-label="Shuffle 优化"></div>
+    <div class="nav-dot" data-section="s6" data-label="资源配置公式"></div>
+    <div class="nav-dot" data-section="s7" data-label="调优清单"></div>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- HERO -->
+<div class="hero" id="s0">
+  <div class="hero-bg">
+    <div class="hero-grid"></div>
+    <div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div>
+  </div>
+  <div class="hero-content">
+    <div class="chapter-badge"><span class="badge-dot"></span>Chapter 05 · Apache Spark Deep Dive</div>
+    <h1 class="hero-title">性能调优<br>诊断方法论与实战</h1>
+    <p class="hero-subtitle">从 Spark UI 读懂执行计划的完整方法论；系统化诊断数据倾斜、GC 压力、Shuffle 瓶颈的工具链；掌握 Executor 资源配置黄金公式，用 Flame Graph 定位 CPU 热点——让 Spark 作业从"能跑"到"跑好"。</p>
+    <div class="pills">
+      <span class="pill">Spark UI 深度解读</span>
+      <span class="pill">数据倾斜诊断</span>
+      <span class="pill">GC Tuning</span>
+      <span class="pill">Shuffle 优化</span>
+      <span class="pill">Flame Graph</span>
+      <span class="pill">Executor 配置公式</span>
+      <span class="pill">Join 策略调优</span>
+      <span class="pill">AQE 精细控制</span>
+    </div>
+    <div class="meta-row">
+      <div class="meta-item"><span class="meta-label">难度</span><span class="meta-value">⬛⬛⬛⬛⬛ 专家级</span></div>
+      <div class="meta-item"><span class="meta-label">阅读时长</span><span class="meta-value">约 60 分钟</span></div>
+      <div class="meta-item"><span class="meta-label">前置章节</span><span class="meta-value">Ch.01~04 全章</span></div>
+      <div class="meta-item"><span class="meta-label">版本</span><span class="meta-value">Spark 3.4 / 3.5</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ══ S1: 诊断方法论 ══ -->
+<section id="s1">
+  <div class="section-tag">01 / Diagnosis Methodology</div>
+  <h2 class="section-title">五步诊断方法论：先定位再优化</h2>
+  <p class="section-desc">性能调优最大的反模式是"凭感觉加参数"。正确姿势是先通过工具链精准定位瓶颈，再有针对性地优化——否则可能优化了错误的地方，浪费大量时间。</p>
+
+  <div class="diag-flow reveal">
+    <div class="diag-step">
+      <div class="diag-left">
+        <div class="diag-circle" style="background:rgba(251,191,36,.15);border:2px solid var(--p1);color:var(--p1)">1</div>
+        <div class="diag-line"></div>
+      </div>
+      <div class="diag-card">
+        <div class="diag-badge">Step 01 · 宏观判断</div>
+        <div class="diag-title">先看总体耗时分布：是 CPU、IO 还是等待？</div>
+        <div class="diag-body">打开 Spark UI → Jobs 页面，观察各 Job 耗时占比。关键问题：<strong>哪个 Stage 耗时最长？</strong>进入该 Stage → 查看 Task 时间分布（Scheduler Delay / Task Deserialization / GC Time / Shuffle 读写 / 实际计算）。若 GC Time > 总时间 10%，则优先解决 GC；若 Shuffle Read/Write 占主导，优先解决 Shuffle；若单个 Task 远超中位数，则是数据倾斜。</div>
+        <div class="diag-tags"><span class="diag-tag">Spark UI · Jobs</span><span class="diag-tag">Stage 耗时</span><span class="diag-tag">Task 时间拆解</span></div>
+      </div>
+    </div>
+    <div class="diag-step">
+      <div class="diag-left">
+        <div class="diag-circle" style="background:rgba(251,146,60,.15);border:2px solid var(--p2);color:var(--p2)">2</div>
+        <div class="diag-line"></div>
+      </div>
+      <div class="diag-card">
+        <div class="diag-badge">Step 02 · 计划审查</div>
+        <div class="diag-title">df.explain("formatted") 审查物理执行计划</div>
+        <div class="diag-body">检查：① Join 策略是否符合预期（BHJ > SMJ）② 谓词下推是否生效（PushedFilters 出现在 FileScan）③ 是否存在意外的 Exchange（Shuffle）节点 ④ Codegen 是否生效（算子前有 <code style="font-family:var(--font-code);color:#fbbf24">*(N)</code> 标记）⑤ AQE 是否生效（出现 <code style="font-family:var(--font-code);color:#fbbf24">AdaptiveSparkPlan</code>）。物理计划是所有调优的起点。</div>
+        <div class="diag-tags"><span class="diag-tag">explain("formatted")</span><span class="diag-tag">BroadcastHashJoin</span><span class="diag-tag">Exchange 节点</span></div>
+      </div>
+    </div>
+    <div class="diag-step">
+      <div class="diag-left">
+        <div class="diag-circle" style="background:rgba(251,191,36,.15);border:2px solid var(--p1);color:var(--p1)">3</div>
+        <div class="diag-line"></div>
+      </div>
+      <div class="diag-card">
+        <div class="diag-badge">Step 03 · 数据分布</div>
+        <div class="diag-title">诊断分区大小分布：是否存在倾斜？</div>
+        <div class="diag-body">在 Stage 详情页查看 Task 的 Input Size 和 Duration 分布。若最大值 > 中位数 × 5，且最大值 > 256MB，判定为数据倾斜。同时检查分区数量：分区过少（并行度不足）或过多（调度开销 + 小文件）都会导致性能问题。AQE 开启后可在 SQL 页面查看实际分区合并情况。</div>
+        <div class="diag-tags"><span class="diag-tag">Task Input Size</span><span class="diag-tag">倾斜判定</span><span class="diag-tag">分区数诊断</span></div>
+      </div>
+    </div>
+    <div class="diag-step">
+      <div class="diag-left">
+        <div class="diag-circle" style="background:rgba(251,146,60,.15);border:2px solid var(--p2);color:var(--p2)">4</div>
+        <div class="diag-line"></div>
+      </div>
+      <div class="diag-card">
+        <div class="diag-badge">Step 04 · 内存 & GC</div>
+        <div class="diag-title">查看 Executor GC 时间和 Storage 内存使用</div>
+        <div class="diag-body">Executor 页面查看 <strong>GC Time</strong> 列——若某 Executor GC 时间持续超过 5%，结合日志中 <code style="font-family:var(--font-code);color:#fbbf24">Full GC</code> 频率判断内存压力。Storage 页面查看 Cache 命中率，Cache Eviction 频繁说明 Storage Memory 不足。结合 Executor 的 OOM 日志（<code style="font-family:var(--font-code);color:#fbbf24">java.lang.OutOfMemoryError</code>）定位具体 Stage。</div>
+        <div class="diag-tags"><span class="diag-tag">GC Time %</span><span class="diag-tag">Full GC</span><span class="diag-tag">Cache Eviction</span></div>
+      </div>
+    </div>
+    <div class="diag-step">
+      <div class="diag-left">
+        <div class="diag-circle" style="background:rgba(251,191,36,.15);border:2px solid var(--p1);color:var(--p1)">5</div>
+      </div>
+      <div class="diag-card">
+        <div class="diag-badge">Step 05 · CPU 热点</div>
+        <div class="diag-title">Async Profiler + Flame Graph 定位 CPU 热点函数</div>
+        <div class="diag-body">对于计算密集型作业，仅靠 UI 无法定位具体热点。使用 <strong>Async Profiler</strong>（JVM 采样）或 Spark 3.2+ 内置的 <code style="font-family:var(--font-code);color:#fbbf24">spark.executor.extraJavaOptions=-agentpath:...</code> 生成 Flame Graph。热点函数通常集中在：序列化/反序列化（→ 换 Kryo）、UDF 内部逻辑（→ 重写为内置函数）、Shuffle Spill（→ 增大 Execution Memory）。</div>
+        <div class="diag-tags"><span class="diag-tag">Async Profiler</span><span class="diag-tag">Flame Graph</span><span class="diag-tag">CPU 采样</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ S2: Spark UI ══ -->
+<section id="s2">
+  <div class="section-tag">02 / Spark UI Deep Dive</div>
+  <h2 class="section-title">Spark UI 关键页面解读指南</h2>
+  <p class="section-desc">Spark UI 是免费的最强调优工具，但大多数人只看"作业完成了没有"。掌握每个页面的关键指标才能做到精准调优。</p>
+
+  <div class="ui-anatomy reveal">
+    <div class="ui-panel">
+      <div class="ui-panel-header">
+        <span class="ui-panel-icon">📊</span>
+        <span class="ui-panel-title">Stages 页面</span>
+        <span class="ui-panel-tab">最重要</span>
+      </div>
+      <div class="ui-panel-body">
+        <div class="ui-metric">
+          <span class="ui-metric-name">Task Metrics Summary</span>
+          <span class="ui-metric-desc">展示 Min/25th/Median/75th/Max 五分位数。<strong>Max Duration 远超 Median</strong> → 数据倾斜。<strong>Max GC Time 高</strong> → 内存压力。</span>
+          <span class="ui-metric-alert">Max Duration > Median × 3 = 数据倾斜信号</span>
+        </div>
+        <div class="ui-metric">
+          <span class="ui-metric-name">Shuffle Read/Write Size</span>
+          <span class="ui-metric-desc">Shuffle Write 过大（数百GB）说明分区数太少或数据没有充分预聚合。Shuffle Read Records Max 远超 Median 同样是倾斜信号。</span>
+        </div>
+        <div class="ui-metric">
+          <span class="ui-metric-name">Input / Output Size</span>
+          <span class="ui-metric-desc">Input Size 远大于实际查询列的数据量，说明列裁剪/谓词下推未生效。Output Size 异常大，可能是 Cartesian Product 或 explode 产生了数据膨胀。</span>
+          <span class="ui-metric-alert">Output >> Input = 数据膨胀（检查 explode/join）</span>
+        </div>
+      </div>
+    </div>
+    <div class="ui-panel">
+      <div class="ui-panel-header">
+        <span class="ui-panel-icon">🔍</span>
+        <span class="ui-panel-title">SQL / DataFrame 页面</span>
+        <span class="ui-panel-tab">执行计划</span>
+      </div>
+      <div class="ui-panel-body">
+        <div class="ui-metric">
+          <span class="ui-metric-name">物理计划可视化图</span>
+          <span class="ui-metric-desc">点击查询可展开树形物理计划。每个节点显示实际行数、预估行数、处理时间。<strong>实际行数远超估算</strong> → CBO 统计信息过期，需重新 ANALYZE。</span>
+        </div>
+        <div class="ui-metric">
+          <span class="ui-metric-name">Exchange / Sort 节点</span>
+          <span class="ui-metric-desc">每个 Exchange 节点代表一次 Shuffle。关注其上方的 Sort：是否可用 Broadcast Join 消除？AQE 开启后，Exchange 节点旁会标注实际 Shuffle 数据量。</span>
+          <span class="ui-metric-alert">Exchange 数量 = Shuffle 次数，越少越好</span>
+        </div>
+        <div class="ui-metric">
+          <span class="ui-metric-name">WholeStageCodegen 节点</span>
+          <span class="ui-metric-desc">标有 <code style="font-family:var(--font-code);color:#fbbf24">*(N)</code> 的算子链在同一 Codegen Stage 内执行，无虚调用开销。若关键算子未被 Codegen 包含，需排查是否有 Python UDF 打断了链路。</span>
+        </div>
+      </div>
+    </div>
+    <div class="ui-panel">
+      <div class="ui-panel-header">
+        <span class="ui-panel-icon">💻</span>
+        <span class="ui-panel-title">Executors 页面</span>
+        <span class="ui-panel-tab">资源监控</span>
+      </div>
+      <div class="ui-panel-body">
+        <div class="ui-metric">
+          <span class="ui-metric-name">GC Time 列</span>
+          <span class="ui-metric-desc">各 Executor 的 GC 总耗时。若某个 Executor GC Time / Task Time > 10%，且 Failed Tasks 数量较高，该 Executor 存在内存压力，需增大 executor.memory 或减少 executor.cores。</span>
+          <span class="ui-metric-alert">GC Time / Total Time > 10% = 内存危险区</span>
+        </div>
+        <div class="ui-metric">
+          <span class="ui-metric-name">Storage Memory Used</span>
+          <span class="ui-metric-desc">与 executor.memory 对比查看内存使用率。接近上限说明 Cache 数据过多或 Execution Memory 不足（被 Shuffle 大量占用导致 OOM）。</span>
+        </div>
+        <div class="ui-metric">
+          <span class="ui-metric-name">Task 失败率</span>
+          <span class="ui-metric-desc">Failed Tasks 集中在同一 Executor，通常是硬件问题（磁盘满/网络不稳）。若分散在所有 Executor，则是逻辑问题（数据格式、OOM）。</span>
+        </div>
+      </div>
+    </div>
+    <div class="ui-panel">
+      <div class="ui-panel-header">
+        <span class="ui-panel-icon">🌊</span>
+        <span class="ui-panel-title">Streaming 页面</span>
+        <span class="ui-panel-tab">流作业专用</span>
+      </div>
+      <div class="ui-panel-body">
+        <div class="ui-metric">
+          <span class="ui-metric-name">Batch Duration 趋势</span>
+          <span class="ui-metric-desc">每批处理时间应稳定且低于 Trigger 间隔。若持续上升 → 处理速度跟不上输入速度，需增大并行度或减少 maxOffsetsPerTrigger 触发背压。</span>
+          <span class="ui-metric-alert">Batch Duration > Trigger Interval = 积压中</span>
+        </div>
+        <div class="ui-metric">
+          <span class="ui-metric-name">Input Rate vs Processing Rate</span>
+          <span class="ui-metric-desc">健康状态应处理速率 ≥ 输入速率。若长期低于，需排查 State Store 慢（切换 RocksDB）、Checkpoint 慢（增量 Checkpoint）或计算逻辑复杂度过高。</span>
+        </div>
+        <div class="ui-metric">
+          <span class="ui-metric-name">State Operator Metrics</span>
+          <span class="ui-metric-desc">开启 stateStoreMetrics 后显示 State 行数/大小/读写延迟。State 行数持续增长说明 Watermark 未生效或超时未正确清理。</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ S3: 数据倾斜 ══ -->
+<section id="s3">
+  <div class="section-tag">03 / Data Skew Diagnosis & Fix</div>
+  <h2 class="section-title">数据倾斜：诊断、根因与根治方案</h2>
+  <p class="section-desc">数据倾斜是 Spark 生产问题 No.1 杀手。作业跑了 3 小时，最后一个 Task 卡了 2 小时 50 分钟——这就是倾斜。掌握系统化的根治方案，而不是头痛医头。</p>
+
+  <!-- Skew Visualizer -->
+  <div class="skew-vis reveal">
+    <div class="skew-title">Task 耗时分布：倾斜 vs 正常</div>
+    <div class="skew-sub">Stage 详情页 → Task 耗时分布图，直方图形态直接揭示是否倾斜</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:8px">
+      <div>
+        <div style="font-family:var(--font-code);font-size:11px;color:var(--p1);margin-bottom:12px;text-transform:uppercase;letter-spacing:.08em">✓ 正常分布：各 Task 耗时均匀</div>
+        <div class="skew-bars">
+          <div class="skew-bar-wrap"><div class="skew-bar normal" style="height:70%"></div><span class="skew-label">T1</span></div>
+          <div class="skew-bar-wrap"><div class="skew-bar normal" style="height:80%"></div><span class="skew-label">T2</span></div>
+          <div class="skew-bar-wrap"><div class="skew-bar normal" style="height:75%"></div><span class="skew-label">T3</span></div>
+          <div class="skew-bar-wrap"><div class="skew-bar normal" style="height:72%"></div><span class="skew-label">T4</span></div>
+          <div class="skew-bar-wrap"><div class="skew-bar normal" style="height:78%"></div><span class="skew-label">T5</span></div>
+          <div class="skew-bar-wrap"><div class="skew-bar normal" style="height:68%"></div><span class="skew-label">T6</span></div>
+          <div class="skew-bar-wrap"><div class="skew-bar normal" style="height:74%"></div><span class="skew-label">T7</span></div>
+          <div class="skew-bar-wrap"><div class="skew-bar normal" style="height:76%"></div><span class="skew-label">T8</span></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-family:var(--font-code);font-size:11px;color:#f87171;margin-bottom:12px;text-transform:uppercase;letter-spacing:.08em">⚠ 倾斜分布：1个 Task 拖垮全场</div>
+        <div class="skew-bars">
+          <div class="skew-bar-wrap"><div class="skew-bar normal" style="height:15%"></div><span class="skew-label">T1</span></div>
+          <div class="skew-bar-wrap"><div class="skew-bar normal" style="height:18%"></div><span class="skew-label">T2</span></div>
+          <div class="skew-bar-wrap"><div class="skew-bar normal" style="height:12%"></div><span class="skew-label">T3</span></div>
+          <div class="skew-bar-wrap"><div class="skew-bar skewed" style="height:95%"></div><span class="skew-label">T4</span></div>
+          <div class="skew-bar-wrap"><div class="skew-bar normal" style="height:14%"></div><span class="skew-label">T5</span></div>
+          <div class="skew-bar-wrap"><div class="skew-bar normal" style="height:16%"></div><span class="skew-label">T6</span></div>
+          <div class="skew-bar-wrap"><div class="skew-bar normal" style="height:13%"></div><span class="skew-label">T7</span></div>
+          <div class="skew-bar-wrap"><div class="skew-bar normal" style="height:15%"></div><span class="skew-label">T8</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="compare-grid reveal">
+    <div class="compare-card bad">
+      <div class="compare-label">✕ 反模式：治标不治本</div>
+      <div class="compare-title">常见的错误应对方式</div>
+      <ul class="compare-list">
+        <li>盲目增大 executor.memory，治标但不治本，浪费资源</li>
+        <li>增大 shuffle.partitions 到 10000，小分区开销反而更大</li>
+        <li>对所有列做 Salting，破坏数据语义，引入额外复杂度</li>
+        <li>禁用 AQE，手动处理所有倾斜，维护成本极高</li>
+        <li>忽略倾斜，"等着跑完"，下次还会出现</li>
+      </ul>
+    </div>
+    <div class="compare-card good">
+      <div class="compare-label">✓ 正确方案：按根因对症</div>
+      <div class="compare-title">系统化根治路径</div>
+      <ul class="compare-list">
+        <li>先用 AQE Skew Join（Spark 3.0+），80%场景自动解决</li>
+        <li>热点 Key 确认后，用 Salting（随机后缀）打散大 Key</li>
+        <li>小表 JOIN 大表倾斜 → 广播小表（BroadcastHashJoin）</li>
+        <li>GROUP BY 倾斜 → 两阶段聚合（局部聚合 + 全局聚合）</li>
+        <li>数据源层解决：写入时按更均匀的列分区</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="code-block reveal">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div>
+      <span class="code-filename">skew_solutions.py</span>
+      <span class="code-lang">PySpark</span>
+    </div>
+    <div class="code-body"><pre>
+<span class="c-kw">import</span> <span class="c-cls">pyspark.sql.functions</span> <span class="c-kw">as</span> F
+
+<span class="c-cm"># ── 方案1: AQE 自动处理倾斜（优先尝试）────────────</span>
+spark.<span class="c-fn">conf</span>.<span class="c-fn">set</span>(<span class="c-str">"spark.sql.adaptive.enabled"</span>, <span class="c-str">"true"</span>)
+spark.<span class="c-fn">conf</span>.<span class="c-fn">set</span>(<span class="c-str">"spark.sql.adaptive.skewJoin.enabled"</span>, <span class="c-str">"true"</span>)
+spark.<span class="c-fn">conf</span>.<span class="c-fn">set</span>(<span class="c-str">"spark.sql.adaptive.skewJoin.skewedPartitionFactor"</span>, <span class="c-str">"3"</span>)  <span class="c-cm"># 降低触发阈值</span>
+spark.<span class="c-fn">conf</span>.<span class="c-fn">set</span>(<span class="c-str">"spark.sql.adaptive.skewJoin.skewedPartitionThresholdInBytes"</span>, <span class="c-str">"128m"</span>)
+
+<span class="c-cm"># ── 方案2: 手动 Salting（AQE 无效时的终极方案）───</span>
+SALT_NUM = <span class="c-num">16</span>  <span class="c-cm"># Salt 粒度，根据倾斜程度调整</span>
+
+<span class="c-cm"># 大表：给 Join Key 加随机 Salt 后缀</span>
+big_table_salted = big_table.<span class="c-fn">withColumn</span>(
+    <span class="c-str">"salted_key"</span>,
+    F.<span class="c-fn">concat</span>(
+        F.<span class="c-fn">col</span>(<span class="c-str">"user_id"</span>).<span class="c-fn">cast</span>(<span class="c-str">"string"</span>),
+        F.<span class="c-fn">lit</span>(<span class="c-str">"_"</span>),
+        (F.<span class="c-fn">rand</span>() * SALT_NUM).<span class="c-fn">cast</span>(<span class="c-str">"int"</span>).<span class="c-fn">cast</span>(<span class="c-str">"string"</span>)
+    )
+)
+
+<span class="c-cm"># 小表：将每行复制 SALT_NUM 份，分别加 0~N-1 后缀</span>
+salt_values = spark.<span class="c-fn">range</span>(SALT_NUM).<span class="c-fn">toDF</span>(<span class="c-str">"salt"</span>)
+small_table_expanded = small_table.<span class="c-fn">crossJoin</span>(salt_values).<span class="c-fn">withColumn</span>(
+    <span class="c-str">"salted_key"</span>,
+    F.<span class="c-fn">concat</span>(F.<span class="c-fn">col</span>(<span class="c-str">"user_id"</span>).<span class="c-fn">cast</span>(<span class="c-str">"string"</span>), F.<span class="c-fn">lit</span>(<span class="c-str">"_"</span>), F.<span class="c-fn">col</span>(<span class="c-str">"salt"</span>).<span class="c-fn">cast</span>(<span class="c-str">"string"</span>))
+)
+
+result = big_table_salted.<span class="c-fn">join</span>(small_table_expanded, <span class="c-str">"salted_key"</span>)
+
+<span class="c-cm"># ── 方案3: 两阶段聚合（GROUP BY 倾斜）──────────────</span>
+<span class="c-cm"># 第一阶段：局部聚合，用随机 salt 打散 key</span>
+partial_agg = orders \
+    .<span class="c-fn">withColumn</span>(<span class="c-str">"salt"</span>, (F.<span class="c-fn">rand</span>() * <span class="c-num">8</span>).<span class="c-fn">cast</span>(<span class="c-str">"int"</span>)) \
+    .<span class="c-fn">groupBy</span>(<span class="c-str">"user_id"</span>, <span class="c-str">"salt"</span>) \
+    .<span class="c-fn">agg</span>(F.<span class="c-fn">sum</span>(<span class="c-str">"amount"</span>).<span class="c-fn">alias</span>(<span class="c-str">"partial_sum"</span>))
+
+<span class="c-cm"># 第二阶段：全局聚合，再对 partial_sum 求和</span>
+final_agg = partial_agg \
+    .<span class="c-fn">groupBy</span>(<span class="c-str">"user_id"</span>) \
+    .<span class="c-fn">agg</span>(F.<span class="c-fn">sum</span>(<span class="c-str">"partial_sum"</span>).<span class="c-fn">alias</span>(<span class="c-str">"total_amount"</span>))
+</pre></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ S4: GC 调优 ══ -->
+<section id="s4">
+  <div class="section-tag">04 / GC Tuning</div>
+  <h2 class="section-title">GC 调优：从症状到根治</h2>
+  <p class="section-desc">JVM GC 停顿是 Spark 作业长尾延迟的重要来源。不同的 GC 症状对应不同的根因，需要精准匹配解决方案。</p>
+
+  <div class="gc-timeline reveal">
+    <div class="gc-timeline-title">Executor GC 时间线示意：健康 vs 危险</div>
+    <div style="font-family:var(--font-code);font-size:11px;color:var(--text-muted);margin-bottom:10px">健康 Executor（GC < 5% 时间）</div>
+    <div class="gc-track">
+      <div class="gc-segment gc-seg-work" style="left:0;width:88%">Computing / Shuffle / IO</div>
+      <div class="gc-segment gc-seg-gc" style="left:88%;width:5%">GC</div>
+      <div class="gc-segment gc-seg-work" style="left:93%;width:7%">Work</div>
+    </div>
+    <div style="font-family:var(--font-code);font-size:11px;color:#f87171;margin-bottom:10px;margin-top:16px">危险 Executor（GC 占 30%+ — 作业严重变慢）</div>
+    <div class="gc-track">
+      <div class="gc-segment gc-seg-work" style="left:0;width:35%">Work</div>
+      <div class="gc-segment gc-seg-gc" style="left:35%;width:18%">Full GC（STW）</div>
+      <div class="gc-segment gc-seg-work" style="left:53%;width:20%">Work</div>
+      <div class="gc-segment gc-seg-gc" style="left:73%;width:15%">Full GC（STW）</div>
+      <div class="gc-segment gc-seg-stall" style="left:88%;width:12%">OOM 风险</div>
+    </div>
+    <div class="gc-labels" style="margin-top:16px">
+      <div class="gc-label"><div class="gc-dot" style="background:rgba(251,191,36,.3)"></div>正常计算/IO</div>
+      <div class="gc-label"><div class="gc-dot" style="background:rgba(244,63,94,.4)"></div>Full GC（Stop-The-World）</div>
+      <div class="gc-label"><div class="gc-dot" style="background:rgba(139,92,246,.35)"></div>OOM 危险区</div>
+    </div>
+  </div>
+
+  <div class="code-block reveal">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div>
+      <span class="code-filename">gc_tuning.conf</span>
+      <span class="code-lang">JVM Config</span>
+    </div>
+    <div class="code-body"><pre>
+<span class="c-cm">-- G1GC 调优（推荐：32GB+ Heap 的 Executor）-----------</span>
+
+<span class="c-attr">spark.executor.extraJavaOptions</span> = \
+  <span class="c-str">"-XX:+UseG1GC                      # 启用 G1 GC"</span>
+  <span class="c-str">"-XX:G1HeapRegionSize=16m           # Region 大小（1MB~32MB，建议16MB）"</span>
+  <span class="c-str">"-XX:InitiatingHeapOccupancyPercent=35  # 堆占用35%时触发并发GC（默认45%太高）"</span>
+  <span class="c-str">"-XX:MaxGCPauseMillis=200           # 目标最大停顿时间 200ms"</span>
+  <span class="c-str">"-XX:+PrintGCDetails                # 打印GC详情（调试期开启，生产可关）"</span>
+  <span class="c-str">"-XX:+PrintGCDateStamps"</span>
+  <span class="c-str">"-Xloggc:/tmp/gc.log               # GC 日志路径"</span>
+
+<span class="c-cm">-- 诊断 Off-Heap 问题时额外添加 ----------------------</span>
+  <span class="c-str">"-XX:+HeapDumpOnOutOfMemoryError    # OOM 时自动 Heap Dump"</span>
+  <span class="c-str">"-XX:HeapDumpPath=/tmp/heapdump.hprof"</span>
+  <span class="c-str">"-XX:+ExitOnOutOfMemoryError       # OOM 时立即退出（避免僵尸 Executor）"</span>
+
+<span class="c-cm">-- 小 Heap（&lt;8GB）Executor 可用 ParallelGC -----------</span>
+  <span class="c-str">"-XX:+UseParallelGC"</span>
+  <span class="c-str">"-XX:ParallelGCThreads=4"</span>
+
+<span class="c-cm">-- Off-Heap 内存（减少 GC 压力的根本方案）-----------</span>
+<span class="c-attr">spark.memory.offHeap.enabled</span>     = <span class="c-kw">true</span>
+<span class="c-attr">spark.memory.offHeap.size</span>        = <span class="c-num">8g</span>   <span class="c-cm"># 从堆外分配8GB用于执行</span>
+<span class="c-attr">spark.executor.memoryOverhead</span>    = <span class="c-num">4g</span>   <span class="c-cm"># 容器总内存 = executor.memory + overhead</span>
+
+<span class="c-cm">-- 检查 GC 是否是瓶颈（Shell 命令）-------------------</span>
+<span class="c-cm"># grep "Full GC" /tmp/gc.log | wc -l   # Full GC 次数</span>
+<span class="c-cm"># grep "pause" /tmp/gc.log | awk '{print $NF}' | sort -n | tail  # 最长停顿</span>
+</pre></div>
+  </div>
+
+  <div class="info-box warn reveal">
+    <div class="info-box-icon">⚠️</div>
+    <div>
+      <div class="info-box-title">GC 的三种典型症状与对应方案</div>
+      <div class="info-box-text">
+        <strong>① 频繁 Young GC（Minor GC）</strong>：短期对象（Task 中间变量）分配过快，增大 <code style="font-family:var(--font-code)">-Xmn</code>（新生代大小）或增加 Executor 内存<br>
+        <strong>② Full GC 频繁（Old Gen 满）</strong>：对象晋升到老年代太多，通常是 Cache 或大型 UDF 结果集驻留内存。切换 Off-Heap 或降低 <code style="font-family:var(--font-code)">spark.memory.storageFraction</code><br>
+        <strong>③ OOM: GC Overhead Limit Exceeded</strong>：GC 消耗超过 98% 时间却只回收 2% 内存，JVM 主动抛出。根本原因是内存严重不足，需增大内存或减少单 Task 数据量（增大分区数）
+      </div>
+    </div>
+  </div>
+
+  <!-- Flame Graph Mock -->
+  <h3 style="font-family:var(--font-title);font-size:20px;margin-bottom:16px;color:#fff;margin-top:40px" class="reveal">Flame Graph 解读：定位 CPU 热点</h3>
+  <div class="flame-wrap reveal">
+    <div class="flame-header">
+      <span style="font-size:16px">🔥</span>
+      <span class="flame-title">Async Profiler Flame Graph — 从上到下为调用栈，宽度 = CPU 时间占比</span>
+    </div>
+    <div class="flame-body">
+      <div class="flame-row">
+        <div class="flame-block fb-hot" style="width:45%">org.apache.spark.sql.execution.UnsafeRowSerializer.serialize (热点: 45%)</div>
+        <div class="flame-block fb-warm" style="width:28%">org.apache.spark.shuffle.sort.SortShuffleWriter.write (28%)</div>
+        <div class="flame-block fb-cool" style="width:14%">sun.misc.Unsafe.copyMemory (14%)</div>
+        <div class="flame-block fb-gray" style="width:11%">other (11%)</div>
+      </div>
+      <div class="flame-row">
+        <div class="flame-block fb-hot" style="width:35%">java.io.ObjectOutputStream.writeObject (序列化瓶颈)</div>
+        <div class="flame-block fb-warm" style="width:18%">ExternalSorter.spill</div>
+        <div class="flame-block fb-mid" style="width:22%">TungstenSorter.sort</div>
+        <div class="flame-block fb-cool" style="width:12%">UnsafeMemoryAllocator</div>
+        <div class="flame-block fb-gray" style="width:11%">other</div>
+      </div>
+      <div class="flame-row">
+        <div class="flame-block fb-hot" style="width:25%">ObjectOutputStream$BlockDataOutputStream</div>
+        <div class="flame-block fb-warm" style="width:28%">SpillFile.write → DiskBlockManager</div>
+        <div class="flame-block fb-mid" style="width:20%">RadixSort.sort</div>
+        <div class="flame-block fb-cool" style="width:27%">Platform.copyMemory / putLong</div>
+      </div>
+      <div class="flame-row">
+        <div class="flame-block fb-gray" style="width:100%">Thread: Executor task launch worker / SparkContext / DAGScheduler / TaskSetManager …</div>
+      </div>
+    </div>
+  </div>
+  <div class="info-box note reveal">
+    <div class="info-box-icon">🎯</div>
+    <div>
+      <div class="info-box-title">Flame Graph 诊断结论</div>
+      <div class="info-box-text">
+        上图显示 <strong>45% CPU 时间消耗在 ObjectOutputStream 序列化</strong>（Java 默认序列化），以及 <strong>28% 在 Shuffle Spill</strong>（内存不足溢写磁盘）。<br>
+        对应方案：① 启用 Kryo 序列化（<code style="font-family:var(--font-code)">spark.serializer=KryoSerializer</code>）消除序列化瓶颈；② 增大 Execution Memory 或增加分区数减少 Spill。
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ S5: Shuffle 优化 ══ -->
+<section id="s5">
+  <div class="section-tag">05 / Shuffle Optimization</div>
+  <h2 class="section-title">Shuffle 全链路优化</h2>
+  <p class="section-desc">Shuffle 是分布式计算中最昂贵的操作——网络传输、序列化、磁盘 IO 三重开销叠加。优化目标是"能不 Shuffle 就不 Shuffle，必须 Shuffle 就尽量小"。</p>
+
+  <div class="knob-grid reveal">
+    <div class="knob-card">
+      <div class="knob-name">消除 Shuffle：Broadcast Join</div>
+      <div class="knob-default">阈值：<span>autoBroadcastJoinThreshold = 10MB</span>（可调至 512MB）</div>
+      <div class="knob-desc">当一侧表 &lt; 阈值时，Spark 自动广播到所有 Executor，完全消除该 Join 的 Shuffle。宽表（SELECT *）时阈值估算不准，需手动 <code style="font-family:var(--font-code);color:#fb923c">broadcast()</code> 提示或增大阈值。AQE 开启后会在运行时自动升级。</div>
+      <div class="knob-bar-wrap"><div class="knob-bar" data-w="92%"></div></div>
+      <div class="knob-tags"><span class="knob-tag">最高收益</span><span class="knob-tag">消除 Exchange</span></div>
+    </div>
+    <div class="knob-card">
+      <div class="knob-name">减小 Shuffle 量：map 端预聚合</div>
+      <div class="knob-default">算子：<span>reduceByKey / aggregateByKey</span>（非 groupByKey）</div>
+      <div class="knob-desc">Map 端预聚合在 Shuffle 前先在本地合并相同 Key，大幅减少网络传输数据量。<code style="font-family:var(--font-code);color:#fb923c">reduceByKey</code> 比 <code style="font-family:var(--font-code);color:#fb923c">groupByKey().mapValues(sum)</code> 快 3~10 倍。SQL 中的 <code style="font-family:var(--font-code);color:#fb923c">GROUP BY</code> + <code style="font-family:var(--font-code);color:#fb923c">SUM/COUNT</code> 会自动触发 HashAggregate（含 map 端部分聚合）。</div>
+      <div class="knob-bar-wrap"><div class="knob-bar" data-w="78%"></div></div>
+      <div class="knob-tags"><span class="knob-tag">Map 端聚合</span><span class="knob-tag">网络 IO 减少</span></div>
+    </div>
+    <div class="knob-card">
+      <div class="knob-name">分区数调优：AQE + 手动设置</div>
+      <div class="knob-default">参数：<span>spark.sql.shuffle.partitions</span>（默认 200）</div>
+      <div class="knob-desc">黄金公式：<code style="font-family:var(--font-code);color:#fb923c">分区数 = max(数据量GB × 4, Executor数 × Cores × 2)</code>。AQE 会在运行时自动合并过小的分区（目标 128MB），但如果初始分区数过少，数据倾斜无法被切分。建议设置初始值偏大（500~2000），让 AQE 合并。</div>
+      <div class="knob-bar-wrap"><div class="knob-bar" data-w="70%"></div></div>
+      <div class="knob-tags"><span class="knob-tag">并行度</span><span class="knob-tag">AQE 合并</span></div>
+    </div>
+    <div class="knob-card">
+      <div class="knob-name">Shuffle Spill 优化</div>
+      <div class="knob-default">参数：<span>spark.shuffle.spill.compress = true</span></div>
+      <div class="knob-desc">Shuffle Spill 发生时（Execution Memory 不足），中间数据溢写磁盘。启用压缩减少磁盘 IO（使用 snappy 而非 lz4）。根本解决方案：增大 Execution Memory 或减少单分区数据量（增大分区数）。Push-Based Shuffle（Spark 3.2+）可合并 Spill 文件减少随机 IO。</div>
+      <div class="knob-bar-wrap"><div class="knob-bar" data-w="55%"></div></div>
+      <div class="knob-tags"><span class="knob-tag">磁盘 Spill</span><span class="knob-tag">压缩减少 IO</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ S6: 资源配置公式 ══ -->
+<section id="s6">
+  <div class="section-tag">06 / Resource Configuration Formula</div>
+  <h2 class="section-title">Executor 资源配置黄金公式</h2>
+  <p class="section-desc">Executor 配置是 Spark 调优中最基础也最容易出错的部分。以 YARN 模式、32 核 256GB 内存节点为例，演示生产推荐配置的推导过程。</p>
+
+  <div class="code-block reveal">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div>
+      <span class="code-filename">resource_formula.sh</span>
+      <span class="code-lang">配置推导</span>
+    </div>
+    <div class="code-body"><pre>
+<span class="c-cm">## ══ 生产 Executor 配置推导（YARN 集群）══════════════
+## 硬件：每节点 32 核 / 256GB RAM / 10Gbps 网卡
+## ─────────────────────────────────────────────────</span>
+
+<span class="c-cm">## Step 1：确定 executor.cores（并发 Task 数）</span>
+<span class="c-cm">## 经验法则：4~5 核/Executor（平衡并发与 GC 压力）</span>
+<span class="c-attr">spark.executor.cores</span> = <span class="c-num">5</span>
+<span class="c-cm">## → 每节点最多 32/5 ≈ 6 个 Executor（留1个 NodeManager）</span>
+<span class="c-cm">## → 每节点实际: floor(32 / 5) = 6 Executors</span>
+
+<span class="c-cm">## Step 2：确定 executor.memory</span>
+<span class="c-cm">## 每节点内存：256GB，系统 + NM 预留 8GB → 可用 248GB</span>
+<span class="c-cm">## 每 Executor 可用：248 / 6 ≈ 41GB → 取整 40GB</span>
+<span class="c-attr">spark.executor.memory</span>         = <span class="c-num">36g</span>  <span class="c-cm"># JVM 堆内存</span>
+<span class="c-attr">spark.executor.memoryOverhead</span>  = <span class="c-num">4g</span>   <span class="c-cm"># 堆外内存（容器总 40GB）</span>
+
+<span class="c-cm">## Step 3：内存内部划分</span>
+<span class="c-cm">## 可用堆 = 36g × (1 - Reserved 0.3) ≈ 25.2g（Spark 内部保留 10%）</span>
+<span class="c-cm">## Unified Pool = 25.2g × memory.fraction(0.75) ≈ 18.9g</span>
+<span class="c-cm">## Storage Region ≈ 18.9g × storageFraction(0.4) ≈ 7.6g</span>
+<span class="c-cm">## Execution Region ≈ 18.9g × 0.6 ≈ 11.3g（可向 Storage 借用）</span>
+<span class="c-attr">spark.memory.fraction</span>         = <span class="c-num">0.75</span>  <span class="c-cm"># Shuffle 密集型适当调高</span>
+<span class="c-attr">spark.memory.storageFraction</span>  = <span class="c-num">0.4</span>   <span class="c-cm"># 无大量 Cache 时调低</span>
+
+<span class="c-cm">## Step 4：Driver 配置</span>
+<span class="c-attr">spark.driver.memory</span>           = <span class="c-num">8g</span>   <span class="c-cm"># collect() 场景加大到 16g</span>
+<span class="c-attr">spark.driver.maxResultSize</span>    = <span class="c-num">4g</span>   <span class="c-cm"># Action 返回结果最大值</span>
+
+<span class="c-cm">## Step 5：并行度</span>
+<span class="c-cm">## 总 Task 槽 = 6 Executor/节点 × N节点 × 5 cores</span>
+<span class="c-cm">## shuffle.partitions 推荐 = Task槽数 × 2~4</span>
+<span class="c-cm">## 例：20节点 × 6 × 5 = 600 Task槽 → shuffle.partitions = 1200</span>
+<span class="c-attr">spark.sql.shuffle.partitions</span>  = <span class="c-num">1200</span>
+<span class="c-attr">spark.sql.adaptive.enabled</span>    = <span class="c-kw">true</span>  <span class="c-cm"># AQE 自动合并小分区</span>
+
+<span class="c-cm">## Step 6：序列化（必须）</span>
+<span class="c-attr">spark.serializer</span> = <span class="c-str">org.apache.spark.serializer.KryoSerializer</span>
+<span class="c-attr">spark.kryoserializer.buffer.max</span> = <span class="c-num">1g</span>  <span class="c-cm"># 单对象最大序列化大小</span>
+</pre></div>
+  </div>
+
+  <div style="margin-top:44px">
+    <h3 style="font-family:var(--font-title);font-size:20px;margin-bottom:24px;color:#fff;">调优效果量化：典型 ETL 作业</h3>
+    <div class="progress-section reveal">
+      <div class="progress-item">
+        <div class="progress-label"><span class="progress-name">Broadcast Join 替换 Sort-Merge Join（小表 &lt; 50MB）</span><span class="progress-val">提速 8~20x</span></div>
+        <div class="progress-track"><div class="progress-fill" data-w="92%"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-label"><span class="progress-name">Kryo 序列化 vs Java 序列化（Shuffle 密集型作业）</span><span class="progress-val">提速 40~70%</span></div>
+        <div class="progress-track"><div class="progress-fill" data-w="62%"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-label"><span class="progress-name">Salting 解决 GroupBy 倾斜（单 Key 占 70% 数据）</span><span class="progress-val">提速 5~15x</span></div>
+        <div class="progress-track"><div class="progress-fill" data-w="88%"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-label"><span class="progress-name">Off-Heap 内存 + G1GC 调优（Full GC 频繁场景）</span><span class="progress-val">GC 停顿减少 60~85%</span></div>
+        <div class="progress-track"><div class="progress-fill" data-w="75%"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-label"><span class="progress-name">谓词下推 + 列裁剪（Parquet 宽表，只读 5/50 列）</span><span class="progress-val">IO 减少 80~95%</span></div>
+        <div class="progress-track"><div class="progress-fill" data-w="88%"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-label"><span class="progress-name">AQE 全量开启（典型混合 ETL 作业综合提升）</span><span class="progress-val">整体提速 20~50%</span></div>
+        <div class="progress-track"><div class="progress-fill" data-w="45%"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ S7: 调优清单 ══ -->
+<section id="s7">
+  <div class="section-tag">07 / Production Tuning Checklist</div>
+  <h2 class="section-title">生产调优四类检查清单</h2>
+  <p class="section-desc">上线前和出现性能问题时，按以下四类清单逐项排查，确保不遗漏关键优化点。</p>
+
+  <div class="checklist reveal">
+    <div class="checklist-group">
+      <div class="checklist-group-title">⚡ 执行计划</div>
+      <div class="checklist-items">
+        <div class="check-item"><div class="check-icon ok">✓</div>用 explain("formatted") 确认 Join 策略（BHJ &gt; SMJ）</div>
+        <div class="check-item"><div class="check-icon ok">✓</div>确认谓词下推生效（PushedFilters 出现在 FileScan）</div>
+        <div class="check-item"><div class="check-icon ok">✓</div>确认列裁剪生效（ReadSchema 只含查询列）</div>
+        <div class="check-item"><div class="check-icon warn">!</div>检查 Exchange 节点数量（每个 = 一次 Shuffle）</div>
+        <div class="check-item"><div class="check-icon warn">!</div>确认 AQE 生效（AdaptiveSparkPlan 节点存在）</div>
+        <div class="check-item"><div class="check-icon danger">✗</div>存在 Python UDF（阻断 Codegen 和谓词下推）</div>
+        <div class="check-item"><div class="check-icon danger">✗</div>意外 Cartesian Product（确认 JOIN ON 条件完整）</div>
+      </div>
+    </div>
+    <div class="checklist-group">
+      <div class="checklist-group-title">🧠 内存与 GC</div>
+      <div class="checklist-items">
+        <div class="check-item"><div class="check-icon ok">✓</div>GC Time 占比 &lt; 5%（Stages 页面 Task Metrics）</div>
+        <div class="check-item"><div class="check-icon ok">✓</div>Executor Memory 使用率 60~80%（Storage 页面）</div>
+        <div class="check-item"><div class="check-icon ok">✓</div>已启用 Kryo 序列化</div>
+        <div class="check-item"><div class="check-icon warn">!</div>Off-Heap 是否必要（堆内存 &gt; 32GB 推荐开启）</div>
+        <div class="check-item"><div class="check-icon warn">!</div>G1GC 参数已调优（IHOP=35，RegionSize 合适）</div>
+        <div class="check-item"><div class="check-icon danger">✗</div>频繁 Full GC（检查日志 "Full GC" 次数 &gt; 10次/小时）</div>
+        <div class="check-item"><div class="check-icon danger">✗</div>Shuffle Spill（Stages 页面 Spill(Memory) 列 &gt; 0）</div>
+      </div>
+    </div>
+    <div class="checklist-group">
+      <div class="checklist-group-title">🔀 数据分布</div>
+      <div class="checklist-items">
+        <div class="check-item"><div class="check-icon ok">✓</div>Task 耗时分布均匀（Max &lt; Median × 3）</div>
+        <div class="check-item"><div class="check-icon ok">✓</div>分区数量合理（分区平均大小 64MB~512MB）</div>
+        <div class="check-item"><div class="check-icon ok">✓</div>AQE Skew Join 已开启并生效</div>
+        <div class="check-item"><div class="check-icon warn">!</div>Shuffle Read Max/Median 比值 &gt; 5 → 需 Salting</div>
+        <div class="check-item"><div class="check-icon warn">!</div>总分区数 &gt; 100000 → 调度开销过大，需合并</div>
+        <div class="check-item"><div class="check-icon danger">✗</div>极端倾斜（1个 Task &gt; 总时间 80%）未处理</div>
+      </div>
+    </div>
+    <div class="checklist-group">
+      <div class="checklist-group-title">📦 存储与 IO</div>
+      <div class="checklist-items">
+        <div class="check-item"><div class="check-icon ok">✓</div>输出文件大小 128MB~512MB（不产生小文件）</div>
+        <div class="check-item"><div class="check-icon ok">✓</div>使用 Parquet + ZSTD 压缩（非 CSV/JSON）</div>
+        <div class="check-item"><div class="check-icon ok">✓</div>分区键选择合理（查询过滤高频 + 基数适中）</div>
+        <div class="check-item"><div class="check-icon warn">!</div>高频查询列是否已做 Z-Order 聚簇</div>
+        <div class="check-item"><div class="check-icon warn">!</div>Delta/Iceberg 表是否定期 OPTIMIZE + VACUUM</div>
+        <div class="check-item"><div class="check-icon danger">✗</div>读写 CSV/JSON 大文件（压缩率低、无列裁剪）</div>
+        <div class="check-item"><div class="check-icon danger">✗</div>写出时未 coalesce，产生万级小文件</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-box tip reveal" style="margin-top:16px">
+    <div class="info-box-icon">🏆</div>
+    <div>
+      <div class="info-box-title">调优优先级排序：高收益优先</div>
+      <div class="info-box-text">
+        <strong>第一优先（消除 Shuffle）</strong>：Broadcast Join、谓词下推、列裁剪——IO 和网络传输是最贵的资源<br>
+        <strong>第二优先（数据倾斜）</strong>：AQE Skew Join + Salting——一个倾斜 Task 可以让整个 Stage 慢 10 倍<br>
+        <strong>第三优先（序列化）</strong>：Kryo 序列化——Shuffle 密集型作业 30~50% 的 CPU 在序列化上<br>
+        <strong>第四优先（GC）</strong>：G1GC 调优 + Off-Heap——GC 问题通常只在数据量和并发度很高时才是主要瓶颈<br>
+        <strong>第五优先（参数微调）</strong>：shuffle.partitions、memory.fraction——在前几项已优化的基础上再做精调
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FOOTER -->
+<footer class="footer-nav">
+  <div>
+    <div class="footer-toc-title">完整课程目录</div>
+    <ul class="footer-toc-list">
+      <li class="footer-toc-item done"><span class="num">01</span>核心架构与执行引擎原理</li>
+      <li class="footer-toc-item done"><span class="num">02</span>Catalyst 优化器与 Tungsten 引擎</li>
+      <li class="footer-toc-item done"><span class="num">03</span>结构化流处理（Structured Streaming）</li>
+      <li class="footer-toc-item done"><span class="num">04</span>存储格式与数据湖集成</li>
+      <li class="footer-toc-item current"><span class="num">05</span>性能调优：诊断方法论与实战</li>
+      <li class="footer-toc-item upcoming"><span class="num">06</span>生产运维：部署、监控与故障恢复</li>
+    </ul>
+  </div>
+  <div>
+    <div class="footer-next-label">下一章预告</div>
+    <div class="footer-next-card">
+      <div class="footer-next-ch">Chapter 06 · Production Operations</div>
+      <div class="footer-next-title">生产运维：部署、监控与故障恢复</div>
+      <div class="footer-next-desc">Spark on YARN / Kubernetes 的部署差异与最佳实践；Prometheus + Grafana 监控体系搭建；常见生产故障（Executor Lost、Driver OOM、Stage 卡死）的完整排查手册；以及大规模集群下的资源隔离与多租户配置。</div>
+    </div>
+  </div>
+</footer>
+
+</main>
+
+<script>
+const ro = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const el = e.target;
+      const sibs = [...el.parentElement.querySelectorAll('.reveal')];
+      el.style.transitionDelay = `${sibs.indexOf(el) * 60}ms`;
+      el.classList.add('visible');
+      ro.unobserve(el);
+    }
+  });
+}, { threshold: 0.06 });
+document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
+
+const bo = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('.knob-bar, .progress-fill').forEach(b => {
+        setTimeout(() => b.style.width = b.getAttribute('data-w'), 200);
+      });
+      bo.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.15 });
+document.querySelectorAll('.knob-card, .progress-item').forEach(el => bo.observe(el));
+
+const sections = document.querySelectorAll('section[id]');
+const dots = document.querySelectorAll('.nav-dot');
+const so = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) dots.forEach(d => d.classList.toggle('active', d.dataset.section === e.target.id));
+  });
+}, { threshold: 0.28 });
+sections.forEach(s => so.observe(s));
+dots.forEach(d => d.addEventListener('click', () => document.getElementById(d.dataset.section)?.scrollIntoView({ behavior: 'smooth' })));
+</script>
+</body>
+</html>

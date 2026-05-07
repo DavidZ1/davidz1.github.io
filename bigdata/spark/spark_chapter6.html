@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apache Spark 深度学习 · 第6章：生产运维</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0608;
+  --p1: #f43f5e;
+  --p2: #fb7185;
+  --p3: #fda4af;
+  --p-glow: rgba(244,63,94,0.28);
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --text-muted: #475569;
+  --border: rgba(244,63,94,0.16);
+  --border2: rgba(251,113,133,0.2);
+  --card: rgba(13,6,8,0.88);
+  --sidebar-w: 68px;
+  --font-title: 'Syne', sans-serif;
+  --font-code: 'JetBrains Mono', monospace;
+  --font-body: 'Noto Sans SC', sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.7;overflow-x:hidden}
+
+/* SIDEBAR */
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);background:rgba(13,6,8,.97);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:28px 0;z-index:100;backdrop-filter:blur(14px)}
+.sidebar-label{writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);font-family:var(--font-code);font-size:10px;letter-spacing:.12em;color:var(--text-muted);text-transform:uppercase;margin-bottom:auto}
+.sidebar-chapter{font-family:var(--font-title);font-size:11px;font-weight:700;color:var(--p1);letter-spacing:.05em;margin-bottom:24px}
+.nav-dots{display:flex;flex-direction:column;gap:14px;margin-bottom:24px}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--text-muted);cursor:pointer;transition:all .3s;position:relative}
+.nav-dot.active{background:var(--p2);box-shadow:0 0 9px var(--p2);transform:scale(1.45)}
+.nav-dot::after{content:attr(data-label);position:absolute;left:16px;top:50%;transform:translateY(-50%);font-family:var(--font-code);font-size:10px;color:var(--p2);white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none}
+.nav-dot:hover::after{opacity:1}
+
+.main{margin-left:var(--sidebar-w);min-height:100vh}
+
+/* HERO */
+.hero{position:relative;padding:100px 80px 120px;overflow:hidden;min-height:100vh;display:flex;flex-direction:column;justify-content:center}
+.hero-bg{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.32}
+.orb1{width:700px;height:700px;background:radial-gradient(circle,#f43f5e,transparent 70%);top:-200px;right:-140px;animation:fa 11s ease-in-out infinite}
+.orb2{width:460px;height:460px;background:radial-gradient(circle,#fb7185,transparent 70%);bottom:0;left:50px;animation:fb 9s ease-in-out infinite}
+.orb3{width:350px;height:350px;background:radial-gradient(circle,#be123c,transparent 70%);top:40%;left:36%;animation:fc 13s ease-in-out infinite}
+@keyframes fa{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-26px,36px) scale(1.07)}}
+@keyframes fb{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(18px,-26px) scale(.93)}}
+@keyframes fc{0%,100%{transform:translate(0,0)}33%{transform:translate(-28px,14px) scale(1.05)}66%{transform:translate(22px,-16px) scale(.95)}}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(244,63,94,.042) 1px,transparent 1px),linear-gradient(90deg,rgba(244,63,94,.042) 1px,transparent 1px);background-size:58px 58px}
+.hero-content{position:relative;z-index:2;max-width:900px}
+.chapter-badge{display:inline-flex;align-items:center;gap:10px;background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.28);border-radius:100px;padding:8px 18px;margin-bottom:40px;font-family:var(--font-code);font-size:12px;color:var(--p3);letter-spacing:.08em;text-transform:uppercase}
+.badge-dot{width:7px;height:7px;border-radius:50%;background:var(--p2);box-shadow:0 0 6px var(--p2);animation:breathe 2.2s ease-in-out infinite}
+@keyframes breathe{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.65)}}
+.hero-title{font-family:var(--font-title);font-size:clamp(48px,6.4vw,80px);font-weight:800;line-height:1.05;letter-spacing:-.025em;margin-bottom:22px;background:linear-gradient(135deg,#ffffff 0%,var(--p2) 42%,var(--p1) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200% 200%;animation:shimmer 5s ease infinite}
+@keyframes shimmer{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.hero-subtitle{font-size:17px;color:var(--text-dim);margin-bottom:36px;max-width:650px;font-weight:300;line-height:1.75}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:44px}
+.pill{display:inline-flex;align-items:center;gap:6px;background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.2);border-radius:6px;padding:6px 14px;font-family:var(--font-code);font-size:12px;color:var(--p3)}
+.pill::before{content:'◆';font-size:8px;color:var(--p2)}
+.meta-row{display:flex;gap:32px;flex-wrap:wrap}
+.meta-item{display:flex;flex-direction:column;gap:4px}
+.meta-label{font-family:var(--font-code);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted)}
+.meta-value{font-family:var(--font-code);font-size:13px;color:var(--p1);font-weight:500}
+
+/* SECTIONS */
+section{padding:100px 80px;position:relative}
+section:nth-child(even){background:rgba(13,6,8,.55)}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--p1),var(--p2),transparent);margin:0 80px;opacity:.35}
+.section-tag{font-family:var(--font-code);font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:var(--p2);margin-bottom:14px;opacity:.85}
+.section-title{font-family:var(--font-title);font-size:clamp(28px,3.8vw,44px);font-weight:700;line-height:1.1;margin-bottom:14px;color:#fff}
+.section-desc{font-size:15px;color:var(--text-dim);max-width:650px;margin-bottom:56px;font-weight:300}
+
+/* DEPLOY COMPARE */
+.deploy-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin:28px 0}
+.deploy-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:all .3s;position:relative}
+.deploy-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;opacity:0;transition:opacity .3s}
+.deploy-card:hover{transform:translateY(-5px)}.deploy-card:hover::before{opacity:1}
+.deploy-card.yarn::before{background:linear-gradient(90deg,#f59e0b,#fbbf24)}.deploy-card.yarn:hover{border-color:rgba(245,158,11,.4);box-shadow:0 16px 48px rgba(245,158,11,.1)}
+.deploy-card.k8s::before{background:linear-gradient(90deg,#3b82f6,#60a5fa)}.deploy-card.k8s:hover{border-color:rgba(59,130,246,.4);box-shadow:0 16px 48px rgba(59,130,246,.1)}
+.deploy-card.standalone::before{background:linear-gradient(90deg,var(--p1),var(--p2))}.deploy-card.standalone:hover{border-color:rgba(244,63,94,.4);box-shadow:0 16px 48px rgba(244,63,94,.1)}
+.deploy-logo{padding:24px 24px 0;font-size:34px}
+.deploy-name{padding:0 24px;font-family:var(--font-title);font-size:19px;font-weight:700;color:#fff;margin:10px 0 4px}
+.deploy-tagline{padding:0 24px;font-family:var(--font-code);font-size:10px;color:var(--text-muted);margin-bottom:14px;text-transform:uppercase;letter-spacing:.08em}
+.deploy-divider{height:1px;background:var(--border);margin:0 24px 14px}
+.deploy-body{padding:0 24px 24px;display:flex;flex-direction:column;gap:9px}
+.deploy-feat{font-size:13px;color:var(--text-dim);display:flex;gap:8px;align-items:flex-start;line-height:1.55}
+.deploy-feat::before{content:'›';font-family:var(--font-code);color:var(--p2);flex-shrink:0;font-size:14px}
+.deploy-tag{display:inline-block;margin-top:12px;font-family:var(--font-code);font-size:10px;padding:3px 9px;border-radius:4px}
+.yarn .deploy-tag{background:rgba(245,158,11,.1);color:#fbbf24;border:1px solid rgba(245,158,11,.2)}
+.k8s .deploy-tag{background:rgba(59,130,246,.1);color:#60a5fa;border:1px solid rgba(59,130,246,.2)}
+.standalone .deploy-tag{background:rgba(244,63,94,.1);color:var(--p2);border:1px solid rgba(244,63,94,.2)}
+
+/* ARCHITECTURE LAYERS */
+.arch-layer-stack{display:flex;flex-direction:column;gap:8px;max-width:820px;margin:28px 0}
+.arch-layer-row{display:flex;gap:0}
+.arch-layer-label{width:130px;min-width:130px;display:flex;align-items:center;justify-content:flex-end;padding-right:18px;font-family:var(--font-code);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted)}
+.arch-layer-boxes{flex:1;display:flex;gap:8px}
+.arch-box{flex:1;padding:16px 18px;border-radius:10px;border:1px solid;transition:all .3s;cursor:default}
+.arch-box:hover{transform:translateY(-3px)}
+.arch-box.l1{background:rgba(244,63,94,.08);border-color:rgba(244,63,94,.25)}.arch-box.l1:hover{border-color:var(--p1);box-shadow:0 8px 28px rgba(244,63,94,.15)}
+.arch-box.l2{background:rgba(59,130,246,.07);border-color:rgba(59,130,246,.2)}.arch-box.l2:hover{border-color:#3b82f6;box-shadow:0 8px 28px rgba(59,130,246,.12)}
+.arch-box.l3{background:rgba(245,158,11,.07);border-color:rgba(245,158,11,.2)}.arch-box.l3:hover{border-color:#f59e0b;box-shadow:0 8px 28px rgba(245,158,11,.1)}
+.arch-box.l4{background:rgba(34,197,94,.07);border-color:rgba(34,197,94,.18)}.arch-box.l4:hover{border-color:#22c55e;box-shadow:0 8px 28px rgba(34,197,94,.1)}
+.arch-box-name{font-family:var(--font-title);font-size:13px;font-weight:600;color:#fff;margin-bottom:4px}
+.arch-box-desc{font-size:12px;color:var(--text-dim);line-height:1.5}
+
+/* MONITORING METRICS TABLE */
+.monitor-table{width:100%;border-collapse:collapse;font-family:var(--font-code);font-size:13px}
+.monitor-table th{padding:12px 18px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);border-bottom:1px solid var(--border);background:rgba(255,255,255,.02)}
+.monitor-table td{padding:13px 18px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text-dim);transition:background .2s;vertical-align:top}
+.monitor-table tr:hover td{background:rgba(244,63,94,.04)}
+.monitor-table td:first-child{color:var(--text);font-weight:500}
+.tag-crit{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;background:rgba(244,63,94,.12);color:#f87171;border:1px solid rgba(244,63,94,.25)}
+.tag-warn{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.22)}
+.tag-info{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;background:rgba(96,165,250,.1);color:#60a5fa;border:1px solid rgba(96,165,250,.2)}
+
+/* INCIDENT CARDS */
+.incident-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin:28px 0}
+.incident-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:all .3s}
+.incident-card:hover{border-color:rgba(244,63,94,.35);transform:translateY(-3px);box-shadow:0 12px 36px rgba(244,63,94,.1)}
+.incident-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:rgba(244,63,94,.05)}
+.incident-icon{font-size:20px}
+.incident-name{font-family:var(--font-title);font-size:15px;font-weight:600;color:#fff}
+.incident-sev{font-family:var(--font-code);font-size:10px;padding:2px 8px;border-radius:4px;margin-left:auto}
+.sev-p0{background:rgba(244,63,94,.2);color:#f87171;border:1px solid rgba(244,63,94,.3)}
+.sev-p1{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.25)}
+.sev-p2{background:rgba(96,165,250,.1);color:#60a5fa;border:1px solid rgba(96,165,250,.2)}
+.incident-body{padding:18px 20px;display:flex;flex-direction:column;gap:12px}
+.incident-section-title{font-family:var(--font-code);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--p2);margin-bottom:4px}
+.incident-steps{list-style:none;display:flex;flex-direction:column;gap:7px}
+.incident-steps li{font-size:12.5px;color:var(--text-dim);display:flex;gap:8px;line-height:1.55}
+.incident-steps li::before{content:attr(data-step);font-family:var(--font-code);font-size:10px;color:var(--p1);flex-shrink:0;width:18px;text-align:right;margin-top:2px}
+.incident-cmd{background:#0a0205;border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-family:var(--font-code);font-size:11.5px;color:#fda4af;line-height:1.8;overflow-x:auto}
+
+/* K8S RESOURCE */
+.k8s-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:28px 0}
+.k8s-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px;transition:all .3s;position:relative;overflow:hidden}
+.k8s-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#3b82f6,#60a5fa);opacity:0;transition:opacity .3s}
+.k8s-card:hover{transform:translateY(-4px);border-color:rgba(59,130,246,.35)}.k8s-card:hover::before{opacity:1}
+.k8s-icon{font-size:26px;margin-bottom:12px}
+.k8s-title{font-family:var(--font-title);font-size:15px;font-weight:600;color:#fff;margin-bottom:8px}
+.k8s-desc{font-size:13px;color:var(--text-dim);line-height:1.65;margin-bottom:10px}
+.k8s-tag{font-family:var(--font-code);font-size:10px;color:#60a5fa;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);padding:2px 8px;border-radius:4px;display:inline-block}
+
+/* GRAFANA MOCK */
+.grafana-dash{background:#0a0205;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:28px 0}
+.grafana-topbar{display:flex;align-items:center;gap:12px;padding:12px 20px;background:rgba(244,63,94,.05);border-bottom:1px solid var(--border)}
+.grafana-logo{font-size:16px}
+.grafana-title{font-family:var(--font-code);font-size:12px;color:var(--text-dim)}
+.grafana-time{margin-left:auto;font-family:var(--font-code);font-size:10px;color:var(--p2);background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.2);padding:3px 10px;border-radius:4px}
+.grafana-panels{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding:16px}
+.g-panel{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:14px}
+.g-panel-title{font-family:var(--font-code);font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:10px}
+.g-value{font-family:var(--font-title);font-size:28px;font-weight:700;margin-bottom:4px}
+.g-value.green{color:#4ade80}.g-value.yellow{color:#fbbf24}.g-value.red{color:#f87171}
+.g-sub{font-family:var(--font-code);font-size:10px;color:var(--text-muted)}
+.g-sparkline{height:36px;margin-top:10px;display:flex;align-items:flex-end;gap:2px}
+.g-bar{flex:1;border-radius:2px 2px 0 0;min-height:2px;transition:all .3s}
+.grafana-panels-wide{display:grid;grid-template-columns:2fr 1fr;gap:12px;padding:0 16px 16px}
+.g-panel-wide{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:14px}
+.g-alert-list{display:flex;flex-direction:column;gap:8px}
+.g-alert{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;font-family:var(--font-code);font-size:11px}
+.g-alert.firing{background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.2);color:#f87171}
+.g-alert.warn{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.18);color:#fbbf24}
+.g-alert.ok{background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.18);color:#4ade80}
+.g-alert-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* CODE BLOCKS */
+.code-block{background:#0a0205;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:24px 0}
+.code-header{display:flex;align-items:center;gap:8px;padding:14px 20px;background:rgba(255,255,255,.022);border-bottom:1px solid var(--border)}
+.code-dots{display:flex;gap:7px}
+.code-dot{width:12px;height:12px;border-radius:50%}
+.code-dot.r{background:#ff5f57}.code-dot.y{background:#febc2e}.code-dot.g{background:#28c840}
+.code-filename{font-family:var(--font-code);font-size:12px;color:var(--text-muted);margin-left:8px;letter-spacing:.05em}
+.code-lang{margin-left:auto;font-family:var(--font-code);font-size:10px;color:var(--p2);background:rgba(251,113,133,.1);padding:3px 9px;border-radius:4px;letter-spacing:.08em;text-transform:uppercase}
+.code-body{padding:24px;font-family:var(--font-code);font-size:13.5px;line-height:1.9;overflow-x:auto}
+.code-body pre{white-space:pre}
+.c-kw{color:#93c5fd}.c-fn{color:#fb7185}.c-str{color:#86efac}.c-num{color:#fda4af}
+.c-cm{color:#3f1020;font-style:italic}.c-cls{color:#f0abfc}.c-var{color:#e2e8f0}.c-attr{color:#f43f5e}
+
+/* INFO BOXES */
+.info-box{border-radius:10px;padding:18px 22px;margin:20px 0;border-left:3px solid;display:flex;gap:14px}
+.info-box-icon{font-size:18px;flex-shrink:0;margin-top:2px}
+.info-box-title{font-family:var(--font-code);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.info-box-text{font-size:14px;color:var(--text-dim);line-height:1.65}
+.info-box.tip{background:rgba(34,197,94,.07);border-color:#22c55e}.info-box.tip .info-box-title{color:#4ade80}
+.info-box.warn{background:rgba(251,191,36,.07);border-color:#fbbf24}.info-box.warn .info-box-title{color:#fbbf24}
+.info-box.note{background:rgba(244,63,94,.07);border-color:var(--p1)}.info-box.note .info-box-title{color:var(--p2)}
+.info-box.danger{background:rgba(244,63,94,.09);border-color:#f43f5e}.info-box.danger .info-box-title{color:#f87171}
+
+/* CHECKLIST */
+.checklist{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin:28px 0}
+.checklist-group{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px}
+.checklist-group-title{font-family:var(--font-title);font-size:15px;font-weight:600;color:#fff;margin-bottom:16px}
+.checklist-items{display:flex;flex-direction:column;gap:10px}
+.check-item{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--text-dim);line-height:1.55}
+.check-icon{width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;margin-top:2px}
+.check-icon.ok{background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3)}
+.check-icon.warn{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.25)}
+.check-icon.danger{background:rgba(244,63,94,.1);color:#f87171;border:1px solid rgba(244,63,94,.2)}
+
+/* PROGRESS */
+.progress-section{display:flex;flex-direction:column;gap:18px}
+.progress-label{display:flex;justify-content:space-between;margin-bottom:8px}
+.progress-name{font-family:var(--font-code);font-size:13px;color:var(--text)}
+.progress-val{font-family:var(--font-code);font-size:12px;color:var(--p2)}
+.progress-track{height:6px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden}
+.progress-fill{height:100%;border-radius:100px;width:0;transition:width 1.4s cubic-bezier(.23,1,.32,1);background:linear-gradient(90deg,var(--p1),var(--p2))}
+
+/* FUTURE CARD */
+.future-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:28px 0}
+.future-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;transition:all .3s;position:relative;overflow:hidden}
+.future-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--p1),var(--p2));opacity:0;transition:opacity .3s}
+.future-card:hover{transform:translateY(-4px);border-color:rgba(244,63,94,.35)}.future-card:hover::before{opacity:1}
+.future-icon{font-size:26px;margin-bottom:12px}
+.future-title{font-family:var(--font-title);font-size:15px;font-weight:600;color:#fff;margin-bottom:8px}
+.future-desc{font-size:13px;color:var(--text-dim);line-height:1.65}
+.future-tag{display:inline-block;margin-top:10px;font-family:var(--font-code);font-size:10px;color:var(--p2);background:rgba(244,63,94,.09);border:1px solid rgba(244,63,94,.2);padding:2px 8px;border-radius:4px}
+
+/* COMPLETION BANNER */
+.completion-banner{background:linear-gradient(135deg,rgba(244,63,94,.12),rgba(251,113,133,.08));border:1px solid rgba(244,63,94,.25);border-radius:16px;padding:40px 48px;text-align:center;margin:28px 0;position:relative;overflow:hidden}
+.completion-banner::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(244,63,94,.08),transparent 70%)}
+.completion-emoji{font-size:48px;margin-bottom:16px}
+.completion-title{font-family:var(--font-title);font-size:32px;font-weight:800;color:#fff;margin-bottom:12px;background:linear-gradient(135deg,#fff,var(--p2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.completion-desc{font-size:15px;color:var(--text-dim);max-width:600px;margin:0 auto 24px;line-height:1.75}
+.completion-pills{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.completion-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.22);border-radius:6px;padding:6px 14px;font-family:var(--font-code);font-size:12px;color:var(--p3)}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* FOOTER */
+.footer-nav{padding:80px;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:60px;background:rgba(13,6,8,.92)}
+.footer-toc-title{font-family:var(--font-code);font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-muted);margin-bottom:20px}
+.footer-toc-list{list-style:none;display:flex;flex-direction:column;gap:10px}
+.footer-toc-item{font-size:14px;display:flex;align-items:center;gap:10px}
+.footer-toc-item .num{font-family:var(--font-code);font-size:11px;color:var(--text-muted);width:22px}
+.footer-toc-item.done{text-decoration:line-through;color:var(--text-muted)}
+.footer-toc-item.current{color:var(--p2);font-weight:500}
+.footer-course-complete{background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.2);border-radius:12px;padding:28px}
+.footer-course-complete-title{font-family:var(--font-title);font-size:20px;font-weight:700;color:#fff;margin-bottom:12px}
+.footer-course-complete-desc{font-size:13px;color:var(--text-dim);line-height:1.7}
+
+@media(max-width:768px){
+  .sidebar{display:none}.main{margin-left:0}
+  .hero{padding:60px 24px 80px}section{padding:60px 24px}
+  .divider{margin:0 24px}
+  .deploy-grid,.k8s-grid,.future-grid{grid-template-columns:1fr}
+  .incident-grid,.checklist{grid-template-columns:1fr}
+  .grafana-panels{grid-template-columns:1fr}
+  .grafana-panels-wide{grid-template-columns:1fr}
+  .footer-nav{padding:40px 24px;grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <span class="sidebar-label">Apache Spark · Deep Learning</span>
+  <span class="sidebar-chapter">CH·06</span>
+  <div class="nav-dots">
+    <div class="nav-dot active" data-section="s1" data-label="部署模式对比"></div>
+    <div class="nav-dot" data-section="s2" data-label="Kubernetes 部署"></div>
+    <div class="nav-dot" data-section="s3" data-label="监控体系搭建"></div>
+    <div class="nav-dot" data-section="s4" data-label="故障排查手册"></div>
+    <div class="nav-dot" data-section="s5" data-label="多租户与安全"></div>
+    <div class="nav-dot" data-section="s6" data-label="运维检查清单"></div>
+    <div class="nav-dot" data-section="s7" data-label="未来展望"></div>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- HERO -->
+<div class="hero" id="s0">
+  <div class="hero-bg">
+    <div class="hero-grid"></div>
+    <div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div>
+  </div>
+  <div class="hero-content">
+    <div class="chapter-badge"><span class="badge-dot"></span>Chapter 06 · Final · Apache Spark Deep Dive</div>
+    <h1 class="hero-title">生产运维<br>部署·监控·故障恢复</h1>
+    <p class="hero-subtitle">从 YARN 到 Kubernetes 的部署架构演进；用 Prometheus + Grafana 构建生产级监控体系；建立 Executor Lost、Driver OOM、Stage 卡死等高频故障的完整排查手册；以及大规模集群下的资源隔离与多租户最佳实践。</p>
+    <div class="pills">
+      <span class="pill">YARN vs Kubernetes</span>
+      <span class="pill">Spark on K8s</span>
+      <span class="pill">Prometheus Metrics</span>
+      <span class="pill">Grafana Dashboard</span>
+      <span class="pill">Executor Lost</span>
+      <span class="pill">Driver OOM</span>
+      <span class="pill">Fair Scheduler</span>
+      <span class="pill">Dynamic Allocation</span>
+    </div>
+    <div class="meta-row">
+      <div class="meta-item"><span class="meta-label">难度</span><span class="meta-value">⬛⬛⬛⬛⬛ 专家级</span></div>
+      <div class="meta-item"><span class="meta-label">阅读时长</span><span class="meta-value">约 55 分钟</span></div>
+      <div class="meta-item"><span class="meta-label">前置章节</span><span class="meta-value">Ch.01~05 全章</span></div>
+      <div class="meta-item"><span class="meta-label">版本</span><span class="meta-value">Spark 3.5 / K8s 1.28+</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ══ S1: 部署模式对比 ══ -->
+<section id="s1">
+  <div class="section-tag">01 / Deployment Modes</div>
+  <h2 class="section-title">三种部署模式：架构差异与选型</h2>
+  <p class="section-desc">部署模式决定了 Spark 如何申请和管理计算资源。选型需结合现有基础设施、运维能力、弹性需求和云原生程度综合判断。</p>
+
+  <div class="deploy-grid reveal">
+    <div class="deploy-card yarn">
+      <div class="deploy-logo">🧶</div>
+      <div class="deploy-name">Spark on YARN</div>
+      <div class="deploy-tagline">企业传统数仓主流</div>
+      <div class="deploy-divider"></div>
+      <div class="deploy-body">
+        <div class="deploy-feat">与 Hadoop 生态深度集成，共享 HDFS、Hive Metastore、Kerberos 认证</div>
+        <div class="deploy-feat">ResourceManager 统一调度 YARN 容量队列，多作业资源隔离成熟</div>
+        <div class="deploy-feat">动态资源分配（Dynamic Allocation）需搭配 External Shuffle Service</div>
+        <div class="deploy-feat">Driver 可运行在集群内（cluster 模式）或客户端（client 模式）</div>
+        <div class="deploy-feat">运维复杂度中等，需维护 NodeManager 和 ResourceManager HA</div>
+        <div class="deploy-feat">弹性扩容受限于物理集群规模，云原生弹性不如 K8s</div>
+        <span class="deploy-tag">推荐：现有 Hadoop 集群 · 传统数仓 · 强安全合规要求</span>
+      </div>
+    </div>
+    <div class="deploy-card k8s">
+      <div class="deploy-logo">⎈</div>
+      <div class="deploy-name">Spark on Kubernetes</div>
+      <div class="deploy-tagline">云原生趋势首选</div>
+      <div class="deploy-divider"></div>
+      <div class="deploy-body">
+        <div class="deploy-feat">Executor 以 Pod 运行，天然弹性伸缩，与云厂商 Auto Scaling 无缝集成</div>
+        <div class="deploy-feat">容器化隔离更彻底，不同作业使用不同镜像（Python 版本、依赖隔离）</div>
+        <div class="deploy-feat">Spark 2.3 正式支持，Spark 3.1+ 稳定性显著提升</div>
+        <div class="deploy-feat">Dynamic Allocation 需 ExternalShuffleService 或 Shuffle 文件系统方案</div>
+        <div class="deploy-feat">Spark Operator（开源）简化 K8s 上的 Spark 作业管理</div>
+        <div class="deploy-feat">存储依赖对象存储（S3/OSS），无本地 HDFS 数据局部性优化</div>
+        <span class="deploy-tag">推荐：云原生环境 · 多语言混合 · 强弹性需求</span>
+      </div>
+    </div>
+    <div class="deploy-card standalone">
+      <div class="deploy-logo">🖥</div>
+      <div class="deploy-name">Standalone 模式</div>
+      <div class="deploy-tagline">开发测试 / 小规模</div>
+      <div class="deploy-divider"></div>
+      <div class="deploy-body">
+        <div class="deploy-feat">Spark 自带集群管理器，无需额外依赖，部署最简单</div>
+        <div class="deploy-feat">Master / Worker 架构，Worker 节点注册到 Master</div>
+        <div class="deploy-feat">资源隔离能力弱，多作业共享时容易相互干扰</div>
+        <div class="deploy-feat">无动态资源分配，资源静态分配给每个 Application</div>
+        <div class="deploy-feat">适合快速验证、开发调试、小规模生产（&lt;10节点）</div>
+        <div class="deploy-feat">生产大规模场景不推荐，无企业级 HA 和资源管理</div>
+        <span class="deploy-tag">推荐：本地开发 · 功能验证 · &lt;10节点小集群</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="code-block reveal">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div>
+      <span class="code-filename">submit_modes.sh</span>
+      <span class="code-lang">Shell</span>
+    </div>
+    <div class="code-body"><pre>
+<span class="c-cm"># ── YARN cluster 模式（推荐生产）─────────────────────
+# Driver 运行在集群中，客户端断开不影响作业</span>
+spark-submit \
+  --master yarn \
+  --deploy-mode cluster \
+  --num-executors <span class="c-num">50</span> \
+  --executor-cores <span class="c-num">5</span> \
+  --executor-memory <span class="c-num">36g</span> \
+  --driver-memory <span class="c-num">8g</span> \
+  --conf <span class="c-str">"spark.yarn.maxAppAttempts=3"</span> \
+  --conf <span class="c-str">"spark.dynamicAllocation.enabled=true"</span> \
+  --conf <span class="c-str">"spark.dynamicAllocation.minExecutors=10"</span> \
+  --conf <span class="c-str">"spark.dynamicAllocation.maxExecutors=200"</span> \
+  --conf <span class="c-str">"spark.shuffle.service.enabled=true"</span> \  <span class="c-cm"># Dynamic Alloc 必需</span>
+  --queue production \
+  my_etl_job.py
+
+<span class="c-cm"># ── Kubernetes 模式 ───────────────────────────────────</span>
+spark-submit \
+  --master k8s://https://k8s-api-server:6443 \
+  --deploy-mode cluster \
+  --conf <span class="c-str">"spark.kubernetes.container.image=myrepo/spark:3.5.0"</span> \
+  --conf <span class="c-str">"spark.kubernetes.namespace=spark-jobs"</span> \
+  --conf <span class="c-str">"spark.kubernetes.authenticate.driver.serviceAccountName=spark"</span> \
+  --conf <span class="c-str">"spark.kubernetes.executor.request.cores=4"</span> \
+  --conf <span class="c-str">"spark.kubernetes.executor.limit.cores=5"</span> \
+  --conf <span class="c-str">"spark.kubernetes.driver.volumes.persistentVolumeClaim.checkpoints.mount.path=/checkpoints"</span> \
+  --conf <span class="c-str">"spark.kubernetes.executor.podNamePrefix=my-etl"</span> \
+  local:///opt/spark/work-dir/my_etl_job.py
+
+<span class="c-cm"># ── 查看 YARN 作业资源使用 ───────────────────────────</span>
+yarn application -list -appStates RUNNING
+yarn application -status application_XXXX_YYYY
+yarn logs -applicationId application_XXXX_YYYY | tail -<span class="c-num">200</span>
+</pre></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ S2: K8s 部署 ══ -->
+<section id="s2">
+  <div class="section-tag">02 / Spark on Kubernetes Deep Dive</div>
+  <h2 class="section-title">Spark on Kubernetes：生产关键配置</h2>
+  <p class="section-desc">K8s 部署引入了容器调度、存储挂载、网络策略等新维度，与 YARN 的运维模型有本质差异。掌握关键配置才能在 K8s 上稳定运行 Spark。</p>
+
+  <div class="k8s-grid reveal">
+    <div class="k8s-card">
+      <div class="k8s-icon">📦</div>
+      <div class="k8s-title">镜像分层策略</div>
+      <div class="k8s-desc">基础层（JDK + Spark）→ 依赖层（Python packages）→ 业务层（作业代码）。三层分离使依赖缓存最大化，业务变更只需更新顶层镜像（通常 &lt;10MB）。</div>
+      <div class="k8s-tag">构建时间减少 80%</div>
+    </div>
+    <div class="k8s-card">
+      <div class="k8s-icon">🗄️</div>
+      <div class="k8s-title">Shuffle 数据持久化</div>
+      <div class="k8s-desc">K8s Pod 重启 = Shuffle 数据丢失。解决方案：① 挂载 hostPath 本地盘 ② Remote Shuffle Service（RSS，如 Apache Celeborn）③ 写出到对象存储（性能较低）。</div>
+      <div class="k8s-tag">Apache Celeborn 推荐</div>
+    </div>
+    <div class="k8s-card">
+      <div class="k8s-icon">⚖️</div>
+      <div class="k8s-title">资源 Request vs Limit</div>
+      <div class="k8s-desc">设置 CPU request = cores，limit = cores × 1.2（允许 burst）。Memory request = limit（避免 OOM Kill）。<code style="font-family:var(--font-code);color:#60a5fa">memoryOverhead</code> 必须计入容器 limit。</div>
+      <div class="k8s-tag">避免 OOM Kill</div>
+    </div>
+    <div class="k8s-card">
+      <div class="k8s-icon">🔐</div>
+      <div class="k8s-title">RBAC 与 ServiceAccount</div>
+      <div class="k8s-desc">Driver Pod 需要创建和删除 Executor Pod 的权限。为每个业务团队创建独立 ServiceAccount，绑定最小权限 Role（仅 pods CRUD + services get）。</div>
+      <div class="k8s-tag">最小权限原则</div>
+    </div>
+    <div class="k8s-card">
+      <div class="k8s-icon">🎯</div>
+      <div class="k8s-title">Node Affinity 与污点</div>
+      <div class="k8s-desc">用 nodeSelector 将 Spark Pod 调度到专属节点池（带大内存/高网络节点），避免与在线服务竞争资源。用 taints 拒绝非 Spark 工作负载。</div>
+      <div class="k8s-tag">资源隔离</div>
+    </div>
+    <div class="k8s-card">
+      <div class="k8s-icon">🔄</div>
+      <div class="k8s-title">Spark Operator</div>
+      <div class="k8s-desc">将 SparkApplication 定义为 CRD，支持 Spark 作业的声明式管理、自动重试、定时调度（ScheduledSparkApplication）。Google 开源，生产环境强烈推荐。</div>
+      <div class="k8s-tag">google/spark-on-k8s-operator</div>
+    </div>
+  </div>
+
+  <div class="code-block reveal">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div>
+      <span class="code-filename">spark-application.yaml</span>
+      <span class="code-lang">Kubernetes</span>
+    </div>
+    <div class="code-body"><pre>
+<span class="c-attr">apiVersion</span>: sparkoperator.k8s.io/v1beta2
+<span class="c-attr">kind</span>: SparkApplication
+<span class="c-attr">metadata</span>:
+  <span class="c-attr">name</span>: <span class="c-str">daily-etl-job</span>
+  <span class="c-attr">namespace</span>: <span class="c-str">spark-production</span>
+<span class="c-attr">spec</span>:
+  <span class="c-attr">type</span>: Python
+  <span class="c-attr">pythonVersion</span>: <span class="c-str">"3"</span>
+  <span class="c-attr">mode</span>: cluster
+  <span class="c-attr">image</span>: <span class="c-str">myregistry/spark-etl:3.5.0-v2.1.0</span>
+  <span class="c-attr">imagePullPolicy</span>: IfNotPresent
+  <span class="c-attr">mainApplicationFile</span>: <span class="c-str">local:///opt/spark/work-dir/etl_job.py</span>
+  <span class="c-attr">sparkVersion</span>: <span class="c-str">"3.5.0"</span>
+  <span class="c-attr">restartPolicy</span>:
+    <span class="c-attr">type</span>: OnFailure
+    <span class="c-attr">onFailureRetries</span>: <span class="c-num">3</span>
+    <span class="c-attr">onFailureRetryInterval</span>: <span class="c-num">10</span>
+  <span class="c-attr">driver</span>:
+    <span class="c-attr">cores</span>: <span class="c-num">2</span>
+    <span class="c-attr">memory</span>: <span class="c-str">"8g"</span>
+    <span class="c-attr">memoryOverhead</span>: <span class="c-str">"2g"</span>
+    <span class="c-attr">serviceAccount</span>: spark-driver
+    <span class="c-attr">nodeSelector</span>:
+      <span class="c-attr">node-type</span>: spark-driver
+  <span class="c-attr">executor</span>:
+    <span class="c-attr">cores</span>: <span class="c-num">5</span>
+    <span class="c-attr">instances</span>: <span class="c-num">20</span>
+    <span class="c-attr">memory</span>: <span class="c-str">"36g"</span>
+    <span class="c-attr">memoryOverhead</span>: <span class="c-str">"4g"</span>  <span class="c-cm"># 容器总内存 = 36+4 = 40g</span>
+    <span class="c-attr">nodeSelector</span>:
+      <span class="c-attr">node-type</span>: spark-executor
+    <span class="c-attr">tolerations</span>:
+    - <span class="c-attr">key</span>: <span class="c-str">"spark-workload"</span>
+      <span class="c-attr">operator</span>: <span class="c-str">"Exists"</span>
+      <span class="c-attr">effect</span>: <span class="c-str">"NoSchedule"</span>
+    <span class="c-attr">volumeMounts</span>:
+    - <span class="c-attr">name</span>: shuffle-data
+      <span class="c-attr">mountPath</span>: /tmp/spark-shuffle
+  <span class="c-attr">volumes</span>:
+  - <span class="c-attr">name</span>: shuffle-data
+    <span class="c-attr">hostPath</span>:
+      <span class="c-attr">path</span>: /mnt/local-nvme/spark-shuffle
+      <span class="c-attr">type</span>: DirectoryOrCreate
+  <span class="c-attr">sparkConf</span>:
+    <span class="c-str">"spark.sql.adaptive.enabled"</span>: <span class="c-str">"true"</span>
+    <span class="c-str">"spark.serializer"</span>: <span class="c-str">"org.apache.spark.serializer.KryoSerializer"</span>
+    <span class="c-str">"spark.local.dir"</span>: <span class="c-str">"/tmp/spark-shuffle"</span>
+</pre></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ S3: 监控体系 ══ -->
+<section id="s3">
+  <div class="section-tag">03 / Monitoring & Observability</div>
+  <h2 class="section-title">生产监控体系：Prometheus + Grafana</h2>
+  <p class="section-desc">Spark UI 适合交互式排查，但不适合长期监控和告警。生产环境需要 Prometheus 采集指标、Grafana 可视化、AlertManager 告警的完整可观测性体系。</p>
+
+  <!-- Grafana Mock Dashboard -->
+  <div class="grafana-dash reveal">
+    <div class="grafana-topbar">
+      <span class="grafana-logo">📊</span>
+      <span class="grafana-title">Spark Production Dashboard · spark-cluster-prod</span>
+      <span class="grafana-time">Last 1h · Auto-refresh 30s</span>
+    </div>
+    <div class="grafana-panels">
+      <div class="g-panel">
+        <div class="g-panel-title">Active Applications</div>
+        <div class="g-value green">24</div>
+        <div class="g-sub">↑ 3 from 1h ago</div>
+        <div class="g-sparkline">
+          <div class="g-bar" style="height:40%;background:#22c55e;opacity:.7"></div>
+          <div class="g-bar" style="height:55%;background:#22c55e;opacity:.7"></div>
+          <div class="g-bar" style="height:48%;background:#22c55e;opacity:.7"></div>
+          <div class="g-bar" style="height:62%;background:#22c55e;opacity:.7"></div>
+          <div class="g-bar" style="height:70%;background:#22c55e;opacity:.7"></div>
+          <div class="g-bar" style="height:65%;background:#22c55e;opacity:.7"></div>
+          <div class="g-bar" style="height:80%;background:#22c55e"></div>
+          <div class="g-bar" style="height:90%;background:#22c55e"></div>
+        </div>
+      </div>
+      <div class="g-panel">
+        <div class="g-panel-title">Executor CPU Utilization</div>
+        <div class="g-value yellow">73%</div>
+        <div class="g-sub">Target: 75~85%</div>
+        <div class="g-sparkline">
+          <div class="g-bar" style="height:60%;background:#fbbf24;opacity:.6"></div>
+          <div class="g-bar" style="height:72%;background:#fbbf24;opacity:.7"></div>
+          <div class="g-bar" style="height:68%;background:#fbbf24;opacity:.7"></div>
+          <div class="g-bar" style="height:75%;background:#fbbf24"></div>
+          <div class="g-bar" style="height:80%;background:#fbbf24"></div>
+          <div class="g-bar" style="height:77%;background:#fbbf24"></div>
+          <div class="g-bar" style="height:74%;background:#fbbf24"></div>
+          <div class="g-bar" style="height:73%;background:#fbbf24"></div>
+        </div>
+      </div>
+      <div class="g-panel">
+        <div class="g-panel-title">GC Time (P95)</div>
+        <div class="g-value green">3.2%</div>
+        <div class="g-sub">Alert threshold: &gt;10%</div>
+        <div class="g-sparkline">
+          <div class="g-bar" style="height:20%;background:#4ade80;opacity:.6"></div>
+          <div class="g-bar" style="height:25%;background:#4ade80;opacity:.7"></div>
+          <div class="g-bar" style="height:30%;background:#4ade80"></div>
+          <div class="g-bar" style="height:28%;background:#4ade80"></div>
+          <div class="g-bar" style="height:22%;background:#4ade80;opacity:.7"></div>
+          <div class="g-bar" style="height:32%;background:#4ade80"></div>
+          <div class="g-bar" style="height:28%;background:#4ade80"></div>
+          <div class="g-bar" style="height:25%;background:#4ade80"></div>
+        </div>
+      </div>
+    </div>
+    <div class="grafana-panels-wide">
+      <div class="g-panel-wide">
+        <div class="g-panel-title">Shuffle Read Bytes / Minute (All Apps)</div>
+        <div style="height:60px;display:flex;align-items:flex-end;gap:3px;margin-top:8px">
+          <div class="g-bar" style="height:30%;background:rgba(244,63,94,.5);flex:1"></div>
+          <div class="g-bar" style="height:45%;background:rgba(244,63,94,.55);flex:1"></div>
+          <div class="g-bar" style="height:38%;background:rgba(244,63,94,.5);flex:1"></div>
+          <div class="g-bar" style="height:55%;background:rgba(244,63,94,.6);flex:1"></div>
+          <div class="g-bar" style="height:70%;background:rgba(244,63,94,.65);flex:1"></div>
+          <div class="g-bar" style="height:65%;background:rgba(244,63,94,.65);flex:1"></div>
+          <div class="g-bar" style="height:80%;background:rgba(244,63,94,.7);flex:1"></div>
+          <div class="g-bar" style="height:90%;background:rgba(244,63,94,.8);flex:1"></div>
+          <div class="g-bar" style="height:75%;background:rgba(244,63,94,.7);flex:1"></div>
+          <div class="g-bar" style="height:85%;background:rgba(244,63,94,.75);flex:1"></div>
+          <div class="g-bar" style="height:78%;background:rgba(244,63,94,.7);flex:1"></div>
+          <div class="g-bar" style="height:72%;background:rgba(244,63,94,.65);flex:1"></div>
+        </div>
+        <div style="font-family:var(--font-code);font-size:10px;color:var(--text-muted);margin-top:8px">Peak: 48.3 GB/min · Avg: 32.1 GB/min</div>
+      </div>
+      <div class="g-panel-wide">
+        <div class="g-panel-title">Active Alerts</div>
+        <div class="g-alert-list" style="margin-top:8px">
+          <div class="g-alert firing"><div class="g-alert-dot" style="background:#f43f5e"></div>FIRING: HighShuffleSpill — app_20241201_003</div>
+          <div class="g-alert warn"><div class="g-alert-dot" style="background:#fbbf24"></div>WARN: GCTimeHigh — executor-15 (8.3%)</div>
+          <div class="g-alert ok"><div class="g-alert-dot" style="background:#22c55e"></div>OK: ExecutorMemory — All healthy</div>
+          <div class="g-alert ok"><div class="g-alert-dot" style="background:#22c55e"></div>OK: DriverHeap — 6.2 / 8 GB</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="code-block reveal">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div></div>
+      <span class="code-filename">prometheus_alerts.yaml</span>
+      <span class="code-lang">YAML</span>
+    </div>
+    <div class="code-body"><pre>
+<span class="c-cm"># ── Spark 关键告警规则（Prometheus AlertManager）──────</span>
+<span class="c-attr">groups</span>:
+- <span class="c-attr">name</span>: spark_production_alerts
+  <span class="c-attr">rules</span>:
+
+  <span class="c-cm"># P0: Executor 大量丢失（作业可能失败）</span>
+  - <span class="c-attr">alert</span>: SparkExecutorLostMass
+    <span class="c-attr">expr</span>: <span class="c-str">rate(spark_executor_failed_total[5m]) > 3</span>
+    <span class="c-attr">for</span>: <span class="c-num">2m</span>
+    <span class="c-attr">severity</span>: critical
+    <span class="c-attr">annotations</span>:
+      <span class="c-attr">summary</span>: <span class="c-str">"{{ $labels.app_id }} 5分钟内丢失超过3个Executor"</span>
+
+  <span class="c-cm"># P1: GC 时间占比过高</span>
+  - <span class="c-attr">alert</span>: SparkHighGCTime
+    <span class="c-attr">expr</span>: <span class="c-str">spark_executor_gc_time_percent > 0.1</span>
+    <span class="c-attr">for</span>: <span class="c-num">5m</span>
+    <span class="c-attr">severity</span>: warning
+    <span class="c-attr">annotations</span>:
+      <span class="c-attr">summary</span>: <span class="c-str">"Executor {{ $labels.executor_id }} GC时间超过10%"</span>
+
+  <span class="c-cm"># P1: Shuffle Spill 异常（内存不足）</span>
+  - <span class="c-attr">alert</span>: SparkShuffleSpillHigh
+    <span class="c-attr">expr</span>: <span class="c-str">spark_stage_shuffle_spill_memory_bytes > 10737418240</span>  <span class="c-cm"># 10GB</span>
+    <span class="c-attr">for</span>: <span class="c-num">1m</span>
+    <span class="c-attr">severity</span>: warning
+
+  <span class="c-cm"># P2: 作业运行时间超过阈值（检测卡死）</span>
+  - <span class="c-attr">alert</span>: SparkJobRunningTooLong
+    <span class="c-attr">expr</span>: <span class="c-str">spark_job_duration_seconds > 7200</span>  <span class="c-cm"># 2小时</span>
+    <span class="c-attr">for</span>: <span class="c-num">0m</span>
+    <span class="c-attr">severity</span>: warning
+
+  <span class="c-cm"># P0: Driver 堆内存使用率过高（OOM 预警）</span>
+  - <span class="c-attr">alert</span>: SparkDriverOOMRisk
+    <span class="c-attr">expr</span>: <span class="c-str">spark_driver_heap_used / spark_driver_heap_max > 0.9</span>
+    <span class="c-attr">for</span>: <span class="c-num">3m</span>
+    <span class="c-attr">severity</span>: critical
+</pre></div>
+  </div>
+
+  <div style="overflow-x:auto;border-radius:12px;border:1px solid var(--border);margin-top:16px">
+    <table class="monitor-table reveal">
+      <thead>
+        <tr><th>指标名称</th><th>采集来源</th><th>告警阈值</th><th>异常根因</th><th>级别</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>executor_gc_time_percent</td><td>JMX / MetricsSystem</td><td>&gt; 10%</td><td>内存不足 / 对象过多 / 堆太小</td><td><span class="tag-warn">P1</span></td></tr>
+        <tr><td>stage_shuffle_spill_memory</td><td>Spark Metrics</td><td>&gt; 10GB</td><td>Execution Memory 不足</td><td><span class="tag-warn">P1</span></td></tr>
+        <tr><td>executor_failed_total</td><td>Spark Metrics</td><td>5min &gt; 3</td><td>节点故障 / OOM / 网络分区</td><td><span class="tag-crit">P0</span></td></tr>
+        <tr><td>driver_heap_usage_ratio</td><td>JMX</td><td>&gt; 90%</td><td>collect() 过大 / broadcast 过大</td><td><span class="tag-crit">P0</span></td></tr>
+        <tr><td>task_duration_max_p95_ratio</td><td>Spark Metrics</td><td>&gt; 5x median</td><td>数据倾斜</td><td><span class="tag-warn">P1</span></td></tr>
+        <tr><td>streaming_batch_duration</td><td>Spark Streaming</td><td>&gt; trigger interval</td><td>处理速度跟不上输入</td><td><span class="tag-warn">P1</span></td></tr>
+        <tr><td>kafka_consumer_lag</td><td>Kafka Exporter</td><td>持续增长</td><td>流作业积压 / 处理能力不足</td><td><span class="tag-info">P2</span></td></tr>
+        <tr><td>job_running_duration</td><td>Spark History Server</td><td>&gt; 2h（按作业SLA）</td><td>卡死 / 倾斜 / 资源不足</td><td><span class="tag-info">P2</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ S4: 故障排查手册 ══ -->
+<section id="s4">
+  <div class="section-tag">04 / Incident Runbook</div>
+  <h2 class="section-title">高频故障排查手册</h2>
+  <p class="section-desc">每个故障类型都有固定的排查路径。建立 Runbook（操作手册）让任何工程师都能按步骤快速定位和恢复，而不依赖个人经验。</p>
+
+  <div class="incident-grid reveal">
+
+    <div class="incident-card">
+      <div class="incident-header">
+        <span class="incident-icon">💀</span>
+        <span class="incident-name">Executor Lost / 大量失败</span>
+        <span class="incident-sev sev-p0">P0</span>
+      </div>
+      <div class="incident-body">
+        <div>
+          <div class="incident-section-title">症状</div>
+          <div style="font-size:13px;color:var(--text-dim)">Spark UI 显示大量 Failed Tasks；日志出现 <code style="font-family:var(--font-code);color:#fda4af">ExecutorLostFailure</code>；作业反复重试后失败</div>
+        </div>
+        <div>
+          <div class="incident-section-title">排查步骤</div>
+          <ul class="incident-steps">
+            <li data-step="①">检查 Executor 日志：<code style="font-family:var(--font-code);color:#fda4af">grep "WARN\|ERROR\|killed" executor-*.log</code></li>
+            <li data-step="②">确认是否 OOM：日志含 <code style="font-family:var(--font-code);color:#fda4af">OutOfMemoryError</code> 或 <code style="font-family:var(--font-code);color:#fda4af">Container killed by YARN</code></li>
+            <li data-step="③">OOM → 增大 memoryOverhead 或减小 executor.cores</li>
+            <li data-step="④">非 OOM → 检查节点磁盘（<code style="font-family:var(--font-code);color:#fda4af">df -h</code>）和网络（<code style="font-family:var(--font-code);color:#fda4af">netstat -s</code>）</li>
+            <li data-step="⑤">若集中在特定节点 → 将该节点排除出集群，提工单修复</li>
+          </ul>
+        </div>
+        <div class="incident-cmd">
+yarn logs -applicationId &lt;appId&gt; | grep "ExecutorLost\|OOM\|killed"
+kubectl logs &lt;executor-pod&gt; --previous  # K8s 场景</div>
+      </div>
+    </div>
+
+    <div class="incident-card">
+      <div class="incident-header">
+        <span class="incident-icon">🧠</span>
+        <span class="incident-name">Driver OOM</span>
+        <span class="incident-sev sev-p0">P0</span>
+      </div>
+      <div class="incident-body">
+        <div>
+          <div class="incident-section-title">症状</div>
+          <div style="font-size:13px;color:var(--text-dim)">Driver 进程崩溃；日志出现 <code style="font-family:var(--font-code);color:#fda4af">java.lang.OutOfMemoryError: Java heap space</code>；整个 Application 终止</div>
+        </div>
+        <div>
+          <div class="incident-section-title">排查步骤</div>
+          <ul class="incident-steps">
+            <li data-step="①">查 Driver 日志确认 OOM 触发点（哪一行代码）</li>
+            <li data-step="②">检查是否有 <code style="font-family:var(--font-code);color:#fda4af">df.collect()</code> 或 <code style="font-family:var(--font-code);color:#fda4af">toPandas()</code> 操作</li>
+            <li data-step="③">检查 broadcast 变量大小是否超过 driver.memory</li>
+            <li data-step="④">检查 <code style="font-family:var(--font-code);color:#fda4af">spark.driver.maxResultSize</code> 是否过大</li>
+            <li data-step="⑤">短期：增大 driver.memory；根本：消除大 collect()</li>
+          </ul>
+        </div>
+        <div class="incident-cmd">
+# 用 Heap Dump 分析大对象
+jmap -histo &lt;driver_pid&gt; | head -30
+# 或开启自动 Dump: -XX:+HeapDumpOnOutOfMemoryError</div>
+      </div>
+    </div>
+
+    <div class="incident-card">
+      <div class="incident-header">
+        <span class="incident-icon">🧊</span>
+        <span class="incident-name">Stage 卡死 / Task 长时间不完成</span>
+        <span class="incident-sev sev-p1">P1</span>
+      </div>
+      <div class="incident-body">
+        <div>
+          <div class="incident-section-title">症状</div>
+          <div style="font-size:13px;color:var(--text-dim)">某个 Stage 只剩最后 1~3 个 Task，卡了数小时；其他 Task 已完成</div>
+        </div>
+        <div>
+          <div class="incident-section-title">排查步骤</div>
+          <ul class="incident-steps">
+            <li data-step="①">Spark UI → Stage 详情 → 找到卡住的 Task，查看其 Input Size</li>
+            <li data-step="②">Input Size 远大于其他 Task → 数据倾斜，参考 Ch.05 倾斜解决方案</li>
+            <li data-step="③">Input Size 正常但很慢 → 查该 Task 所在 Executor 的 GC 日志</li>
+            <li data-step="④">Executor 日志正常 → 可能是网络 IO 慢（跨机房 Shuffle）</li>
+            <li data-step="⑤">启用推测执行（Speculative Execution）作为临时缓解措施</li>
+          </ul>
+        </div>
+        <div class="incident-cmd">
+# 启用推测执行（慢 Task 在其他节点重跑）
+spark.speculation=true
+spark.speculation.multiplier=1.5
+spark.speculation.quantile=0.9</div>
+      </div>
+    </div>
+
+    <div class="incident-card">
+      <div class="incident-header">
+        <span class="incident-icon">🌊</span>
+        <span class="incident-name">流作业 Lag 持续增长</span>
+        <span class="incident-sev sev-p1">P1</span>
+      </div>
+      <div class="incident-body">
+        <div>
+          <div class="incident-section-title">症状</div>
+          <div style="font-size:13px;color:var(--text-dim)">Kafka Consumer Lag 监控持续上升；Streaming UI 显示 Batch Duration 超过 Trigger Interval</div>
+        </div>
+        <div>
+          <div class="incident-section-title">排查步骤</div>
+          <ul class="incident-steps">
+            <li data-step="①">查 lastProgress：batchDuration vs triggerInterval 的比值</li>
+            <li data-step="②">batchDuration 中最长步骤：State 操作 / Shuffle / 写出？</li>
+            <li data-step="③">State 操作慢 → 切换 RocksDB State Store + 增量 Checkpoint</li>
+            <li data-step="④">写出慢 → 检查 Sink（Kafka 生产者 buffer/网络）</li>
+            <li data-step="⑤">临时缓解：降低 maxOffsetsPerTrigger 减少单批数据量</li>
+          </ul>
+        </div>
+        <div class="incident-cmd">
+# 检查流进度
+query.lastProgress  # Python
+# 检查 State Store 大小
+spark.sql("SELECT * FROM spark_streaming_state_info")</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="info-box danger reveal">
+    <div class="info-box-icon">🚨</div>
+    <div>
+      <div class="info-box-title">生产铁律：永远不要在不理解根因的情况下重启作业</div>
+      <div class="info-box-text">
+        盲目重启可能掩盖根本问题（数据损坏、磁盘满、网络分区），且流作业重启可能导致 Checkpoint 状态不一致。正确步骤：① 保存现场（日志、Heap Dump、Spark UI 截图）② 分析根因 ③ 修复后再重启 ④ 监控确认恢复正常 ⑤ 复盘写入 Runbook。
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ S5: 多租户与安全 ══ -->
+<section id="s5">
+  <div class="section-tag">05 / Multi-Tenancy & Security</div>
+  <h2 class="section-title">多租户资源隔离与安全配置</h2>
+  <p class="section-desc">大规模生产集群通常服务多个业务团队，资源隔离和安全认证是稳定运行的基础。</p>
+
+  <div class="arch-layer-stack reveal">
+    <div class="arch-layer-row">
+      <div class="arch-layer-label">YARN 队列</div>
+      <div class="arch-layer-boxes">
+        <div class="arch-box l1">
+          <div class="arch-box-name">Capacity Scheduler</div>
+          <div class="arch-box-desc">按比例分配集群容量给各业务队列，保证最低资源 + 允许弹性借用空闲容量</div>
+        </div>
+        <div class="arch-box l1">
+          <div class="arch-box-name">Fair Scheduler</div>
+          <div class="arch-box-desc">作业间公平共享资源，支持按用户/组设置权重，适合多用户共享场景</div>
+        </div>
+      </div>
+    </div>
+    <div class="arch-layer-row" style="margin-top:8px">
+      <div class="arch-layer-label">K8s 命名空间</div>
+      <div class="arch-layer-boxes">
+        <div class="arch-box l2">
+          <div class="arch-box-name">ResourceQuota</div>
+          <div class="arch-box-desc">限制命名空间内 CPU/Memory 总量上限，防止单团队耗尽集群资源</div>
+        </div>
+        <div class="arch-box l2">
+          <div class="arch-box-name">LimitRange</div>
+          <div class="arch-box-desc">设置 Pod 的默认 request/limit，防止无 resource 定义的 Pod 占用过多</div>
+        </div>
+        <div class="arch-box l2">
+          <div class="arch-box-name">PriorityClass</div>
+          <div class="arch-box-desc">高优先级作业（实时报表）抢占低优先级资源（夜间批处理）</div>
+        </div>
+      </div>
+    </div>
+    <div class="arch-layer-row" style="margin-top:8px">
+      <div class="arch-layer-label">认证授权</div>
+      <div class="arch-layer-boxes">
+        <div class="arch-box l3">
+          <div class="arch-box-name">Kerberos（YARN）</div>
+          <div class="arch-box-desc">企业级 HDFS/YARN 认证，需配置 keytab 和 principal 自动续期</div>
+        </div>
+        <div class="arch-box l3">
+          <div class="arch-box-name">RBAC（K8s）</div>
+          <div class="arch-box-desc">ServiceAccount + Role/ClusterRole 精细控制 Pod 操作权限</div>
+        </div>
+        <div class="arch-box l3">
+          <div class="arch-box-name">Spark ACL</div>
+          <div class="arch-box-desc">控制 Spark UI 访问权限（spark.ui.acls.enable + spark.admin.acls）</div>
+        </div>
+      </div>
+    </div>
+    <div class="arch-layer-row" style="margin-top:8px">
+      <div class="arch-layer-label">数据安全</div>
+      <div class="arch-layer-boxes">
+        <div class="arch-box l4">
+          <div class="arch-box-name">Shuffle 加密</div>
+          <div class="arch-box-desc"><code style="font-family:var(--font-code);font-size:11px">spark.authenticate=true</code> + AES 加密 Shuffle 数据传输</div>
+        </div>
+        <div class="arch-box l4">
+          <div class="arch-box-name">存储加密</div>
+          <div class="arch-box-desc">S3 SSE-KMS / HDFS 透明加密区域，静态数据加密</div>
+        </div>
+        <div class="arch-box l4">
+          <div class="arch-box-name">列级权限（Ranger）</div>
+          <div class="arch-box-desc">Apache Ranger 集成，实现列级别/行级别数据脱敏和访问控制</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ S6: 运维检查清单 ══ -->
+<section id="s6">
+  <div class="section-tag">06 / Ops Checklist</div>
+  <h2 class="section-title">生产运维全周期检查清单</h2>
+  <p class="section-desc">将日常运维操作系统化，避免遗漏关键检查项——无论是作业上线前的验证，还是日常巡检与故障处理。</p>
+
+  <div class="checklist reveal">
+    <div class="checklist-group">
+      <div class="checklist-group-title">🚀 新作业上线前</div>
+      <div class="checklist-items">
+        <div class="check-item"><div class="check-icon ok">✓</div>在测试环境用生产规模 10% 数据做性能基准测试</div>
+        <div class="check-item"><div class="check-icon ok">✓</div>explain("formatted") 确认执行计划符合预期</div>
+        <div class="check-item"><div class="check-icon ok">✓</div>设置 spark.driver.maxResultSize（防 Driver OOM）</div>
+        <div class="check-item"><div class="check-icon ok">✓</div>配置作业超时：spark.sql.broadcastTimeout / network.timeout</div>
+        <div class="check-item"><div class="check-icon warn">!</div>确认 Checkpoint 目录路径，避免与其他作业冲突</div>
+        <div class="check-item"><div class="check-icon warn">!</div>流作业：验证 Exactly-Once 语义配置完整</div>
+        <div class="check-item"><div class="check-icon danger">✗</div>代码含 df.collect()、toPandas()（大结果集场景）</div>
+        <div class="check-item"><div class="check-icon danger">✗</div>硬编码了分区数（应使用 AQE 动态调整）</div>
+      </div>
+    </div>
+    <div class="checklist-group">
+      <div class="checklist-group-title">📅 日常巡检（每日）</div>
+      <div class="checklist-items">
+        <div class="check-item"><div class="check-icon ok">✓</div>检查 Grafana Dashboard：GC、CPU、Shuffle Spill 无异常告警</div>
+        <div class="check-item"><div class="check-icon ok">✓</div>流作业 Kafka Lag 趋势为0或稳定下降</div>
+        <div class="check-item"><div class="check-icon ok">✓</div>批作业 SLA 完成时间在预期范围内</div>
+        <div class="check-item"><div class="check-icon ok">✓</div>Delta 表定期 OPTIMIZE 任务已成功执行</div>
+        <div class="check-item"><div class="check-icon warn">!</div>检查 Executor 失败率，若 > 1% 需排查</div>
+        <div class="check-item"><div class="check-icon warn">!</div>检查节点磁盘使用率（Shuffle 临时目录）</div>
+      </div>
+    </div>
+    <div class="checklist-group">
+      <div class="checklist-group-title">📆 周期维护（每周）</div>
+      <div class="checklist-items">
+        <div class="check-item"><div class="check-icon ok">✓</div>Delta 表 VACUUM（保留7天，清理旧文件）</div>
+        <div class="check-item"><div class="check-icon ok">✓</div>Spark History Server 清理过期日志（保留30天）</div>
+        <div class="check-item"><div class="check-icon ok">✓</div>重新 ANALYZE TABLE（更新 CBO 统计信息）</div>
+        <div class="check-item"><div class="check-icon warn">!</div>检查慢作业趋势：哪些作业耗时在增长？</div>
+        <div class="check-item"><div class="check-icon warn">!</div>Checkpoint 目录大小是否在预期范围</div>
+        <div class="check-item"><div class="check-icon danger">✗</div>若 State Store 行数持续增长，检查 Watermark 配置</div>
+      </div>
+    </div>
+    <div class="checklist-group">
+      <div class="checklist-group-title">🔧 版本升级</div>
+      <div class="checklist-items">
+        <div class="check-item"><div class="check-icon ok">✓</div>在 Staging 集群全量测试，覆盖所有关键作业</div>
+        <div class="check-item"><div class="check-icon ok">✓</div>检查升级 Release Notes 中的 Breaking Changes</div>
+        <div class="check-item"><div class="check-icon ok">✓</div>流作业使用新 Checkpoint 路径（不复用旧路径）</div>
+        <div class="check-item"><div class="check-icon warn">!</div>灰度发布：先升级 10% 作业观察 24h</div>
+        <div class="check-item"><div class="check-icon warn">!</div>AQE 行为可能在新版本变化，需重新验证执行计划</div>
+        <div class="check-item"><div class="check-icon danger">✗</div>生产直接升级主版本（3.x → 4.x 风险极高）</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:44px">
+    <h3 style="font-family:var(--font-title);font-size:20px;margin-bottom:24px;color:#fff;">运维成熟度指标</h3>
+    <div class="progress-section reveal">
+      <div class="progress-item">
+        <div class="progress-label"><span class="progress-name">MTTR（平均故障恢复时间）目标：&lt;30 分钟</span><span class="progress-val">有 Runbook 可达成</span></div>
+        <div class="progress-track"><div class="progress-fill" data-w="82%"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-label"><span class="progress-name">批作业 SLA 达成率目标：&gt;99.5%</span><span class="progress-val">监控 + 自动重试</span></div>
+        <div class="progress-track"><div class="progress-fill" data-w="92%"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-label"><span class="progress-name">资源利用率目标：CPU 70~85%（避免浪费和过载）</span><span class="progress-val">Dynamic Allocation</span></div>
+        <div class="progress-track"><div class="progress-fill" data-w="75%"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-label"><span class="progress-name">流作业端到端延迟目标：&lt;1 分钟（Micro-Batch）</span><span class="progress-val">State Store 优化</span></div>
+        <div class="progress-track"><div class="progress-fill" data-w="68%"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ S7: 未来展望 ══ -->
+<section id="s7">
+  <div class="section-tag">07 / Future Outlook</div>
+  <h2 class="section-title">Spark 生态未来展望</h2>
+  <p class="section-desc">Spark 4.0 和周边生态正在快速演进，了解技术趋势帮助你提前布局和做出更好的架构决策。</p>
+
+  <div class="future-grid reveal">
+    <div class="future-card">
+      <div class="future-icon">🚀</div>
+      <div class="future-title">Spark 4.0：新一代引擎</div>
+      <div class="future-desc">统一批流 API（Connect 协议），Python-first 设计，改进的 ANSI SQL 兼容性，新的 DataFrame API（无 SparkContext 依赖），以及更强的 Python UDF 向量化支持（Arrow-based）。</div>
+      <div class="future-tag">2025 年发布</div>
+    </div>
+    <div class="future-card">
+      <div class="future-icon">🔗</div>
+      <div class="future-title">Apache Celeborn（Remote Shuffle）</div>
+      <div class="future-desc">解决 K8s 上 Shuffle 数据不持久的问题，将 Shuffle 数据集中写入专用 Shuffle 服务，Executor Pod 可随时重启而不丢失 Shuffle 数据，同时减少本地磁盘依赖。</div>
+      <div class="future-tag">K8s 场景 Shuffle 解决方案</div>
+    </div>
+    <div class="future-card">
+      <div class="future-icon">🧊</div>
+      <div class="future-title">Apache Iceberg 成为湖仓标准</div>
+      <div class="future-desc">AWS Glue、Snowflake、Databricks 相继支持 Iceberg，引擎中立的元数据层正在成为数据湖事实标准。Iceberg REST Catalog 让多引擎共享同一份元数据成为可能。</div>
+      <div class="future-tag">多云 · 多引擎融合</div>
+    </div>
+    <div class="future-card">
+      <div class="future-icon">⚡</div>
+      <div class="future-title">VELOX / Arrow DataFusion 加速</div>
+      <div class="future-desc">Meta 开源的 VELOX 执行引擎（C++ 原生，支持 SIMD），正在被 Spark（通过 Gluten 项目）和 Presto 集成，为算子密集型查询提供 2~5x 的 CPU 性能提升。</div>
+      <div class="future-tag">Native Execution · SIMD</div>
+    </div>
+    <div class="future-card">
+      <div class="future-icon">🤖</div>
+      <div class="future-title">AI/ML 与 Spark 深度融合</div>
+      <div class="future-desc">Spark + PyTorch/TensorFlow 分布式训练（通过 TorchDistributor），Spark ML 向量化特征工程，以及 LLM 推理在 Spark 集群上的分布式部署（通过 vLLM 集成）。</div>
+      <div class="future-tag">TorchDistributor · LLM on Spark</div>
+    </div>
+    <div class="future-card">
+      <div class="future-icon">☁️</div>
+      <div class="future-title">Serverless Spark</div>
+      <div class="future-desc">AWS Glue Serverless、Databricks Serverless、Google Dataproc Serverless 将资源管理完全托管，按实际使用量计费，消除集群运维负担。适合不规则工作负载。</div>
+      <div class="future-tag">按需弹性 · 零运维</div>
+    </div>
+  </div>
+
+  <!-- Course Completion Banner -->
+  <div class="completion-banner reveal">
+    <div class="completion-emoji">🎉</div>
+    <div class="completion-title">Apache Spark 深度学习课程 · 完结</div>
+    <div class="completion-desc">
+      恭喜完成全部 6 章！从核心架构到生产运维，你已系统掌握了 Spark 的内部机制、优化方法论和生产运维体系。
+      这套知识体系将帮助你在实际工作中从容应对 PB 级数据挑战。
+    </div>
+    <div class="completion-pills">
+      <span class="completion-pill">Ch.01 · 核心架构与执行引擎</span>
+      <span class="completion-pill">Ch.02 · Catalyst 与 Tungsten</span>
+      <span class="completion-pill">Ch.03 · Structured Streaming</span>
+      <span class="completion-pill">Ch.04 · 存储格式与数据湖</span>
+      <span class="completion-pill">Ch.05 · 性能调优方法论</span>
+      <span class="completion-pill">Ch.06 · 生产运维全栈</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FOOTER -->
+<footer class="footer-nav">
+  <div>
+    <div class="footer-toc-title">完整课程目录 · 已全部完成</div>
+    <ul class="footer-toc-list">
+      <li class="footer-toc-item done"><span class="num">01</span>核心架构与执行引擎原理</li>
+      <li class="footer-toc-item done"><span class="num">02</span>Catalyst 优化器与 Tungsten 引擎</li>
+      <li class="footer-toc-item done"><span class="num">03</span>结构化流处理（Structured Streaming）</li>
+      <li class="footer-toc-item done"><span class="num">04</span>存储格式与数据湖集成</li>
+      <li class="footer-toc-item done"><span class="num">05</span>性能调优：诊断方法论与实战</li>
+      <li class="footer-toc-item current"><span class="num">06</span>生产运维：部署、监控与故障恢复</li>
+    </ul>
+  </div>
+  <div>
+    <div class="footer-next-label">课程已完结</div>
+    <div class="footer-course-complete">
+      <div class="footer-course-complete-title">🏆 恭喜完成全部课程！</div>
+      <div class="footer-course-complete-desc">
+        6 章系统化学习，覆盖了 Apache Spark 从底层引擎原理到生产运维的全栈知识。
+        建议将本系列作为工作中的参考手册，结合实际项目反复查阅——真正的掌握来自实战中的反复验证和思考。<br><br>
+        <strong style="color:var(--p2)">下一步建议</strong>：搭建本地 Spark 集群，用真实数据集重现本课程中的各项优化实验，在 Spark UI 中亲眼验证每一个原理。
+      </div>
+    </div>
+  </div>
+</footer>
+
+</main>
+
+<script>
+const ro = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const el = e.target;
+      const sibs = [...el.parentElement.querySelectorAll('.reveal')];
+      el.style.transitionDelay = `${sibs.indexOf(el) * 65}ms`;
+      el.classList.add('visible');
+      ro.unobserve(el);
+    }
+  });
+}, { threshold: 0.06 });
+document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
+
+const bo = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('.progress-fill').forEach(b => {
+        setTimeout(() => b.style.width = b.getAttribute('data-w'), 200);
+      });
+      bo.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.15 });
+document.querySelectorAll('.progress-item').forEach(el => bo.observe(el));
+
+const sections = document.querySelectorAll('section[id]');
+const dots = document.querySelectorAll('.nav-dot');
+const so = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) dots.forEach(d => d.classList.toggle('active', d.dataset.section === e.target.id));
+  });
+}, { threshold: 0.28 });
+sections.forEach(s => so.observe(s));
+dots.forEach(d => d.addEventListener('click', () => document.getElementById(d.dataset.section)?.scrollIntoView({ behavior: 'smooth' })));
+</script>
+</body>
+</html>
