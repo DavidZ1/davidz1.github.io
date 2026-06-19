@@ -8,267 +8,366 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:        #f5f4f0;
-      --surface:   #ffffff;
-      --surface2:  #f0efe9;
-      --border:    rgba(0,0,0,0.07);
-      --border-md: rgba(0,0,0,0.13);
-      --text:      #1a1a18;
-      --muted:     #6b6b67;
-      --hint:      #a5a5a0;
-      --radius-md: 8px;
-      --radius-lg: 14px;
+      --bg:           #f4f3ef;
+      --bg-tint:      #eceae3;
+      --surface:      #ffffff;
+      --surface-hover:#fbfaf6;
+      --inset:        #f6f5f1;
+      --border:       rgba(20,22,28,0.08);
+      --border-md:    rgba(20,22,28,0.13);
+      --border-strong:rgba(20,22,28,0.20);
+      --text:         #191b1f;
+      --muted:        #585d66;
+      --hint:         #9a9ea7;
+      --mono:         #4d525b;
+      --radius:       9px;
+      --radius-lg:    15px;
+      --shadow:       0 1px 2px rgba(20,22,28,0.04), 0 8px 22px -12px rgba(20,22,28,0.10);
+      --shadow-hover: 0 2px 4px rgba(20,22,28,0.05), 0 18px 40px -16px rgba(20,22,28,0.20);
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'Helvetica Neue', sans-serif;
+      --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Cascadia Code', Menlo, Consolas, monospace;
     }
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg:        #161614;
-        --surface:   #202020;
-        --surface2:  #282826;
-        --border:    rgba(255,255,255,0.07);
-        --border-md: rgba(255,255,255,0.13);
-        --text:      #eeeee8;
-        --muted:     #9a9a94;
-        --hint:      #585856;
+        --bg:           #0d0e11;
+        --bg-tint:      #14161b;
+        --surface:      #16181d;
+        --surface-hover:#1c1f26;
+        --inset:        #101216;
+        --border:       rgba(255,255,255,0.06);
+        --border-md:    rgba(255,255,255,0.11);
+        --border-strong:rgba(255,255,255,0.18);
+        --text:         #e9eaee;
+        --muted:        #969ba6;
+        --hint:         #5b606b;
+        --mono:         #b3b9c5;
+        --shadow:       0 1px 2px rgba(0,0,0,0.4), 0 10px 28px -14px rgba(0,0,0,0.6);
+        --shadow-hover: 0 2px 6px rgba(0,0,0,0.45), 0 22px 48px -18px rgba(0,0,0,0.75);
       }
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-      background: var(--bg);
+      font-family: var(--font-sans);
+      background:
+        radial-gradient(900px 500px at 18% -8%, var(--bg-tint), transparent 70%),
+        var(--bg);
       color: var(--text);
       min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
     }
 
-    #app { max-width: 980px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+    #app { max-width: 1120px; margin: 0 auto; padding: 3.4rem 1.5rem 5rem; }
 
     /* ── Header ── */
-    .header { margin-bottom: 2.5rem; }
+    .header { margin-bottom: 2.4rem; }
     .header-top {
       display: flex; align-items: flex-start;
       justify-content: space-between; gap: 1rem;
-      flex-wrap: wrap; margin-bottom: 5px;
+      flex-wrap: wrap; margin-bottom: 14px;
     }
     .header h1 {
-      font-size: 26px; font-weight: 600;
-      letter-spacing: -0.5px; color: var(--text);
+      font-size: 30px; font-weight: 650;
+      letter-spacing: -0.9px; line-height: 1.05; color: var(--text);
     }
-    .header h1 span { color: var(--muted); font-weight: 400; }
-    .subtitle { font-size: 14px; color: var(--muted); }
+    .header h1 span { color: var(--hint); font-weight: 400; }
+
+    /* mono status line — the "system" voice */
+    .subtitle {
+      display: inline-flex; align-items: center; flex-wrap: wrap;
+      gap: 9px;
+      font-family: var(--font-mono);
+      font-size: 12px; letter-spacing: 0.02em;
+      color: var(--muted);
+    }
+    .subtitle .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--hint); flex-shrink: 0; }
+    .subtitle .host { color: var(--hint); }
 
     /* ── Top bar ── */
     .topbar {
-      display: flex; gap: 10px; margin-bottom: 1.6rem;
+      display: flex; gap: 10px; margin-bottom: 1.5rem;
       flex-wrap: wrap; align-items: center;
     }
-    .search-wrap { position: relative; flex: 1; min-width: 200px; }
+    .search-wrap { position: relative; flex: 1; min-width: 220px; }
     .search-wrap svg {
-      position: absolute; left: 11px; top: 50%;
-      transform: translateY(-50%); pointer-events: none; opacity: 0.35;
+      position: absolute; left: 13px; top: 50%;
+      transform: translateY(-50%); pointer-events: none;
+      color: var(--hint); transition: color 0.18s;
     }
     .search-wrap input {
-      width: 100%; padding: 8px 12px 8px 34px;
-      font-size: 14px;
-      border: 0.5px solid var(--border-md);
-      border-radius: var(--radius-md);
+      width: 100%; padding: 10px 14px 10px 38px;
+      font-size: 14px; font-family: var(--font-sans);
+      border: 1px solid var(--border-md);
+      border-radius: var(--radius);
       background: var(--surface); color: var(--text);
-      outline: none; transition: border-color 0.15s;
+      outline: none; box-shadow: var(--shadow);
+      transition: border-color 0.18s, box-shadow 0.18s;
     }
-    .search-wrap input:focus { border-color: #7F77DD; }
+    .search-wrap input:focus {
+      border-color: var(--accent-focus, #7F77DD);
+      box-shadow: var(--shadow), 0 0 0 3px color-mix(in srgb, var(--accent-focus, #7F77DD) 22%, transparent);
+    }
+    .search-wrap:focus-within svg { color: var(--accent-focus, #7F77DD); }
     .search-wrap input::placeholder { color: var(--hint); }
 
-    .btn-group { display: flex; gap: 0; }
+    .btn-group { display: inline-flex; gap: 0; box-shadow: var(--shadow); border-radius: var(--radius); }
     .btn-group button {
-      font-size: 13px; padding: 7px 15px;
-      border: 0.5px solid var(--border-md);
+      font-size: 13px; font-weight: 500; padding: 9px 15px;
+      display: inline-flex; align-items: center;
+      border: 1px solid var(--border-md);
       background: var(--surface); color: var(--muted);
-      cursor: pointer; transition: background 0.13s, color 0.13s;
+      cursor: pointer; transition: background 0.14s, color 0.14s, border-color 0.14s;
       white-space: nowrap;
     }
-    .btn-group button:first-child { border-radius: var(--radius-md) 0 0 var(--radius-md); }
-    .btn-group button:last-child  { border-radius: 0 var(--radius-md) var(--radius-md) 0; border-left: none; }
-    .btn-group button:hover { background: var(--surface2); color: var(--text); }
+    .btn-group button:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+    .btn-group button:last-child  { border-radius: 0 var(--radius) var(--radius) 0; border-left: none; }
+    .btn-group button:hover { background: var(--surface-hover); color: var(--text); }
     .btn-group button.active {
       background: var(--text); color: var(--bg);
       border-color: var(--text);
     }
+    .btn-group button:focus-visible { outline: 2px solid var(--accent-focus, #7F77DD); outline-offset: 2px; z-index: 1; }
 
     .icon-btn {
-      display: inline-flex; align-items: center; gap: 6px;
-      font-size: 13px; padding: 7px 14px;
-      border: 0.5px solid var(--border-md);
-      border-radius: var(--radius-md);
+      display: inline-flex; align-items: center; gap: 7px;
+      font-size: 13px; font-weight: 500; padding: 8px 14px;
+      border: 1px solid var(--border-md);
+      border-radius: var(--radius);
       background: var(--surface); color: var(--muted);
-      cursor: pointer; transition: background 0.13s;
+      cursor: pointer; box-shadow: var(--shadow);
+      transition: background 0.14s, color 0.14s;
       white-space: nowrap;
     }
-    .icon-btn:hover { background: var(--surface2); color: var(--text); }
+    .icon-btn:hover { background: var(--surface-hover); color: var(--text); }
+    .icon-btn svg { transition: transform 0.5s ease; }
+    .icon-btn:active svg { transform: rotate(-180deg); }
+    .icon-btn:focus-visible { outline: 2px solid var(--accent-focus, #7F77DD); outline-offset: 2px; }
 
-    .count { font-size: 13px; color: var(--hint); margin-bottom: 1.1rem; }
+    .count {
+      font-family: var(--font-mono);
+      font-size: 11.5px; letter-spacing: 0.03em;
+      color: var(--hint); margin-bottom: 1.15rem;
+      text-transform: lowercase;
+    }
 
-    /* ════════════════════════════
-       FOLDER VIEW
-    ════════════════════════════ */
+    /* ── animated container ── */
+    @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    #main-content > * { animation: rise 0.34s cubic-bezier(.2,.7,.2,1) both; }
+
+    /* ════════════════════════════ FOLDER VIEW ════════════════════════════ */
     .folder-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: 14px;
+      align-items: start;
     }
 
     .folder-card {
+      --accent: #7F77DD;
+      position: relative;
       background: var(--surface);
-      border: 0.5px solid var(--border);
+      border: 1px solid var(--border);
       border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
       overflow: hidden;
-      transition: border-color 0.15s, transform 0.12s;
+      transition: border-color 0.18s, transform 0.16s, box-shadow 0.18s;
       cursor: pointer;
     }
-    .folder-card:hover { border-color: var(--border-md); transform: translateY(-2px); }
-    .folder-card.open  { transform: none; }
+    /* book spine */
+    .folder-card::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px; background: var(--accent);
+      opacity: 0.55; transition: opacity 0.18s, box-shadow 0.18s;
+    }
+    .folder-card:hover {
+      border-color: var(--border-strong);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-hover);
+    }
+    .folder-card:hover::before,
+    .folder-card.open::before {
+      opacity: 1;
+      box-shadow: 0 0 14px -1px var(--accent);
+    }
+    .folder-card.open { transform: none; }
 
     .folder-card-head {
-      display: flex; align-items: center; gap: 11px;
-      padding: 1rem 1.2rem .9rem;
-      position: relative; overflow: hidden;
-    }
-    .folder-card-accent {
-      position: absolute; top: 0; left: 0; right: 0; height: 3px;
-      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      display: flex; align-items: center; gap: 13px;
+      padding: 1rem 1.15rem 1rem 1.3rem;
     }
     .folder-icon {
-      width: 36px; height: 36px; border-radius: 10px;
+      width: 38px; height: 38px; border-radius: 10px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 17px; flex-shrink: 0;
+      font-family: var(--font-mono); font-weight: 700; font-size: 17px;
+      letter-spacing: -0.5px; flex-shrink: 0;
+      background: color-mix(in srgb, var(--accent) 14%, transparent);
+      color: var(--accent);
+      border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
     }
     .folder-label { flex: 1; min-width: 0; }
     .folder-name {
-      font-size: 15px; font-weight: 500; color: var(--text);
+      font-size: 15.5px; font-weight: 600; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      letter-spacing: -0.2px;
+    }
+    .folder-sub {
+      font-family: var(--font-mono);
+      font-size: 11px; color: var(--hint); margin-top: 3px;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .folder-sub { font-size: 12px; color: var(--hint); margin-top: 2px; }
+    .folder-sub .cnt { color: var(--muted); }
 
     .folder-arrow {
-      font-size: 15px; color: var(--hint);
-      transition: transform 0.2s; flex-shrink: 0; line-height: 1;
+      font-size: 16px; color: var(--hint);
+      transition: transform 0.24s ease, color 0.18s; flex-shrink: 0; line-height: 1;
     }
-    .folder-card.open .folder-arrow { transform: rotate(90deg); }
+    .folder-card:hover .folder-arrow { color: var(--muted); }
+    .folder-card.open .folder-arrow { transform: rotate(90deg); color: var(--accent); }
 
     .page-list {
       display: none;
-      border-top: 0.5px solid var(--border);
-      padding: 6px 0;
-      background: var(--surface2);
+      border-top: 1px solid var(--border);
+      padding: 5px 0 6px;
+      background: var(--inset);
     }
-    .folder-card.open .page-list { display: block; }
+    .folder-card.open .page-list { display: block; animation: rise 0.22s ease both; }
 
     .page-item {
       display: flex; align-items: center; gap: 10px;
-      padding: 7px 1.2rem;
-      text-decoration: none; color: var(--text);
+      padding: 8px 1.15rem 8px 1.3rem;
+      text-decoration: none; color: var(--muted);
       font-size: 13.5px;
-      transition: background 0.12s;
+      transition: background 0.13s, color 0.13s, padding-left 0.13s;
     }
-    .page-item:hover { background: rgba(0,0,0,0.04); }
-    @media (prefers-color-scheme: dark) {
-      .page-item:hover { background: rgba(255,255,255,0.05); }
-    }
-    .page-item-icon { font-size: 14px; flex-shrink: 0; }
+    .page-item:hover { background: color-mix(in srgb, var(--accent) 9%, transparent); color: var(--text); padding-left: 1.5rem; }
+    .page-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+    .page-item-icon { font-size: 14px; flex-shrink: 0; width: 18px; text-align: center; }
     .page-item-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .page-item-arrow { font-size: 11px; color: var(--hint); flex-shrink: 0; }
+    .page-item-arrow { font-size: 12px; color: var(--hint); flex-shrink: 0; opacity: 0; transition: opacity 0.13s; }
+    .page-item:hover .page-item-arrow { opacity: 1; }
 
     /* root files as chips */
-    .root-section { margin-bottom: 1.5rem; }
+    .root-section { margin-bottom: 1.6rem; }
     .root-label {
-      font-size: 12px; color: var(--hint);
-      text-transform: uppercase; letter-spacing: .06em;
-      margin-bottom: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px; color: var(--hint);
+      text-transform: uppercase; letter-spacing: .12em;
+      margin-bottom: 9px;
     }
     .root-chips { display: flex; flex-wrap: wrap; gap: 8px; }
     .root-chip {
-      display: inline-flex; align-items: center; gap: 7px;
-      padding: 6px 14px 6px 10px;
-      border: 0.5px solid var(--border-md);
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 7px 15px 7px 11px;
+      border: 1px solid var(--border-md);
       border-radius: 99px;
-      background: var(--surface);
+      background: var(--surface); box-shadow: var(--shadow);
       text-decoration: none; color: var(--text);
-      font-size: 13px;
-      transition: background 0.13s;
+      font-size: 13px; font-weight: 500;
+      transition: background 0.14s, transform 0.14s, border-color 0.14s;
     }
-    .root-chip:hover { background: var(--surface2); }
+    .root-chip:hover { background: var(--surface-hover); transform: translateY(-1px); border-color: var(--border-strong); }
+    .root-chip:focus-visible { outline: 2px solid var(--accent-focus, #7F77DD); outline-offset: 2px; }
 
-    /* ════════════════════════════
-       FLAT / ALL VIEW
-    ════════════════════════════ */
+    /* ════════════════════════════ FLAT / ALL VIEW ════════════════════════════ */
     .flat-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
       gap: 14px;
     }
     .flat-card {
+      --accent: #7F77DD;
+      position: relative;
       background: var(--surface);
-      border: 0.5px solid var(--border);
+      border: 1px solid var(--border);
       border-radius: var(--radius-lg);
-      padding: 1.1rem 1.2rem 1rem;
+      box-shadow: var(--shadow);
+      padding: 1.1rem 1.2rem 1rem 1.3rem;
       text-decoration: none; color: inherit;
-      display: flex; flex-direction: column; gap: 10px;
-      position: relative; overflow: hidden;
-      transition: border-color 0.15s, transform 0.12s;
+      display: flex; flex-direction: column; gap: 12px;
+      overflow: hidden;
+      transition: border-color 0.18s, transform 0.16s, box-shadow 0.18s;
     }
-    .flat-card:hover { border-color: var(--border-md); transform: translateY(-2px); }
-    .flat-accent {
-      position: absolute; top: 0; left: 0; right: 0; height: 3px;
-      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    .flat-card::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px; background: var(--accent); opacity: 0.55;
+      transition: opacity 0.18s, box-shadow 0.18s;
     }
-    .flat-body { display: flex; align-items: flex-start; gap: 11px; margin-top: 4px; }
+    .flat-card:hover { border-color: var(--border-strong); transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+    .flat-card:hover::before { opacity: 1; box-shadow: 0 0 14px -1px var(--accent); }
+    .flat-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .flat-body { display: flex; align-items: flex-start; gap: 12px; }
     .flat-ico {
-      width: 34px; height: 34px; border-radius: 9px;
+      width: 36px; height: 36px; border-radius: 10px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 16px; flex-shrink: 0;
+      font-size: 17px; flex-shrink: 0;
+      background: color-mix(in srgb, var(--accent) 14%, transparent);
+      border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
     }
     .flat-info { flex: 1; min-width: 0; }
     .flat-name {
-      font-size: 15px; font-weight: 500; color: var(--text);
-      line-height: 1.3; word-break: break-word; margin-bottom: 3px;
+      font-size: 15px; font-weight: 600; color: var(--text);
+      line-height: 1.3; word-break: break-word; margin-bottom: 4px;
+      letter-spacing: -0.2px;
     }
     .flat-path {
       font-size: 11.5px; color: var(--hint);
-      font-family: 'SFMono-Regular', Consolas, monospace;
+      font-family: var(--font-mono);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .flat-footer {
       display: flex; align-items: center; justify-content: space-between;
-      padding-top: 9px;
-      border-top: 0.5px solid var(--border);
+      padding-top: 11px;
+      border-top: 1px solid var(--border);
       font-size: 12px; color: var(--hint);
     }
     .badge {
-      display: inline-block; font-size: 11px;
-      padding: 2px 9px; border-radius: 99px;
-      border: 0.5px solid var(--border);
-      background: var(--surface2); color: var(--muted);
-      max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      display: inline-flex; align-items: center; gap: 5px;
+      font-family: var(--font-mono); font-size: 11px;
+      padding: 3px 10px; border-radius: 99px;
+      background: color-mix(in srgb, var(--accent) 13%, transparent);
+      color: var(--accent);
+      max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
+    .flat-footer .go { color: var(--hint); transition: color 0.14s, transform 0.14s; }
+    .flat-card:hover .go { color: var(--accent); transform: translate(2px,-2px); }
 
     /* ── States ── */
     .state {
-      text-align: center; padding: 4rem 1rem;
+      text-align: center; padding: 4.5rem 1rem;
       color: var(--muted); font-size: 14px;
-      grid-column: 1 / -1;
+      grid-column: 1 / -1; line-height: 1.6;
     }
+    .state strong { color: var(--text); font-size: 15px; }
     .spinner {
-      width: 26px; height: 26px;
-      border: 2px solid var(--border-md);
-      border-top-color: var(--muted);
+      width: 28px; height: 28px;
+      border: 2.5px solid var(--border-md);
+      border-top-color: #7F77DD;
       border-radius: 50%;
-      animation: spin 0.75s linear infinite;
+      animation: spin 0.7s linear infinite;
       margin: 0 auto 1.2rem;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .footer {
-      margin-top: 3.5rem; font-size: 12px;
+      margin-top: 3.6rem; padding-top: 1.6rem;
+      border-top: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 11.5px; letter-spacing: 0.02em;
       color: var(--hint); text-align: center;
     }
-    .footer a { color: var(--hint); text-decoration: underline; text-underline-offset: 3px; }
+    .footer a { color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--border-md); padding-bottom: 1px; transition: color 0.14s, border-color 0.14s; }
+    .footer a:hover { color: var(--text); border-color: var(--border-strong); }
+
+    @media (max-width: 520px) {
+      #app { padding: 2.2rem 1.1rem 4rem; }
+      .header h1 { font-size: 25px; }
+      .topbar { gap: 8px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+      .folder-card:hover, .flat-card:hover, .root-chip:hover { transform: none; }
+    }
   </style>
 </head>
 <body>
@@ -289,7 +388,7 @@
 
   <div class="topbar" id="topbar" style="display:none">
     <div class="search-wrap">
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
         <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/>
         <path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
       </svg>
@@ -297,13 +396,13 @@
     </div>
     <div class="btn-group">
       <button id="view-folder" class="active" onclick="setView('folder')" title="Group by folder">
-        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" style="vertical-align:-2px;margin-right:5px">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" style="vertical-align:-2px;margin-right:6px">
           <path d="M2 4.5A1.5 1.5 0 0 1 3.5 3h3.086a1.5 1.5 0 0 1 1.06.44L8.5 4.293A1.5 1.5 0 0 0 9.56 4.5H12.5A1.5 1.5 0 0 1 14 6v5.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 11.5v-7Z" stroke="currentColor" stroke-width="1.3"/>
         </svg>
         Folders
       </button>
       <button id="view-all" onclick="setView('all')" title="Show all pages flat">
-        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" style="vertical-align:-2px;margin-right:5px">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" style="vertical-align:-2px;margin-right:6px">
           <rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/>
           <rect x="9" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/>
           <rect x="2" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/>
@@ -326,7 +425,7 @@
   </div>
 
   <div class="footer" id="footer" style="display:none">
-    Auto-generated index · <a href="https://github.com/DavidZ1/davidz1.github.io" target="_blank" rel="noopener">DavidZ1/davidz1.github.io</a>
+    auto-generated index · <a href="https://github.com/DavidZ1/davidz1.github.io" target="_blank" rel="noopener">DavidZ1/davidz1.github.io</a>
   </div>
 </div>
 
@@ -365,9 +464,9 @@
     return fn.replace(/\.html?$/i,'').replace(/[-_]/g,' ')
       .replace(/\b\w/g, c => c.toUpperCase()).trim() || fn;
   }
-  function hex2rgba(hex, a) {
-    const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
-    return `rgba(${r},${g},${b},${a})`;
+  function monogram(name) {
+    const m = String(name).replace(/[^a-zA-Z0-9]/g,'');
+    return (m.charAt(0) || '#').toUpperCase();
   }
   function esc(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -399,7 +498,13 @@
                    folder, url: `${BASE}/${f.path}`, accent, icon: getIcon(filename) };
         });
 
-      subtitle.textContent = `${allPages.length} page${allPages.length !== 1 ? 's' : ''} · ${OWNER}/${REPO}`;
+      const topFolders = new Set(allPages.filter(p => p.folder).map(p => p.folder.split('/')[0]));
+      const n = allPages.length;
+      subtitle.innerHTML =
+        `${n} page${n !== 1 ? 's' : ''}<span class="dot"></span>` +
+        `${topFolders.size} folder${topFolders.size !== 1 ? 's' : ''}<span class="dot"></span>` +
+        `<span class="host">${esc(REPO)}</span>`;
+
       document.getElementById('topbar').style.display = 'flex';
       document.getElementById('count').style.display = 'block';
       document.getElementById('refresh-btn').style.display = 'inline-flex';
@@ -407,9 +512,9 @@
       render();
     } catch(err) {
       content.innerHTML = `<div class="folder-grid"><div class="state">
-        <div style="font-size:28px;margin-bottom:.75rem">⚠️</div>
-        <strong>Could not load pages</strong><br>
-        <small style="color:var(--hint);margin-top:6px;display:block">${esc(err.message)}</small>
+        <div style="font-size:30px;margin-bottom:.8rem">⚠️</div>
+        <strong>Couldn't reach GitHub</strong><br>
+        <small style="color:var(--hint);margin-top:8px;display:block">${esc(err.message)} — try Refresh in a moment.</small>
       </div></div>`;
       subtitle.textContent = 'Failed to reach GitHub API';
     }
@@ -419,7 +524,7 @@
     currentView = v;
     document.getElementById('view-folder').classList.toggle('active', v === 'folder');
     document.getElementById('view-all').classList.toggle('active', v === 'all');
-    document.getElementById('sort-group').style.display = v === 'all' ? 'flex' : 'none';
+    document.getElementById('sort-group').style.display = v === 'all' ? 'inline-flex' : 'none';
     document.getElementById('search').value = '';
     render();
   }
@@ -467,7 +572,7 @@
 
     const content = document.getElementById('main-content');
     if (!total) {
-      content.innerHTML = '<div class="folder-grid"><div class="state">No pages match your search.</div></div>';
+      content.innerHTML = '<div class="folder-grid"><div class="state">Nothing matches that search. Try a shorter term.</div></div>';
       return;
     }
 
@@ -493,13 +598,12 @@
       const sorted = [...fd.pages].sort((a,b) => a.label.localeCompare(b.label));
       const autoOpen = !!q;
 
-      html += `<div class="folder-card${autoOpen ? ' open' : ''}" onclick="toggleFolder(this)">
-        <div class="folder-card-accent" style="background:${accent}"></div>
+      html += `<div class="folder-card${autoOpen ? ' open' : ''}" style="--accent:${accent}" onclick="toggleFolder(this)">
         <div class="folder-card-head">
-          <div class="folder-icon" style="background:${hex2rgba(accent,0.12)}">📁</div>
+          <div class="folder-icon">${esc(monogram(topName))}</div>
           <div class="folder-label">
             <div class="folder-name">${esc(topName)}</div>
-            <div class="folder-sub">${sorted.length} page${sorted.length !== 1 ? 's' : ''}&ensp;·&ensp;<span style="font-family:monospace;font-size:11px">${esc(key)}</span></div>
+            <div class="folder-sub"><span class="cnt">${sorted.length} page${sorted.length !== 1 ? 's' : ''}</span>&ensp;·&ensp;${esc(key)}</div>
           </div>
           <span class="folder-arrow">›</span>
         </div>
@@ -533,14 +637,13 @@
 
     const content = document.getElementById('main-content');
     if (!pages.length) {
-      content.innerHTML = '<div class="flat-grid"><div class="state">No pages match your search.</div></div>';
+      content.innerHTML = '<div class="flat-grid"><div class="state">Nothing matches that search. Try a shorter term.</div></div>';
       return;
     }
     content.innerHTML = `<div class="flat-grid">${pages.map(p => `
-      <a class="flat-card" href="${esc(p.url)}" target="_blank" rel="noopener">
-        <div class="flat-accent" style="background:${p.accent}"></div>
+      <a class="flat-card" href="${esc(p.url)}" target="_blank" rel="noopener" style="--accent:${p.accent}">
         <div class="flat-body">
-          <div class="flat-ico" style="background:${hex2rgba(p.accent,0.12)}">${p.icon}</div>
+          <div class="flat-ico">${p.icon}</div>
           <div class="flat-info">
             <div class="flat-name">${esc(p.label)}</div>
             <div class="flat-path">${esc(p.path)}</div>
@@ -548,7 +651,7 @@
         </div>
         <div class="flat-footer">
           <span class="badge">${esc(p.folder || 'root')}</span>
-          <span style="font-size:13px">↗</span>
+          <span class="go" style="font-size:13px">↗</span>
         </div>
       </a>`).join('')}</div>`;
   }
