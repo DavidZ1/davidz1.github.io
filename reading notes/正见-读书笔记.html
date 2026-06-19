@@ -1,0 +1,543 @@
+<!-- 《正见：佛陀的证悟》深度读书笔记 · 心理/自我配色 · 同心圆/神经元签名 -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>正见 · 深度读书笔记</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Long+Cang&family=Noto+Serif+SC:wght@400;600;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ink:#12141a;          /* 夜蓝黑 · 底 */
+    --panel:#1a1d25;        /* 面板 */
+    --panel-2:#20242e;      /* 抬升面板 */
+    --gold:#d4a857;         /* 暖金 · 主角 */
+    --gold-bright:#ecd08a;  /* 高光金 */
+    --blue:#6f8fb0;         /* 雾蓝 · 结构色 */
+    --blue-deep:#4d688a;
+    --coral:#cf6b5a;        /* 珊瑚 · 印章/强调 */
+    --text:#e4e2dc;         /* 月白 · 正文 */
+    --dim:#a7a293;          /* 弱化 */
+    --dim-2:#7c7869;
+    --line:rgba(212,168,87,.15);
+    --serif:'Noto Serif SC',serif;
+    --brush:'Long Cang',cursive;
+    --roman:'Cormorant Garamond',serif;
+    --maxw:980px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--ink);color:var(--text);
+    font-family:var(--serif);font-weight:400;line-height:1.85;letter-spacing:.01em;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:1;
+    background:
+      radial-gradient(120% 90% at 50% -10%, rgba(111,143,176,.12), transparent 55%),
+      radial-gradient(120% 120% at 50% 120%, rgba(207,107,90,.06), transparent 60%);
+    mix-blend-mode:screen;
+  }
+  body::after{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:2;opacity:.045;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .wrap{position:relative;z-index:3;max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  a{color:var(--gold-bright);text-decoration:none}
+  ::selection{background:rgba(207,107,90,.4);color:#fff}
+
+  .eyebrow{font-family:var(--roman);font-style:italic;font-size:.95rem;letter-spacing:.18em;
+    color:var(--blue);text-transform:uppercase;display:flex;align-items:center;gap:.7em;margin:0 0 .9rem}
+  .eyebrow::before{content:"";width:34px;height:1px;background:var(--blue);opacity:.6}
+  h2{font-family:var(--serif);font-weight:900;font-size:clamp(1.7rem,4.2vw,2.7rem);
+    line-height:1.25;margin:0 0 1.1rem;letter-spacing:.02em}
+  h2 .ko{color:var(--gold)}
+  p{margin:0 0 1.05rem}
+  .lead{font-size:1.12rem;color:var(--dim)}
+  section{padding:clamp(64px,9vw,118px) 0;position:relative}
+  .rule{height:1px;background:var(--line);max-width:var(--maxw);margin:0 auto}
+
+  /* HERO */
+  .hero{min-height:100svh;display:grid;place-items:center;text-align:center;
+    padding:80px 24px 64px;position:relative;overflow:hidden}
+  .neuron{position:absolute;top:50%;left:50%;width:min(120vw,960px);aspect-ratio:1;
+    transform:translate(-50%,-54%);opacity:.55;z-index:0}
+  .neuron .spin{transform-origin:center;animation:spin 160s linear infinite}
+  .neuron .spin.rev{animation-duration:110s;animation-direction:reverse}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .neuron .pulse{animation:pulse 4.5s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
+  .hero-inner{position:relative;z-index:1}
+  .hero .kicker{font-family:var(--roman);font-style:italic;letter-spacing:.3em;color:var(--blue);
+    font-size:1rem;text-transform:uppercase;margin-bottom:1.1rem;opacity:0;animation:rise .9s .15s forwards}
+  .bigtitle{font-family:var(--brush);color:var(--gold);font-size:clamp(5rem,22vw,15rem);
+    line-height:.9;margin:0;text-shadow:0 0 42px rgba(212,168,87,.3)}
+  .bigtitle span{display:inline-block;opacity:0;transform:translateY(28px) rotate(-3deg);
+    animation:drop .85s cubic-bezier(.2,.8,.2,1) forwards}
+  @keyframes drop{to{opacity:1;transform:none}}
+  @keyframes rise{to{opacity:1}}
+  .entitle{font-family:var(--roman);font-style:italic;color:var(--dim);letter-spacing:.08em;
+    font-size:1.1rem;margin-top:.4rem;opacity:0;animation:rise 1s .8s forwards}
+  .subtitle{font-size:clamp(1rem,2.4vw,1.28rem);color:var(--text);margin:1.5rem auto 0;
+    max-width:30ch;opacity:0;animation:rise 1s 1s forwards}
+  .meta{font-family:var(--roman);color:var(--dim);letter-spacing:.05em;margin-top:1.1rem;
+    font-size:1.02rem;opacity:0;animation:rise 1s 1.2s forwards}
+  .promise{margin-top:2.2rem;display:inline-block;border:1px solid var(--line);border-radius:2px;
+    padding:.7rem 1.4rem;font-size:.98rem;color:var(--gold-bright);background:rgba(212,168,87,.05);
+    opacity:0;animation:rise 1s 1.4s forwards}
+  .scrollcue{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);font-family:var(--roman);
+    font-style:italic;color:var(--dim-2);font-size:.9rem;letter-spacing:.1em;opacity:0;animation:rise 1s 1.7s forwards}
+  .scrollcue::after{content:"";display:block;width:1px;height:34px;margin:.5rem auto 0;
+    background:linear-gradient(var(--gold),transparent);animation:cue 2s ease-in-out infinite}
+  @keyframes cue{0%,100%{transform:scaleY(.4);opacity:.3}50%{transform:scaleY(1);opacity:1}}
+
+  /* 坐标 / 作者 */
+  .context{display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:start}
+  .quote-origin{font-size:1.16rem;line-height:1.9;color:var(--text);border-left:2px solid var(--gold);
+    padding-left:1.3rem}
+  .quote-origin .src{display:block;margin-top:.8rem;font-family:var(--roman);font-style:italic;
+    color:var(--dim);font-size:.98rem}
+  .facts{display:flex;flex-direction:column}
+  .fact{padding:.95rem 0;border-bottom:1px solid var(--line);display:flex;gap:1rem}
+  .fact:first-child{border-top:1px solid var(--line)}
+  .fact b{font-family:var(--roman);color:var(--blue);font-weight:600;font-style:italic;
+    min-width:7.2em;letter-spacing:.04em}
+  .fact span{color:var(--dim)}
+  .isnot{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:2.2rem}
+  .isnot .col{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:24px}
+  .isnot .col h4{margin:0 0 .8rem;font-family:var(--roman);font-style:italic;letter-spacing:.1em;
+    font-size:1.05rem;text-transform:uppercase}
+  .isnot .col.no h4{color:var(--coral)} .isnot .col.yes h4{color:var(--gold)}
+  .isnot ul{margin:0;padding-left:1.1rem;color:var(--dim);font-size:.99rem}
+  .isnot li{margin:.4rem 0}
+
+  /* 四法印 */
+  .seals{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:2.4rem}
+  .seal{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:3px;
+    padding:30px 26px 28px;overflow:hidden;transition:transform .4s,border-color .4s,box-shadow .4s}
+  .seal:hover{transform:translateY(-6px);border-color:rgba(212,168,87,.5);
+    box-shadow:0 20px 50px -24px rgba(212,168,87,.4)}
+  .seal .ring{position:absolute;right:-26px;top:-26px;width:90px;height:90px;border-radius:50%;
+    border:1px solid var(--blue);opacity:.18}
+  .seal .ring::after{content:"";position:absolute;inset:14px;border-radius:50%;border:1px solid var(--gold);opacity:.6}
+  .seal .idx{font-family:var(--roman);font-style:italic;font-size:2.4rem;color:var(--gold);line-height:1;opacity:.55}
+  .seal h3{font-size:1.32rem;font-weight:900;margin:.3rem 0 .35rem;color:var(--text)}
+  .seal .gloss{font-size:.99rem;color:var(--dim);margin:0}
+  .seal .ch{font-family:var(--roman);font-style:italic;color:var(--blue);font-size:.9rem;margin-top:.8rem;display:block}
+  .sealnote{text-align:center;margin-top:1.8rem;color:var(--dim);font-size:1.02rem}
+  .sealnote b{color:var(--gold-bright);font-weight:600}
+
+  /* 路径 */
+  .path{position:relative;margin-top:2.4rem}
+  .path::before{content:"";position:absolute;left:31px;top:8px;bottom:40px;width:2px;
+    background:linear-gradient(var(--gold),var(--blue-deep) 60%,transparent);opacity:.5}
+  .stop{position:relative;padding:0 0 46px 84px}
+  .stop .node{position:absolute;left:14px;top:2px;width:36px;height:36px;border-radius:50%;
+    background:var(--ink);border:2px solid var(--gold);display:grid;place-items:center;
+    font-family:var(--roman);font-style:italic;color:var(--gold);font-size:1.05rem;z-index:2}
+  .stop.star .node{border-color:var(--coral);color:var(--coral);box-shadow:0 0 0 6px rgba(207,107,90,.12)}
+  .stop .chno{font-family:var(--roman);font-style:italic;letter-spacing:.16em;color:var(--blue);
+    font-size:.92rem;text-transform:uppercase}
+  .stop h3{font-size:1.45rem;font-weight:900;margin:.15rem 0 .2rem;color:var(--text)}
+  .stop h3 .star-mark{color:var(--coral);font-size:.95rem;vertical-align:super;margin-left:.3em}
+  .stop .seal-tag{font-family:var(--serif);font-style:italic;color:var(--gold-bright);font-size:1rem;
+    margin:.1rem 0 1rem;opacity:.92}
+  .qa{display:grid;gap:.55rem}
+  .qa .row{display:grid;grid-template-columns:auto 1fr;gap:.85rem;align-items:baseline}
+  .qa .tag{font-family:var(--roman);font-style:italic;font-size:.82rem;letter-spacing:.1em;
+    text-transform:uppercase;padding-top:.15rem;white-space:nowrap}
+  .qa .tag.q{color:var(--blue)} .qa .tag.a{color:var(--gold)}
+  .qa .txt{color:var(--text);font-size:1rem} .qa .txt.dimmed{color:var(--dim)}
+  .qa .txt strong{color:var(--gold-bright);font-weight:600}
+  .remember{margin-top:.9rem;position:relative;background:rgba(207,107,90,.06);
+    border:1px solid rgba(207,107,90,.25);border-radius:3px;padding:.85rem 3.4rem .85rem 1rem;
+    font-size:1rem;color:var(--text)}
+  .remember .stamp{position:absolute;right:.7rem;top:50%;transform:translateY(-50%) rotate(-8deg);
+    width:42px;height:42px;border:1.5px solid var(--coral);border-radius:5px;color:var(--coral);
+    font-family:var(--serif);font-weight:900;font-size:.7rem;display:grid;place-items:center;
+    line-height:1;text-align:center;opacity:.9}
+
+  /* 主线 见地→行为→结果 */
+  .spine{display:grid;grid-template-columns:repeat(3,1fr);margin-top:2.4rem;
+    border:1px solid var(--line);border-radius:4px;overflow:hidden}
+  .spine .cell{padding:34px 24px;border-right:1px solid var(--line);position:relative;text-align:center}
+  .spine .cell:last-child{border-right:0}
+  .spine .role{font-family:var(--roman);font-style:italic;letter-spacing:.14em;text-transform:uppercase;
+    font-size:.88rem;margin-bottom:.7rem}
+  .spine .term{font-family:var(--brush);font-size:3rem;line-height:1;margin-bottom:.6rem}
+  .spine .cell.a .role{color:var(--gold)} .spine .cell.a .term{color:var(--gold)}
+  .spine .cell.b .role{color:var(--blue)} .spine .cell.b .term{color:var(--blue)}
+  .spine .cell.c .role{color:var(--coral)} .spine .cell.c .term{color:var(--coral)}
+  .spine .cell small{color:var(--dim);display:block;font-size:.95rem}
+  .spine .arrow{position:absolute;right:-11px;top:50%;transform:translateY(-50%);z-index:4;color:var(--gold);font-size:1.3rem}
+  .spine .cell:last-child .arrow{display:none}
+  .spine-cap{text-align:center;margin-top:1.6rem;color:var(--dim)}
+  .spine-cap b{color:var(--gold-bright);font-weight:600}
+
+  /* 概念 */
+  .concepts{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:2.2rem}
+  .cc{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:22px;
+    transition:transform .35s,border-color .35s}
+  .cc:hover{transform:translateY(-4px);border-color:rgba(111,143,176,.5)}
+  .cc .name{font-weight:900;font-size:1.16rem;color:var(--gold);margin-bottom:.25rem}
+  .cc .one{color:var(--dim);font-size:.97rem}
+
+  /* 边界 */
+  .limits{display:grid;gap:14px;margin-top:2rem}
+  .limit{display:grid;grid-template-columns:auto 1fr;gap:1rem;background:var(--panel);
+    border:1px solid var(--line);border-left:3px solid var(--blue);border-radius:3px;padding:20px 22px}
+  .limit b{font-family:var(--roman);font-style:italic;color:var(--blue);font-size:1.25rem;line-height:1.2}
+  .limit p{margin:0;color:var(--dim);font-size:.99rem}
+  .limit p strong{color:var(--gold-bright);font-weight:600}
+
+  /* 闭环 */
+  .loop{background:linear-gradient(180deg,rgba(111,143,176,.06),transparent)}
+  .bridges{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:2.2rem}
+  .bridge{background:var(--panel-2);border:1px solid var(--line);border-radius:4px;padding:24px 22px}
+  .bridge .pair{display:flex;align-items:center;gap:.5rem;justify-content:center;margin-bottom:.9rem;flex-wrap:wrap}
+  .bridge .side{font-weight:900;font-size:1.02rem}
+  .bridge .side.l{color:var(--blue)} .bridge .side.r{color:var(--gold)}
+  .bridge .eq{color:var(--coral);font-size:1.3rem;font-family:var(--roman)}
+  .bridge p{font-size:.95rem;color:var(--dim);margin:0;text-align:center}
+  .bridge p em{color:var(--text);font-style:normal}
+  .bridge .tagx{display:block;margin-top:.7rem;font-family:var(--roman);font-style:italic;
+    font-size:.82rem;color:var(--dim-2);letter-spacing:.06em}
+  .closures{margin-top:2rem;display:grid}
+  .closure{display:grid;grid-template-columns:auto 1fr;gap:1rem;padding:1rem 0;border-bottom:1px solid var(--line)}
+  .closure:first-child{border-top:1px solid var(--line)}
+  .closure .n{font-family:var(--roman);font-style:italic;color:var(--gold);font-size:1.5rem;line-height:1}
+  .closure p{margin:0;color:var(--text);font-size:1rem}
+  .closure p em{color:var(--gold-bright);font-style:normal}
+
+  /* 行动 */
+  .actions{display:grid;gap:14px;margin-top:2rem}
+  .act{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:22px 24px}
+  .act h4{margin:0 0 .35rem;font-size:1.12rem;color:var(--gold);font-weight:900}
+  .act p{margin:0;color:var(--dim);font-size:.99rem}
+  .act .test{color:var(--text)} .act .test em{color:var(--gold-bright);font-style:normal}
+
+  footer{padding:60px 24px 80px;text-align:center}
+  footer .seal-final{font-family:var(--brush);color:var(--gold);font-size:2.2rem;margin-bottom:.4rem}
+  footer p{color:var(--dim-2);font-size:.95rem;font-family:var(--roman);font-style:italic;margin:0}
+
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .9s ease,transform .9s cubic-bezier(.2,.8,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  @media(max-width:760px){
+    .context{grid-template-columns:1fr;gap:30px}
+    .isnot,.seals,.concepts{grid-template-columns:1fr}
+    .spine,.bridges{grid-template-columns:1fr}
+    .spine .cell{border-right:0;border-bottom:1px solid var(--line)}
+    .spine .cell:last-child{border-bottom:0}
+    .spine .arrow{right:50%;top:auto;bottom:-12px;transform:translateX(50%) rotate(90deg)}
+    .spine .cell:last-child .arrow{display:none}
+    .stop{padding-left:64px}.path::before{left:23px}.stop .node{left:6px;width:34px;height:34px}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+    .reveal{opacity:1;transform:none}
+    .bigtitle span,.hero .kicker,.entitle,.subtitle,.meta,.promise,.scrollcue{opacity:1!important}
+  }
+</style>
+
+<!-- HERO -->
+<header class="hero">
+  <svg class="neuron" id="neuron" viewBox="-250 -250 500 500" aria-hidden="true"></svg>
+  <div class="hero-inner">
+    <div class="kicker">Dzongsar Jamyang Khyentse · Reading Notes</div>
+    <h1 class="bigtitle" aria-label="正见">
+      <span style="animation-delay:.2s">正</span><span style="animation-delay:.34s">见</span>
+    </h1>
+    <p class="entitle">What Makes You Not a Buddhist</p>
+    <p class="subtitle">不看僧袍、素食或打坐——判断你是不是佛教徒，看四个见地。</p>
+    <p class="meta">宗萨蒋扬钦哲仁波切 著 · 姚仁喜 译 · 2007 · 以四法印为骨架</p>
+    <span class="promise">英文名直译是「什么让你『不是』佛教徒」——这是一台见地检验器</span>
+  </div>
+  <div class="scrollcue">向下，照镜</div>
+</header>
+
+<!-- 坐标 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">读之前 · 先校准坐标</p>
+    <h2>这不是一本宗教入门书，<br>是一副<span class="ko">看世界的眼镜</span></h2>
+    <p class="lead">仁波切爽利地破除一个常见误解：佛教徒 ≠ 祥和、素食、非暴力、打坐。这些是文化外衣，不是核心。核心只有四条见地——接受了，你就与佛同道；不接受，披再多僧袍也不是。</p>
+    <div class="isnot">
+      <div class="col no">
+        <h4>它不是</h4>
+        <ul>
+          <li>佛教仪轨/修法的操作手册</li>
+          <li>让你「信」点什么的劝信书</li>
+          <li>心灵鸡汤——他本人最反感鸡汤</li>
+          <li>把佛教等同于「祥和与吃素」的科普</li>
+        </ul>
+      </div>
+      <div class="col yes">
+        <h4>它是</h4>
+        <ul>
+          <li>一台检验「你是否持有正见」的镜子</li>
+          <li>用逻辑 + 故事 + 日常例子，反复论证四法印</li>
+          <li>用电影/虚拟实境比喻我们身处的幻相世界</li>
+          <li>把深奥教义转成可对照自身的个人参照</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 作者 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">作者与缘起</p>
+    <h2>一位<span class="ko">会拍电影</span>的仁波切</h2>
+    <div class="context" style="margin-top:2.2rem">
+      <div>
+        <p class="quote-origin">他在飞机上向邻座解释「什么让你是佛教徒」，讲到四法印时，对方睡着了，传来轻微鼾声——他用这个失败的开场，提醒读者：这些见地朴素到容易被当成耳边风，却是全部的关键。
+          <span class="src">—— 自序的调子：朴素、自嘲、反权威，不端架子</span></p>
+      </div>
+      <div class="facts">
+        <div class="fact"><b>身份</b><span>当代极具影响力的藏传佛教上师，倡导无宗派（利美）</span></div>
+        <div class="fact"><b>另一重身份</b><span>电影导演，《高山上的世界杯》《旅行家与魔法师》，曾参与《小活佛》</span></div>
+        <div class="fact"><b>核心隐喻</b><span>用「电影/虚拟实境」比喻幻相世界，证悟＝脱去层层蔽障</span></div>
+        <div class="fact"><b>体例</b><span>围绕四法印，逻辑论述 + 故事 + 生活例子，反复打磨</span></div>
+        <div class="fact"><b>影响</b><span>引发中国知识分子学佛热潮；译者姚仁喜，胡因梦、李连杰作序</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 四法印 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">中枢命题 · 全书的地基</p>
+    <h2>四个见地，<br>就是<span class="ko">四法印</span></h2>
+    <p class="lead">两千五百年前佛陀说的四句话。接受这四条，即便从未听过释迦牟尼的名字，也与佛同道。它们是四章的骨架，也是检验正见的标尺。</p>
+    <div class="seals">
+      <div class="seal"><div class="ring"></div><div class="idx">壹</div><h3>诸行无常</h3><p class="gloss">一切和合的现象，都无常。</p><span class="ch">→ 第一章 造作与无常</span></div>
+      <div class="seal"><div class="ring"></div><div class="idx">贰</div><h3>诸漏皆苦</h3><p class="gloss">一切由情绪驱动的状态，都是苦。</p><span class="ch">→ 第二章 情绪和痛苦</span></div>
+      <div class="seal"><div class="ring"></div><div class="idx">叁</div><h3>诸法无我</h3><p class="gloss">一切事物，都无固有自性（空）。</p><span class="ch">→ 第三章 一切是空</span></div>
+      <div class="seal"><div class="ring"></div><div class="idx">肆</div><h3>涅槃寂静</h3><p class="gloss">证悟，超越一切概念。</p><span class="ch">→ 第四章 涅槃超越概念</span></div>
+    </div>
+    <p class="sealnote">关键不在「做了什么」，在「是否接受这四条」。<b>判断佛教徒身份的，是见地，不是行为。</b></p>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 逐章之路 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">逐章精读 · 四章一结论</p>
+    <h2>沿四法印<span class="ko">走一遍</span></h2>
+    <p class="lead">四章逐一论证四条见地，最后用结论把它们缝成一个整体。带 <span style="color:var(--coral)">★</span> 的两章——情绪/我执、空性——是全书最锋利、也最绕的部分。</p>
+
+    <div class="path">
+
+      <div class="stop">
+        <div class="node">壹</div>
+        <div class="chno">Chapter 01 · 诸行无常</div>
+        <h3>造作与无常</h3>
+        <p class="seal-tag">无常，其实是好消息。</p>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">无常听起来是坏消息——一切都会失去，这不更让人焦虑？</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">仁波切反转：一切都是<strong>造作（和合而成）</strong>，所以一切可变——正因无常，糟糕的处境会变、疗愈与解脱才可能。「蛋已煮熟，你无法改变它」：能改的是因与缘，不是已成的果。我们的痛苦，多来自想让无常的东西恒常。</span></div>
+        </div>
+        <div class="remember">无常不夺走什么，它保证没有什么被永远锁死。怕无常，本质是想抓住一件注定流动的东西。<span class="stamp">记住</span></div>
+      </div>
+
+      <div class="stop star">
+        <div class="node">贰</div>
+        <div class="chno">Chapter 02 · 诸漏皆苦</div>
+        <h3>情绪和痛苦<span class="star-mark">★ 直探我执</span></h3>
+        <p class="seal-tag">那么，爱呢？</p>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">「一切情绪皆苦」？快乐、爱明明是好情绪啊。</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">这里的「苦」不是悲伤，是<strong>不安、不自主、带着匮乏</strong>。快乐的定义被个人和社会不断重塑、引诱（杂志电视制造新幻相）。直探根源——所有情绪的后台，是一个<strong>并不存在的「自我」</strong>，习气是它的盟友。连「爱」也常是自我的延伸与投射。</span></div>
+        </div>
+        <div class="remember">让情绪变成苦的，不是情绪本身，是背后那个想抓住、想确认「我」的机制。<span class="stamp">记住</span></div>
+      </div>
+
+      <div class="stop star">
+        <div class="node">叁</div>
+        <div class="chno">Chapter 03 · 诸法无我</div>
+        <h3>一切是空<span class="star-mark">★ 最绕</span></h3>
+        <p class="seal-tag">是你的执着困住了你。</p>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">「空」是不是说什么都没有、是虚无主义？</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">空不是没有，是<strong>无固有自性</strong>——事物没有独立、不变、自存的本质，全靠因缘与概念施设。我们的逻辑有限，只能接受「部分逻辑」。相对真理层面它「有某种程度地存在」，究竟层面则无自性。困住你的是执着，不是事物。连佛法本身也是安慰剂、是渡河的筏，到岸要放下。</span></div>
+        </div>
+        <div class="remember">空不是世界消失了，是「你以为的那个固定世界」从未真正存在过。<span class="stamp">记住</span></div>
+      </div>
+
+      <div class="stop">
+        <div class="node">肆</div>
+        <div class="chno">Chapter 04 · 涅槃寂静</div>
+        <h3>涅槃超越概念</h3>
+        <p class="seal-tag">快乐不是目标。</p>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">涅槃是不是一个终极的快乐天堂、修行的终点站？</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">不是。把涅槃想成「终极假期/极乐天堂」，恰恰是又一个<strong>快乐的陷阱</strong>。快乐不是目标，本初清净本来就在。涅槃超越概念、超越二元——没有分别、没有概念、没有牵绊，不是一个可抵达、可占有的「地方」。出离心：连「虚空」都是尽头。</span></div>
+        </div>
+        <div class="remember">把涅槃当成可追求的快乐终点，就还在轮回的逻辑里。它不是去某处，是放下「去某处」。<span class="stamp">记住</span></div>
+      </div>
+
+      <div class="stop">
+        <div class="node">终</div>
+        <div class="chno">Conclusion · 见地是参考点</div>
+        <h3>结论：四法印是一个整体</h3>
+        <p class="seal-tag">茶杯与茶——智慧在文化中。</p>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">知道了四法印，然后呢？跟我的生活和修行什么关系？</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">见地是<strong>最终的参考点</strong>：业报、慈悲、非暴力都是从见地长出来的果，而非反过来。四法印是<strong>不可分割的整体</strong>，一条成立，其余连带成立。智慧像茶，可以装进不同文化的「茶杯」。出离不是贫乏，是丰富。</span></div>
+        </div>
+        <div class="remember">先校准见地，行为自然对位。四法印不是四条戒律，是一副看世界的眼镜。<span class="stamp">记住</span></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 主线 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">若只记一条主线</p>
+    <h2>见地 · 行为 · <span class="ko">结果</span></h2>
+    <p class="lead">这本书反复在证一件事：不是行为决定你是不是佛教徒，是见地。先换眼镜，行为自然换。</p>
+    <div class="spine">
+      <div class="cell a"><div class="role">见地 View</div><div class="term">四法印</div><small>你究竟怎么看实相</small><span class="arrow">→</span></div>
+      <div class="cell b"><div class="role">行为 Conduct</div><div class="term">放下<br>我执</div><small>见地一改，态度与行动自动跟着改</small><span class="arrow">→</span></div>
+      <div class="cell c"><div class="role">结果 Result</div><div class="term">醒觉</div><small>轮回或解脱，取决于见地，而非外在仪轨</small></div>
+    </div>
+    <p class="spine-cap">所以书名才叫 <b>What Makes You Not a Buddhist</b>——决定身份的是见地这个根，不是僧袍、素食、打坐这些枝叶。</p>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 概念地图 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">贯穿全书 · 八个关键词</p>
+    <h2>核心概念<span class="ko">地图</span></h2>
+    <div class="concepts">
+      <div class="cc"><div class="name">四法印 / 四见地</div><div class="one">检验「是否持正见」的唯一标尺。</div></div>
+      <div class="cc"><div class="name">造作（和合）</div><div class="one">一切都是被组装出来的，没有自带的本质。</div></div>
+      <div class="cc"><div class="name">无常</div><div class="one">和合之物必变；变，才让解脱可能。</div></div>
+      <div class="cc"><div class="name">我执（自我）</div><div class="one">不存在却被当真的中心，一切苦的后台。</div></div>
+      <div class="cc"><div class="name">空性（无自性）</div><div class="one">无独立自存的本质，不等于虚无。</div></div>
+      <div class="cc"><div class="name">习气</div><div class="one">自我的盟友，把幻相重复成「真实」。</div></div>
+      <div class="cc"><div class="name">涅槃（超越概念）</div><div class="one">不是终极快乐，是放下「追求终点」本身。</div></div>
+      <div class="cc"><div class="name">见地优先于行为</div><div class="one">本书的方法论核心：换根，不是修枝。</div></div>
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 边界 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">批判性阅读 · 它的边界</p>
+    <h2>正见之书，<br>也要<span class="ko">用正见去读</span></h2>
+    <div class="limits">
+      <div class="limit"><b>绕</b><p>第三章「空性」用「部分逻辑」论证，对极度分析型的读者，可能觉得不够严密——他本人也承认逻辑有限。空性靠体会，不全靠推。</p></div>
+      <div class="limit"><b>虚</b><p>全书重「见地」、几乎不给具体修法步骤。想知道「然后怎么做」的人会落空。<strong>想要实修，配《不是为了快乐》。</strong></p></div>
+      <div class="limit"><b>繁</b><p>同一道理用大量故事与例子反复论证，节奏偏慢——有读者觉得啰嗦。可挑章精读，不必逐句啃。</p></div>
+      <div class="limit"><b>反</b><p>最大风险：读完只把「四法印」四个名词收进谈资库。<strong>这恰恰违背全书——见地要贯穿身心，不是多一个标签。</strong></p></div>
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 闭环 -->
+<section class="loop">
+  <div class="wrap reveal">
+    <p class="eyebrow">接入你的判断系统 · 闭环</p>
+    <h2>四法印，<br>几乎是你<span class="ko">soul.md 的镜像</span></h2>
+    <p class="lead">这本书的「见地优先于行为」，和你那套贝叶斯/奥卡姆/第一性原理的地基高度同构。以下仅作素材，判断权归你。</p>
+    <div class="bridges">
+      <div class="bridge">
+        <div class="pair"><span class="side l">无常 · 造作</span><span class="eq">≈</span><span class="side r">贝叶斯</span></div>
+        <p>一切和合、随因缘变 ＝ 信念随证据更新。<em>把无常当坏消息，就是想锁死一个不该锁死的先验。</em><span class="tagx">复用并加强上次的同构</span></p>
+      </div>
+      <div class="bridge">
+        <div class="pair"><span class="side l">空性 · 无我</span><span class="eq">≈</span><span class="side r">奥卡姆</span></div>
+        <p>剃刀砍掉多余实体；空性更进一步——<em>连「有一个独立自存的我/物」这个最隐蔽的实体也砍掉。</em><span class="tagx">奥卡姆的极限版</span></p>
+      </div>
+      <div class="bridge">
+        <div class="pair"><span class="side l">见地优先</span><span class="eq">≈</span><span class="side r">第一性原理</span></div>
+        <p>先拆到「你究竟怎么看」这个地基，再让行为从中长出——<em>而不是在表层行为上修修补补。</em><span class="tagx">换根，不修枝</span></p>
+      </div>
+    </div>
+
+    <p class="eyebrow" style="margin-top:3rem">候选 · 可归入 memory.md 的闭环认知</p>
+    <div class="closures">
+      <div class="closure"><span class="n">壹</span><p>苦的真正来源不是事件，是<em>「想让无常的东西恒常」</em>这个机制——遇到痛苦先自问：我在试图锁住什么？</p></div>
+      <div class="closure"><span class="n">贰</span><p>改命先改「怎么看」，不是先改「做什么」：<em>见地 > 行为</em>，与第一性原理同构。</p></div>
+      <div class="closure"><span class="n">叁</span><p>连「佛法 / 方法 / 这套系统」本身都是渡河的筏，到岸要放下——呼应已建立的<em>「精神物质主义」警告</em>，别把工具变成新执着。</p></div>
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 行动 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">可落地</p>
+    <h2>怎么<span class="ko">读 / 用</span></h2>
+    <div class="actions">
+      <div class="act"><h4>精读 vs 泛读</h4><p>第一章（无常）作入口最易上手；第二章（情绪/我执）、第三章（空性）精读并做笔记；第四章（涅槃）最抽象，可泛读把握方向；结论务必读，它把四条缝成整体。</p></div>
+      <div class="act"><h4>配一本对照书</h4><p>想把见地落到具体生活问题，接同作者《八万四千问》（问答体）；想知道「怎么修」，接《不是为了快乐》（实修）。</p></div>
+      <div class="act"><h4>一个检验动作</h4><p class="test">读完一章问自己：这是让我<em>多了一个「懂四法印」的标签</em>，还是真的<em>松动了某一处执着</em>？前者是警报，后者是正路。</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="seal-final">见</div>
+  <p>笔记完 · 见地为根，判断归人</p>
+</footer>
+
+<script>
+  // —— 签名图形：同心圆 + 神经元（树突分叉 + 突触结点）——
+  (function(){
+    const svg=document.getElementById('neuron'); if(!svg) return;
+    const NS='http://www.w3.org/2000/svg';
+    const gold='#d4a857', blue='#6f8fb0', coral='#cf6b5a';
+    function el(t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;}
+    // 同心圆：四法印四环
+    [ [218,blue,.30],[176,gold,.42],[134,blue,.30],[92,gold,.5] ].forEach(([r,c,o])=>{
+      svg.appendChild(el('circle',{r,fill:'none',stroke:c,'stroke-width':1,opacity:o}));
+    });
+    // 旋转层（顺时针）：外圈突触点
+    const s1=el('g',{class:'spin'}); svg.appendChild(s1);
+    for(let i=0;i<60;i++){const a=i/60*Math.PI*2;
+      s1.appendChild(el('circle',{cx:Math.cos(a)*218,cy:Math.sin(a)*218,r:1.4,fill:gold,opacity:.55}));}
+    // 神经元树突：从中心向外分叉的发光分支（逆时针缓转）
+    const s2=el('g',{class:'spin rev'}); svg.appendChild(s2);
+    function branch(x,y,ang,len,depth){
+      if(depth<=0||len<10) return;
+      const x2=x+Math.cos(ang)*len, y2=y+Math.sin(ang)*len;
+      s2.appendChild(el('line',{x1:x,y1:y,x2:x2,y2:y2,stroke:depth>2?gold:blue,
+        'stroke-width':depth*0.5,opacity:.22+depth*0.05}));
+      // 末端突触结点
+      if(depth<=2) s2.appendChild(el('circle',{cx:x2,cy:y2,r:2.2,fill:depth===1?coral:gold,
+        opacity:.6,class:'pulse'}));
+      const spread=0.42;
+      branch(x2,y2,ang-spread,len*0.7,depth-1);
+      branch(x2,y2,ang+spread,len*0.72,depth-1);
+      if(depth>3) branch(x2,y2,ang,len*0.6,depth-1);
+    }
+    const arms=10;
+    for(let i=0;i<arms;i++){ branch(0,0, i/arms*Math.PI*2 + 0.2, 64, 4); }
+    // 中心胞体（soma）脉动
+    svg.appendChild(el('circle',{r:30,fill:'none',stroke:gold,'stroke-width':1,opacity:.5}));
+    const soma=el('circle',{r:11,fill:coral,opacity:.85,class:'pulse'}); svg.appendChild(soma);
+    svg.appendChild(el('circle',{r:5,fill:gold,opacity:.9}));
+  })();
+
+  // 滚动揭示
+  const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
