@@ -1,0 +1,552 @@
+<!-- 《阿毗达磨大毗婆沙论》深度读书笔记 · 文学/叙事配色 · 墨迹/书页脉络签名 -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>大毗婆沙论 · 深度读书笔记</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Long+Cang&family=Noto+Serif+SC:wght@400;600;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ink:#101a1a;          /* 深墨绿黑 · 底 */
+    --panel:#16201f;
+    --panel-2:#1d2726;
+    --gold:#cbb079;         /* 骨金 · 主角 */
+    --gold-bright:#e6d1a0;
+    --violet:#7b6d8d;       /* 灰紫 · 结构色 */
+    --violet-deep:#5f5470;
+    --blood:#a23a4a;        /* 牛血红 · 印章/强调 */
+    --text:#ece4dc;         /* 纸白 · 正文 */
+    --dim:#b6ab9b;
+    --dim-2:#857c6d;
+    --line:rgba(203,176,121,.15);
+    --serif:'Noto Serif SC',serif;
+    --brush:'Long Cang',cursive;
+    --roman:'Cormorant Garamond',serif;
+    --maxw:980px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--ink);color:var(--text);font-family:var(--serif);font-weight:400;
+    line-height:1.85;letter-spacing:.01em;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;
+    background:
+      radial-gradient(120% 90% at 50% -10%, rgba(123,109,141,.13), transparent 55%),
+      radial-gradient(120% 120% at 50% 120%, rgba(162,58,74,.06), transparent 60%);
+    mix-blend-mode:screen}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:2;opacity:.055;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.88' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+  .wrap{position:relative;z-index:3;max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  a{color:var(--gold-bright);text-decoration:none}
+  ::selection{background:rgba(162,58,74,.4);color:#fff}
+
+  .eyebrow{font-family:var(--roman);font-style:italic;font-size:.95rem;letter-spacing:.18em;
+    color:var(--violet);text-transform:uppercase;display:flex;align-items:center;gap:.7em;margin:0 0 .9rem}
+  .eyebrow::before{content:"";width:34px;height:1px;background:var(--violet);opacity:.6}
+  h2{font-family:var(--serif);font-weight:900;font-size:clamp(1.7rem,4.2vw,2.7rem);line-height:1.25;
+    margin:0 0 1.1rem;letter-spacing:.02em}
+  h2 .ko{color:var(--gold)}
+  p{margin:0 0 1.05rem}
+  .lead{font-size:1.12rem;color:var(--dim)}
+  section{padding:clamp(64px,9vw,118px) 0;position:relative}
+  .rule{height:1px;background:var(--line);max-width:var(--maxw);margin:0 auto}
+
+  /* HERO */
+  .hero{min-height:100svh;display:grid;place-items:center;text-align:center;padding:80px 24px 64px;
+    position:relative;overflow:hidden}
+  .ink{position:absolute;top:50%;left:50%;width:min(124vw,1020px);aspect-ratio:1;
+    transform:translate(-50%,-53%);opacity:.5;z-index:0}
+  .ink .spin{transform-origin:center;animation:spin 220s linear infinite}
+  .ink .spin.rev{animation-duration:170s;animation-direction:reverse}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .hero-inner{position:relative;z-index:1}
+  .hero .kicker{font-family:var(--roman);font-style:italic;letter-spacing:.26em;color:var(--violet);
+    font-size:1rem;text-transform:uppercase;margin-bottom:1.1rem;opacity:0;animation:rise .9s .15s forwards}
+  .bigtitle{font-family:var(--brush);color:var(--gold);font-size:clamp(3.8rem,15.5vw,11rem);line-height:.92;
+    margin:0;text-shadow:0 0 40px rgba(203,176,121,.28)}
+  .bigtitle span{display:inline-block;opacity:0;transform:translateY(28px) rotate(-3deg);
+    animation:drop .85s cubic-bezier(.2,.8,.2,1) forwards}
+  @keyframes drop{to{opacity:1;transform:none}}
+  @keyframes rise{to{opacity:1}}
+  .entitle{font-family:var(--roman);font-style:italic;color:var(--dim);letter-spacing:.05em;
+    font-size:1.02rem;margin-top:.5rem;opacity:0;animation:rise 1s .8s forwards}
+  .subtitle{font-size:clamp(1rem,2.4vw,1.26rem);color:var(--text);margin:1.5rem auto 0;max-width:32ch;
+    opacity:0;animation:rise 1s 1s forwards}
+  .meta{font-family:var(--roman);color:var(--dim);letter-spacing:.05em;margin-top:1.1rem;font-size:1.02rem;
+    opacity:0;animation:rise 1s 1.2s forwards}
+  .promise{margin-top:2.2rem;display:inline-block;border:1px solid var(--line);border-radius:2px;
+    padding:.7rem 1.4rem;font-size:.98rem;color:var(--gold-bright);background:rgba(203,176,121,.05);
+    opacity:0;animation:rise 1s 1.4s forwards}
+  .scrollcue{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);font-family:var(--roman);
+    font-style:italic;color:var(--dim-2);font-size:.9rem;letter-spacing:.1em;opacity:0;animation:rise 1s 1.7s forwards}
+  .scrollcue::after{content:"";display:block;width:1px;height:34px;margin:.5rem auto 0;
+    background:linear-gradient(var(--gold),transparent);animation:cue 2s ease-in-out infinite}
+  @keyframes cue{0%,100%{transform:scaleY(.4);opacity:.3}50%{transform:scaleY(1);opacity:1}}
+
+  /* 坐标 */
+  .isnot{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:2.2rem}
+  .isnot .col{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:24px}
+  .isnot .col h4{margin:0 0 .8rem;font-family:var(--roman);font-style:italic;letter-spacing:.1em;
+    font-size:1.05rem;text-transform:uppercase}
+  .isnot .col.no h4{color:var(--blood)} .isnot .col.yes h4{color:var(--gold)}
+  .isnot ul{margin:0;padding-left:1.1rem;color:var(--dim);font-size:.99rem}
+  .isnot li{margin:.4rem 0}
+
+  /* 身世 */
+  .context{display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:start}
+  .relic{font-size:1.1rem;line-height:1.9;color:var(--text);border-left:2px solid var(--blood);padding-left:1.3rem}
+  .relic .hl{color:var(--gold-bright);font-weight:600}
+  .relic .src{display:block;margin-top:.8rem;font-family:var(--roman);font-style:italic;color:var(--dim);font-size:.98rem}
+  .facts{display:flex;flex-direction:column}
+  .fact{padding:.85rem 0;border-bottom:1px solid var(--line);display:flex;gap:1rem}
+  .fact:first-child{border-top:1px solid var(--line)}
+  .fact b{font-family:var(--roman);color:var(--violet);font-weight:600;font-style:italic;min-width:5.6em;letter-spacing:.04em}
+  .fact span{color:var(--dim)}
+
+  /* 中枢命题 */
+  .thesis{background:var(--panel-2);border:1px solid var(--line);border-left:3px solid var(--gold);
+    border-radius:4px;padding:30px 30px;margin:2rem 0 1.6rem;text-align:center}
+  .thesis .big{font-family:var(--brush);font-size:clamp(2.2rem,6vw,3.4rem);color:var(--gold-bright);line-height:1.1;margin-bottom:.5rem}
+  .thesis p{margin:0;color:var(--dim);font-size:1.02rem;max-width:54ch;margin-inline:auto}
+  .masters{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:1.4rem}
+  .master{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:24px 24px;
+    transition:transform .4s,border-color .4s,box-shadow .4s}
+  .master:hover{transform:translateY(-5px);border-color:rgba(203,176,121,.5);box-shadow:0 18px 44px -24px rgba(203,176,121,.4)}
+  .master.best{border-color:rgba(203,176,121,.55);background:linear-gradient(180deg,rgba(203,176,121,.07),transparent)}
+  .master .who{font-family:var(--roman);font-style:italic;color:var(--violet);letter-spacing:.08em;font-size:.92rem}
+  .master h3{font-size:1.24rem;font-weight:900;margin:.15rem 0 .35rem;color:var(--text)}
+  .master p{margin:0;color:var(--dim);font-size:.96rem}
+  .master .crown{position:absolute;top:14px;right:16px;font-family:var(--roman);font-style:italic;
+    color:var(--gold);font-size:.82rem;border:1px solid var(--gold);border-radius:20px;padding:.1rem .6rem;opacity:.85}
+  .verdict{text-align:center;margin-top:1.4rem;color:var(--dim)}
+  .verdict b{color:var(--gold-bright);font-weight:600}
+
+  /* 八蕴 */
+  .skandhas{display:flex;flex-wrap:wrap;gap:10px;margin-top:1.8rem;justify-content:center}
+  .sk{background:var(--panel);border:1px solid var(--line);border-radius:30px;padding:.5rem 1rem;font-size:.95rem;color:var(--dim)}
+  .sk b{color:var(--gold);font-weight:600}
+
+  /* 路径 */
+  .path{position:relative;margin-top:2.4rem}
+  .path::before{content:"";position:absolute;left:31px;top:8px;bottom:40px;width:2px;
+    background:linear-gradient(var(--gold),var(--violet-deep) 60%,transparent);opacity:.5}
+  .stop{position:relative;padding:0 0 46px 84px}
+  .stop .node{position:absolute;left:14px;top:2px;width:36px;height:36px;border-radius:50%;background:var(--ink);
+    border:2px solid var(--gold);display:grid;place-items:center;font-family:var(--roman);font-style:italic;
+    color:var(--gold);font-size:1.05rem;z-index:2}
+  .stop.star .node{border-color:var(--blood);color:var(--blood);box-shadow:0 0 0 6px rgba(162,58,74,.12)}
+  .stop .chno{font-family:var(--roman);font-style:italic;letter-spacing:.14em;color:var(--violet);font-size:.9rem;text-transform:uppercase}
+  .stop h3{font-size:1.42rem;font-weight:900;margin:.15rem 0 .25rem;color:var(--text)}
+  .stop h3 .star-mark{color:var(--blood);font-size:.95rem;vertical-align:super;margin-left:.3em}
+  .stop .tagline{font-family:var(--serif);font-style:italic;color:var(--gold-bright);font-size:1rem;margin:.1rem 0 .9rem;opacity:.92}
+  .qa{display:grid;gap:.55rem}
+  .qa .row{display:grid;grid-template-columns:auto 1fr;gap:.85rem;align-items:baseline}
+  .qa .tag{font-family:var(--roman);font-style:italic;font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;
+    padding-top:.15rem;white-space:nowrap}
+  .qa .tag.q{color:var(--violet)} .qa .tag.a{color:var(--gold)}
+  .qa .txt{color:var(--text);font-size:1rem} .qa .txt.dimmed{color:var(--dim)}
+  .qa .txt strong{color:var(--gold-bright);font-weight:600}
+  .remember{margin-top:.9rem;position:relative;background:rgba(162,58,74,.06);border:1px solid rgba(162,58,74,.25);
+    border-radius:3px;padding:.85rem 3.4rem .85rem 1rem;font-size:1rem;color:var(--text)}
+  .remember .stamp{position:absolute;right:.7rem;top:50%;transform:translateY(-50%) rotate(-8deg);width:42px;height:42px;
+    border:1.5px solid var(--blood);border-radius:5px;color:var(--blood);font-family:var(--serif);font-weight:900;
+    font-size:.7rem;display:grid;place-items:center;line-height:1;text-align:center;opacity:.9}
+
+  /* 主线 */
+  .spine{display:grid;grid-template-columns:repeat(3,1fr);margin-top:2.4rem;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+  .spine .cell{padding:34px 22px;border-right:1px solid var(--line);position:relative;text-align:center}
+  .spine .cell:last-child{border-right:0}
+  .spine .role{font-family:var(--roman);font-style:italic;letter-spacing:.13em;text-transform:uppercase;font-size:.86rem;margin-bottom:.7rem}
+  .spine .term{font-family:var(--brush);font-size:2.7rem;line-height:1.05;margin-bottom:.5rem}
+  .spine .cell.a .role{color:var(--violet)} .spine .cell.a .term{color:var(--violet)}
+  .spine .cell.b .role{color:var(--blood)} .spine .cell.b .term{color:var(--blood)}
+  .spine .cell.c .role{color:var(--gold)} .spine .cell.c .term{color:var(--gold)}
+  .spine .cell small{color:var(--dim);display:block;font-size:.94rem}
+  .spine .arrow{position:absolute;right:-11px;top:50%;transform:translateY(-50%);z-index:4;color:var(--gold);font-size:1.3rem}
+  .spine .cell:last-child .arrow{display:none}
+  .spine-cap{text-align:center;margin-top:1.6rem;color:var(--dim)}
+  .spine-cap b{color:var(--gold-bright);font-weight:600}
+
+  /* 概念 */
+  .concepts{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:2.2rem}
+  .cc{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:22px;transition:transform .35s,border-color .35s}
+  .cc:hover{transform:translateY(-4px);border-color:rgba(123,109,141,.5)}
+  .cc .name{font-weight:900;font-size:1.12rem;color:var(--gold);margin-bottom:.25rem}
+  .cc .one{color:var(--dim);font-size:.96rem}
+
+  /* 边界 */
+  .limits{display:grid;gap:14px;margin-top:2rem}
+  .limit{display:grid;grid-template-columns:auto 1fr;gap:1rem;background:var(--panel);border:1px solid var(--line);
+    border-left:3px solid var(--violet);border-radius:3px;padding:20px 22px}
+  .limit b{font-family:var(--roman);font-style:italic;color:var(--violet);font-size:1.25rem;line-height:1.2}
+  .limit p{margin:0;color:var(--dim);font-size:.99rem}
+  .limit p strong{color:var(--gold-bright);font-weight:600}
+
+  /* 闭环 */
+  .loop{background:linear-gradient(180deg,rgba(123,109,141,.06),transparent)}
+  .bridges{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:2.2rem}
+  .bridge{background:var(--panel-2);border:1px solid var(--line);border-radius:4px;padding:24px 22px}
+  .bridge .pair{display:flex;align-items:center;gap:.5rem;justify-content:center;margin-bottom:.9rem;flex-wrap:wrap}
+  .bridge .side{font-weight:900;font-size:.98rem}
+  .bridge .side.l{color:var(--violet)} .bridge .side.r{color:var(--gold)}
+  .bridge .eq{color:var(--blood);font-size:1.3rem;font-family:var(--roman)}
+  .bridge p{font-size:.95rem;color:var(--dim);margin:0;text-align:center}
+  .bridge p em{color:var(--text);font-style:normal}
+  .bridge .tagx{display:block;margin-top:.7rem;font-family:var(--roman);font-style:italic;font-size:.82rem;color:var(--dim-2);letter-spacing:.06em}
+  .closures{margin-top:2rem;display:grid}
+  .closure{display:grid;grid-template-columns:auto 1fr;gap:1rem;padding:1rem 0;border-bottom:1px solid var(--line)}
+  .closure:first-child{border-top:1px solid var(--line)}
+  .closure .n{font-family:var(--roman);font-style:italic;color:var(--gold);font-size:1.5rem;line-height:1}
+  .closure p{margin:0;color:var(--text);font-size:1rem}
+  .closure p em{color:var(--gold-bright);font-style:normal}
+
+  /* 行动 */
+  .actions{display:grid;gap:14px;margin-top:2rem}
+  .act{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:22px 24px}
+  .act h4{margin:0 0 .35rem;font-size:1.12rem;color:var(--gold);font-weight:900}
+  .act p{margin:0;color:var(--dim);font-size:.99rem}
+  .act .test{color:var(--text)} .act .test em{color:var(--gold-bright);font-style:normal}
+
+  footer{padding:60px 24px 80px;text-align:center}
+  footer .seal-final{font-family:var(--brush);color:var(--gold);font-size:2.4rem;margin-bottom:.4rem}
+  footer p{color:var(--dim-2);font-size:.95rem;font-family:var(--roman);font-style:italic;margin:0}
+
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .9s ease,transform .9s cubic-bezier(.2,.8,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  @media(max-width:760px){
+    .context{grid-template-columns:1fr;gap:30px}
+    .isnot,.concepts,.masters{grid-template-columns:1fr}
+    .spine,.bridges{grid-template-columns:1fr}
+    .spine .cell{border-right:0;border-bottom:1px solid var(--line)}
+    .spine .cell:last-child{border-bottom:0}
+    .spine .arrow{right:50%;top:auto;bottom:-12px;transform:translateX(50%) rotate(90deg)}
+    .spine .cell:last-child .arrow{display:none}
+    .stop{padding-left:64px}.path::before{left:23px}.stop .node{left:6px;width:34px;height:34px}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+    .reveal{opacity:1;transform:none}
+    .bigtitle span,.hero .kicker,.entitle,.subtitle,.meta,.promise,.scrollcue{opacity:1!important}
+  }
+</style>
+
+<!-- HERO -->
+<header class="hero">
+  <svg class="ink" id="ink" viewBox="-250 -250 500 500" aria-hidden="true"></svg>
+  <div class="hero-inner">
+    <div class="kicker">Abhidharma Mahāvibhāṣā · Reading Notes</div>
+    <h1 class="bigtitle" aria-label="大毗婆沙">
+      <span style="animation-delay:.2s">大</span><span style="animation-delay:.31s">毗</span><span style="animation-delay:.42s">婆</span><span style="animation-delay:.53s">沙</span>
+    </h1>
+    <p class="entitle">The Great Commentary · Abhidharma Mahāvibhāṣā Śāstra</p>
+    <p class="subtitle">不是一本书，是一座被整本录下来的辩经场——五百种读法的群声合唱。</p>
+    <p class="meta">五百大阿罗汉等造 · 玄奘 译 · 二百卷 · 说一切有部正依</p>
+    <span class="promise">核心命题「三世实有，法体恒有」——一座后来被「空」反复围攻的铜墙铁壁</span>
+  </div>
+  <div class="scrollcue">向下，进入论场</div>
+</header>
+
+<!-- 坐标 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">读之前 · 先校准坐标</p>
+    <h2>200 卷，<br>不是用来「读」的，是用来<span class="ko">查与辨</span>的</h2>
+    <p class="lead">这是说一切有部的「百科全书 + 判例汇编」。它为注解《发智论》而作，做法是：把一个问题摊开，列尽诸师的不同读法（异说），再逐条裁定哪个是「正义」。它的魅力不在结论，在那套穷举与裁决的纪律。</p>
+    <div class="isnot">
+      <div class="col no">
+        <h4>它不是</h4>
+        <ul>
+          <li>给初学者的入门读物——它是 200 卷的论藏</li>
+          <li>一个人的著作——是学派的集体长编</li>
+          <li>讲故事或修行指南</li>
+          <li>「佛说」的原经——是对「论」的注释之注释</li>
+        </ul>
+      </div>
+      <div class="col yes">
+        <h4>它是</h4>
+        <ul>
+          <li>有部的「国家级标准答案集」</li>
+          <li>备列众说、逐条裁定的判例汇编</li>
+          <li>中心命题：三世实有、法体恒有</li>
+          <li>汉传全靠玄奘译本完整保存的思想标本</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 身世 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">一部论的身世 · 传说与考证</p>
+    <h2>「五百罗汉造」<br>其实是一<span class="ko">枚传统题署</span></h2>
+    <div class="context" style="margin-top:2.2rem">
+      <div>
+        <p class="relic">传说：贵霜的<span class="hl">迦腻色迦王</span>时代，在迦湿弥罗（克什米尔）召集<span class="hl">五百罗汉</span>，以世友尊者为上首，结集成此论。但现代学界考证：论中引用了「昔健驮罗国迦腻色迦王」的故事（卷一一四），而胁、世友、法救、妙音、觉天等大师的学说只是<span class="hl">被引述、被评判</span>，似乎并未亲自参与结集——所以它更可能是<span class="hl">公元二世纪中、以迦多衍尼子徒众为中心的有部学人集体长编</span>的成果。
+          <span class="src">—— 一部论的「作者」，是一整个学派、好几代人</span></p>
+      </div>
+      <div class="facts">
+        <div class="fact"><b>母本</b><span>注解迦多衍尼子《阿毗达磨发智论》（有部「身论」）</span></div>
+        <div class="fact"><b>造者</b><span>题「五百大阿罗汉等造」；实为有部学人集体编纂</span></div>
+        <div class="fact"><b>译者</b><span>玄奘（显庆年间 656–659），200 卷，大正藏 No.1545</span></div>
+        <div class="fact"><b>名义</b><span>「毗婆沙」含广说·胜说·异说三义，故保留梵音不译</span></div>
+        <div class="fact"><b>地位</b><span>说一切有部正依论藏；宗之者称「毗婆沙师」</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 中枢命题 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">中枢命题 · 全论的地基</p>
+    <h2>整部论在守一句话</h2>
+    <div class="thesis">
+      <div class="big">三世实有 · 法体恒有</div>
+      <p>一切「法」的本体，在过去、现在、未来三世都真实存在、恒常不灭；变的只是它「作用」的有没有起灭——不是「体」的有没有。这是有部为了让「刹那无常」与「因果业报能跨时起作用」同时成立，而立的支柱。</p>
+    </div>
+    <p class="lead" style="text-align:center">而「这命题如何成立」，五百罗汉里至少有四位大论师各执一说——</p>
+    <div class="masters">
+      <div class="master"><span class="who">尊者法救</span><h3>类不同</h3><p>体同，随「类」转。如金子改铸成不同器物，金体未变，类相变了。</p></div>
+      <div class="master"><span class="who">尊者妙音</span><h3>相不同</h3><p>随「相」立三世。现在法有现在相，但不舍过去、未来之相。</p></div>
+      <div class="master best"><span class="crown">毗婆沙判为最善</span><span class="who">尊者世友</span><h3>位不同</h3><p>体同，随「作用之位」分三世——作用未起为未来、正起为现在、已起为过去。</p></div>
+      <div class="master"><span class="who">尊者觉天</span><h3>待不同</h3><p>三世只是相互对待而安立的名言，是相对的称谓。</p></div>
+    </div>
+    <p class="verdict">同一命题，四种证法。毗婆沙师最后裁定<b>世友「位不同」为正义</b>——这就是这部论的工作方式：<b>列尽诸说 → 裁定一说。</b></p>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 逐章之路 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">逐枢纽精读 · 八蕴为骨，取五个枢纽</p>
+    <h2>沿论场<span class="ko">走一遍</span></h2>
+    <p class="lead">全论依《发智论》分八蕴（八章），是它的全景骨架：</p>
+    <div class="skandhas">
+      <span class="sk"><b>杂蕴</b> 综论</span><span class="sk"><b>结蕴</b> 烦恼</span><span class="sk"><b>智蕴</b> 智慧</span><span class="sk"><b>业蕴</b> 业</span>
+      <span class="sk"><b>大种蕴</b> 色法</span><span class="sk"><b>根蕴</b> 诸根</span><span class="sk"><b>定蕴</b> 禅定</span><span class="sk"><b>见蕴</b> 见解</span>
+    </div>
+    <p class="lead" style="margin-top:1.6rem">没人通读 200 卷。下面取五个枢纽，看它<strong style="color:var(--gold-bright);font-weight:600">怎么提问、怎么裁决、又怎么被后人撬动</strong>。带 <span style="color:var(--blood)">★</span> 的两站是全论心脏。</p>
+
+    <div class="path" style="margin-top:2.4rem">
+
+      <div class="stop">
+        <div class="node">壹</div>
+        <div class="chno">论之方法 · The Method</div>
+        <h3>备列众说，裁定正义</h3>
+        <p class="tagline">先把所有声音录全，再判谁对。</p>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">为什么一部论要把那么多「错的」说法也一字不漏地记下来？</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">因为它的体例就是<strong>判例汇编</strong>：一个法义问题摊开，列尽诸师异说（甚至外部部派、外道之说），再逐条评破、裁定「毗婆沙正义」。异说不是噪声，是裁决的依据——没有把对手讲到最强，裁决就不可信。</span></div>
+        </div>
+        <div class="remember">把所有竞争答案都摊到台面、讲到最强，再裁定——这套纪律本身，比任何单一结论更值钱。<span class="stamp">记住</span></div>
+      </div>
+
+      <div class="stop star">
+        <div class="node">贰</div>
+        <div class="chno">核心命题 · The Thesis</div>
+        <h3>三世实有，法体恒有<span class="star-mark">★</span></h3>
+        <p class="tagline">变的是「用」，不变的是「体」。</p>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">佛法不是讲「无常、刹那生灭」吗？怎么有部反而说「法体恒有」？</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">正因为太信刹那灭，才出难题：如果一切瞬间就灭，<strong>几十年后的果报凭什么还认得几十年前的业？</strong>有部的解法是把「体」和「用」切开——法体三世恒在，只是它的「作用」有起有灭。这样无常（用在生灭）与业果相续（体不断）就能同时成立。</span></div>
+        </div>
+        <div class="remember">有部不是不信无常，是太信无常，才要给「跨时的因果」找一个不灭的承载者。<span class="stamp">记住</span></div>
+      </div>
+
+      <div class="stop star">
+        <div class="node">叁</div>
+        <div class="chno">四大论师 · The Chorus</div>
+        <h3>同一命题，四种证法<span class="star-mark">★</span></h3>
+        <p class="tagline">五百种声音，裁出一种正义。</p>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">「法体恒有」凭什么成立？总得给个说法吧。</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">法救说「类不同」、妙音说「相不同」、世友说「位不同」、觉天说「待不同」——四位大论师从四个角度论证三世如何分立。毗婆沙师评判后，取<strong>世友「位不同」（依作用之位分三世）为最善</strong>。这一段，是整部论「群声→裁决」结构最浓缩的样本。</span></div>
+        </div>
+        <div class="remember">把一个命题交给四种独立证法去打，留下最稳的那个——这是古典版的「鲁棒性测试」。<span class="stamp">记住</span></div>
+      </div>
+
+      <div class="stop">
+        <div class="node">肆</div>
+        <div class="chno">精度 · The Detail</div>
+        <h3>把「无常」量化到 1/75 秒</h3>
+        <p class="tagline">一刹那，约 0.013 秒。</p>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">「刹那生灭」听着玄，到底有多快？</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">论中真的算了：一百二十刹那为一怛刹那……三十牟呼栗多为一昼夜，层层换算下来，<strong>一刹那约等于 1/75 秒</strong>。这种把抽象教义量化到可计算的较真劲，正是阿毗达磨「对法」的精神——不满足于譬喻，要把法相切到最细。</span></div>
+        </div>
+        <div class="remember">真正的精密，是连「无常」这种词都不放过，非要给它一个数。<span class="stamp">记住</span></div>
+      </div>
+
+      <div class="stop">
+        <div class="node">伍</div>
+        <div class="chno">余响 · The Sequel</div>
+        <h3>后来：拆台的人，与护法的人</h3>
+        <p class="tagline">这座铜墙，引出了一场千年之辩。</p>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">这么坚固的体系，后来怎么样了？</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">世亲（Vasubandhu）作《俱舍论》，用更精炼的偈颂总结有部，却夹带<strong>经量部立场反过来质疑「三世实有」</strong>；众贤（Saṅghabhadra）不服，作《顺正理论》逐条反驳、力挺正统毗婆沙义。一座铜墙，引出了印度佛教史上著名的「俱舍—顺正理」之争。而这一切的大本营，就是《大毗婆沙》。</span></div>
+        </div>
+        <div class="remember">最强的体系，往往因为太强，成了下一代最值得攻打的靶子。被反驳，是它重要的证据。<span class="stamp">记住</span></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 主线 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">若只记一条主线</p>
+    <h2>无常 · 难题 · <span class="ko">解</span></h2>
+    <p class="lead">全论的发动机，是一个被逼出来的工程问题：怎样在「一切刹那即灭」和「业果能跨时兑现」之间，不自相矛盾。</p>
+    <div class="spine">
+      <div class="cell a"><div class="role">前提</div><div class="term">刹那灭</div><small>一切法瞬间生灭，无常到极致</small><span class="arrow">→</span></div>
+      <div class="cell b"><div class="role">难题</div><div class="term">业果<br>如何续</div><small>体瞬灭，几十年后的果报凭什么认账</small><span class="arrow">→</span></div>
+      <div class="cell c"><div class="role">解</div><div class="term">三世<br>实有</div><small>体恒有作承载，用有起灭显无常</small></div>
+    </div>
+    <p class="spine-cap">所以这部论的整个庞大体系，是一次<b>极其认真的「自圆其说」</b>——哪怕「法体恒有」后来被「空」推翻，这个「切开体与用、给跨时因果找承载者」的拆解动作，依然是一流的思维工程。</p>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 概念地图 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">贯穿全论 · 八个关键词</p>
+    <h2>核心概念<span class="ko">地图</span></h2>
+    <div class="concepts">
+      <div class="cc"><div class="name">阿毗达磨</div><div class="one">「对法」——对佛法做系统的分析与归类。</div></div>
+      <div class="cc"><div class="name">毗婆沙（Vibhāṣā）</div><div class="one">广说·胜说·异说三义，故存梵音。</div></div>
+      <div class="cc"><div class="name">法体 vs 作用</div><div class="one">体三世恒有，用有起有灭——全论的关键切分。</div></div>
+      <div class="cc"><div class="name">三世实有</div><div class="one">法在过去现在未来都实有，不随时间消失。</div></div>
+      <div class="cc"><div class="name">说一切有部 / 毗婆沙师</div><div class="one">「说一切（法）有」的部派；奉此论者称毗婆沙师。</div></div>
+      <div class="cc"><div class="name">身论与足论</div><div class="one">《发智论》为身，《六足论》为足——有部论藏的骨架。</div></div>
+      <div class="cc"><div class="name">八蕴</div><div class="one">杂·结·智·业·大种·根·定·见，全论八大主题。</div></div>
+      <div class="cc"><div class="name">刹那</div><div class="one">最小时间单位，论中算得约 1/75 秒。</div></div>
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 边界 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">批判性阅读 · 它的边界</p>
+    <h2>它是答案，<br>也是被推翻的<span class="ko">那一方</span></h2>
+    <div class="limits">
+      <div class="limit"><b>巨</b><p>200 卷、纯法相分析，无人通读。<strong>当工具书与思想标本，别当读物</strong>——硬啃只会被术语淹没。</p></div>
+      <div class="limit"><b>署</b><p>「五百罗汉造」是传统题署，学界考证为公元二世纪有部学人的集体长编。<strong>别把它当字面史实。</strong></p></div>
+      <div class="limit"><b>争</b><p>核心命题「法体恒有」正是后来经量部（世亲）、尤其中观般若所破的「自性」。<strong>它在佛教内部并非定论，而是被反复辩论的一方。</strong></p></div>
+      <div class="limit"><b>佚</b><p>汉传几乎全靠玄奘译本；梵本大多已佚。<strong>研究受限于译本</strong>，细微义理处需谨慎。</p></div>
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 闭环 -->
+<section class="loop">
+  <div class="wrap reveal">
+    <p class="eyebrow">接入你的判断系统 · 闭环</p>
+    <h2>它，是「空」<br>最强的<span class="ko">陪练</span></h2>
+    <p class="lead">你已读的《金刚经》《正见》都在讲「空·无自性」。而《大毗婆沙》正是把「自性（法体恒有）」建得最精密的那一方——读它，是为了看清「空」到底在否定什么。以下仅作素材，判断权归你。</p>
+    <div class="bridges">
+      <div class="bridge">
+        <div class="pair"><span class="side l">法体恒有</span><span class="eq">⟷</span><span class="side r">空 · 无自性</span></div>
+        <p>有部建的「自性」，正是中观要破的靶子。<em>没有这座最强的正题，「空」就是空话——它给你的空性理解装上了对手。</em><span class="tagx">正题 ⟷ 反题</span></p>
+      </div>
+      <div class="bridge">
+        <div class="pair"><span class="side l">列众说 → 裁正义</span><span class="eq">≈</span><span class="side r">贝叶斯 · 模型选择</span></div>
+        <p>穷举竞争假设、按义理裁定最善（世友胜出）。<em>这就是一次古典版的模型选择，可直接迁移进你的判断流程。</em><span class="tagx">穷举 → 裁决</span></p>
+      </div>
+      <div class="bridge">
+        <div class="pair"><span class="side l">切开体与用</span><span class="eq">≈</span><span class="side r">第一性原理 · 变量分离</span></div>
+        <p>把「变的用」和「不变的体」拆开，给跨时因果找承载者。<em>结论虽被推翻，这个「分离变量再自圆其说」的动作是一流工程。</em><span class="tagx">拆变量</span></p>
+      </div>
+    </div>
+
+    <p class="eyebrow" style="margin-top:3rem">候选 · 可归入 memory.md 的闭环认知</p>
+    <div class="closures">
+      <div class="closure"><span class="n">壹</span><p>想真懂一个「否定性」框架（空 / 无我），先去找它要否定的<em>最强正题</em>——否则你反的只是稻草人。大毗婆沙就是「空」的最强陪练。</p></div>
+      <div class="closure"><span class="n">贰</span><p><em>「列尽异说 → 裁定最善」</em>是一套可迁移的判断纪律，对接贝叶斯的模型选择：把对手讲到最强，再裁决。</p></div>
+      <div class="closure"><span class="n">叁</span><p>警惕「法体恒有」式执着的变体：把某个框架（贝叶斯 / 奥卡姆 / 这套 PKM）当成<em>恒有的法体</em>去守——它们也只是「用有起灭」的工具，不是不变的体。（呼应筏喻）</p></div>
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 行动 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">可落地</p>
+    <h2>怎么<span class="ko">读 / 用</span></h2>
+    <div class="actions">
+      <div class="act"><h4>不要通读</h4><p>200 卷不是用来读的。先读现代导论把握全局（印顺《说一切有部为主的论书与论师之研究》是权威），再按主题查相关卷次。</p></div>
+      <div class="act"><h4>抓一条命题深挖</h4><p>以「三世实有」为线，读相关段落 + 对照《俱舍论》「破三世」段，把正反两方并排看——这是它最高的性价比。</p></div>
+      <div class="act"><h4>配对照阅读</h4><p>想看「反方」，读《俱舍论》；想看你已读的「空」如何收束这一切，回到《金刚经》《正见》，三者互为印证。</p></div>
+      <div class="act"><h4>一个检验动作</h4><p class="test">读它时问自己：我是在<em>收集有部的结论</em>，还是在<em>看清一套精密体系如何自圆其说、又如何被后人撬动</em>？后者才是它对你最大的价值。</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="seal-final">有</div>
+  <p>三世实有，而判断归人 · 列尽众说，裁于一心</p>
+</footer>
+
+<script>
+  // —— 签名图形：墨迹 + 书页脉络（中心墨晕 + 毛细渗墨脉络 + 经卷栏线）——
+  (function(){
+    const svg=document.getElementById('ink'); if(!svg) return;
+    const NS='http://www.w3.org/2000/svg';
+    const gold='#cbb079', violet='#7b6d8d', blood='#a23a4a';
+    function el(t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;}
+
+    // 书页栏线（静态，灰紫，纵向经卷脉）
+    const page=el('g',{}); svg.appendChild(page);
+    for(let x=-220;x<=220;x+=36){
+      page.appendChild(el('line',{x1:x,y1:-238,x2:x,y2:238,stroke:violet,'stroke-width':.5,opacity:.07}));
+    }
+
+    // 渗墨脉络（逆向缓转）
+    const veins=el('g',{class:'spin rev'}); svg.appendChild(veins);
+    function vein(x,y,ang,len,depth){
+      if(depth<=0||len<7) return;
+      const wob=Math.sin(x*0.05+y*0.05)*0.3;
+      const x2=x+Math.cos(ang+wob)*len, y2=y+Math.sin(ang+wob)*len;
+      veins.appendChild(el('line',{x1:x,y1:y,x2:x2,y2:y2,stroke:depth>2?gold:violet,
+        'stroke-width':depth*0.42,opacity:.16+depth*0.05}));
+      if(depth<=2) veins.appendChild(el('circle',{cx:x2,cy:y2,r:depth===1?2.4:1.4,
+        fill:depth===1?blood:gold,opacity:.5}));
+      const s=0.5+Math.random()*0.12;
+      vein(x2,y2,ang-s,len*0.68,depth-1);
+      vein(x2,y2,ang+s*0.9,len*0.72,depth-1);
+      if(depth>3) vein(x2,y2,ang+ (Math.random()-0.5)*0.3,len*0.6,depth-1);
+    }
+    const arms=14;
+    for(let i=0;i<arms;i++){ vein(0,0, i/arms*Math.PI*2 + 0.25, 52, 5); }
+
+    // 中心墨晕（不规则墨团 · 顺向极缓转）
+    const blot=el('g',{class:'spin'}); svg.appendChild(blot);
+    function blob(rBase,fill,op){
+      const N=80,pts=[];
+      for(let i=0;i<=N;i++){
+        const t=i/N*Math.PI*2;
+        const r=rBase*(1 + Math.sin(t*5)*0.10 + Math.sin(t*9+1)*0.06 + Math.sin(t*2)*0.05);
+        pts.push((Math.cos(t)*r).toFixed(1)+' '+(Math.sin(t)*r).toFixed(1));
+      }
+      blot.appendChild(el('path',{d:'M'+pts.join('L')+'Z',fill,opacity:op,stroke:'none'}));
+    }
+    blob(34,gold,.10); blob(22,violet,.12); blob(12,blood,.6);
+    blot.appendChild(el('circle',{r:5,fill:gold,opacity:.85}));
+  })();
+
+  // 滚动揭示
+  const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
