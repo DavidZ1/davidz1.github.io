@@ -1,0 +1,525 @@
+<!-- 《弥勒六部经》深度读书笔记 · 心理/自我配色 · 同心圆签名 -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>弥勒六部经 · 深度读书笔记</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Long+Cang&family=Noto+Serif+SC:wght@400;600;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ink:#12141a;          /* 夜蓝黑 · 底 */
+    --panel:#1a1d25;
+    --panel-2:#20242e;
+    --gold:#d4a857;         /* 暖金 · 主角 */
+    --gold-bright:#ecd08a;
+    --blue:#6f8fb0;         /* 雾蓝 · 结构色 */
+    --blue-deep:#4d688a;
+    --coral:#cf6b5a;        /* 珊瑚 · 印章/强调 */
+    --text:#e4e2dc;         /* 月白 · 正文 */
+    --dim:#a7a293;
+    --dim-2:#7c7869;
+    --line:rgba(212,168,87,.15);
+    --serif:'Noto Serif SC',serif;
+    --brush:'Long Cang',cursive;
+    --roman:'Cormorant Garamond',serif;
+    --maxw:980px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--ink);color:var(--text);font-family:var(--serif);font-weight:400;
+    line-height:1.85;letter-spacing:.01em;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;
+    background:
+      radial-gradient(120% 90% at 50% -10%, rgba(212,168,87,.11), transparent 55%),
+      radial-gradient(120% 120% at 50% 120%, rgba(111,143,176,.08), transparent 60%);
+    mix-blend-mode:screen}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:2;opacity:.045;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+  .wrap{position:relative;z-index:3;max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  a{color:var(--gold-bright);text-decoration:none}
+  ::selection{background:rgba(207,107,90,.4);color:#fff}
+
+  .eyebrow{font-family:var(--roman);font-style:italic;font-size:.95rem;letter-spacing:.18em;
+    color:var(--blue);text-transform:uppercase;display:flex;align-items:center;gap:.7em;margin:0 0 .9rem}
+  .eyebrow::before{content:"";width:34px;height:1px;background:var(--blue);opacity:.6}
+  h2{font-family:var(--serif);font-weight:900;font-size:clamp(1.7rem,4.2vw,2.7rem);line-height:1.25;margin:0 0 1.1rem;letter-spacing:.02em}
+  h2 .ko{color:var(--gold)}
+  p{margin:0 0 1.05rem}
+  .lead{font-size:1.12rem;color:var(--dim)}
+  section{padding:clamp(64px,9vw,118px) 0;position:relative}
+  .rule{height:1px;background:var(--line);max-width:var(--maxw);margin:0 auto}
+
+  /* HERO */
+  .hero{min-height:100svh;display:grid;place-items:center;text-align:center;padding:80px 24px 64px;position:relative;overflow:hidden}
+  .conc{position:absolute;top:50%;left:50%;width:min(122vw,1000px);aspect-ratio:1;transform:translate(-50%,-53%);opacity:.5;z-index:0}
+  .conc .spin{transform-origin:center;animation:spin 200s linear infinite}
+  .conc .spin.rev{animation-duration:150s;animation-direction:reverse}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .conc .pulse{animation:pulse 4.5s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.4}50%{opacity:.95}}
+  .hero-inner{position:relative;z-index:1}
+  .hero .kicker{font-family:var(--roman);font-style:italic;letter-spacing:.28em;color:var(--blue);font-size:1rem;text-transform:uppercase;margin-bottom:1.1rem;opacity:0;animation:rise .9s .15s forwards}
+  .bigtitle{font-family:var(--brush);color:var(--gold);font-size:clamp(3.8rem,15vw,11rem);line-height:.92;margin:0;text-shadow:0 0 42px rgba(212,168,87,.3)}
+  .bigtitle span{display:inline-block;opacity:0;transform:translateY(28px) rotate(-3deg);animation:drop .85s cubic-bezier(.2,.8,.2,1) forwards}
+  @keyframes drop{to{opacity:1;transform:none}}
+  @keyframes rise{to{opacity:1}}
+  .entitle{font-family:var(--roman);font-style:italic;color:var(--dim);letter-spacing:.06em;font-size:1.02rem;margin-top:.5rem;opacity:0;animation:rise 1s .8s forwards}
+  .subtitle{font-size:clamp(1rem,2.4vw,1.26rem);color:var(--text);margin:1.5rem auto 0;max-width:32ch;opacity:0;animation:rise 1s 1s forwards}
+  .meta{font-family:var(--roman);color:var(--dim);letter-spacing:.05em;margin-top:1.1rem;font-size:1.02rem;opacity:0;animation:rise 1s 1.2s forwards}
+  .promise{margin-top:2.2rem;display:inline-block;border:1px solid var(--line);border-radius:2px;padding:.7rem 1.4rem;font-size:.98rem;color:var(--gold-bright);background:rgba(212,168,87,.05);opacity:0;animation:rise 1s 1.4s forwards}
+  .scrollcue{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);font-family:var(--roman);font-style:italic;color:var(--dim-2);font-size:.9rem;letter-spacing:.1em;opacity:0;animation:rise 1s 1.7s forwards}
+  .scrollcue::after{content:"";display:block;width:1px;height:34px;margin:.5rem auto 0;background:linear-gradient(var(--gold),transparent);animation:cue 2s ease-in-out infinite}
+  @keyframes cue{0%,100%{transform:scaleY(.4);opacity:.3}50%{transform:scaleY(1);opacity:1}}
+
+  /* 坐标 */
+  .isnot{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:2.2rem}
+  .isnot .col{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:24px}
+  .isnot .col h4{margin:0 0 .8rem;font-family:var(--roman);font-style:italic;letter-spacing:.1em;font-size:1.05rem;text-transform:uppercase}
+  .isnot .col.no h4{color:var(--coral)} .isnot .col.yes h4{color:var(--gold)}
+  .isnot ul{margin:0;padding-left:1.1rem;color:var(--dim);font-size:.99rem}
+  .isnot li{margin:.4rem 0}
+
+  /* 来历 */
+  .context{display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:start}
+  .relic{font-size:1.1rem;line-height:1.9;color:var(--text);border-left:2px solid var(--coral);padding-left:1.3rem}
+  .relic .hl{color:var(--gold-bright);font-weight:600}
+  .relic .src{display:block;margin-top:.8rem;font-family:var(--roman);font-style:italic;color:var(--dim);font-size:.98rem}
+  .facts{display:flex;flex-direction:column}
+  .fact{padding:.85rem 0;border-bottom:1px solid var(--line);display:flex;gap:1rem}
+  .fact:first-child{border-top:1px solid var(--line)}
+  .fact b{font-family:var(--roman);color:var(--blue);font-weight:600;font-style:italic;min-width:5.2em;letter-spacing:.04em}
+  .fact span{color:var(--dim)}
+
+  /* 中枢命题 两路 + 四相 */
+  .twopath{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:stretch;margin:2rem 0 1.4rem}
+  .pcard{background:var(--panel-2);border:1px solid var(--line);border-radius:4px;padding:26px 24px;text-align:center}
+  .pcard.up{border-top:3px solid var(--gold)} .pcard.down{border-bottom:3px solid var(--blue)}
+  .pcard .dir{font-family:var(--brush);font-size:2.2rem;line-height:1;margin-bottom:.4rem}
+  .pcard.up .dir{color:var(--gold)} .pcard.down .dir{color:var(--blue)}
+  .pcard h3{margin:.1rem 0 .4rem;font-size:1.1rem;font-weight:900;color:var(--text)}
+  .pcard p{margin:0;color:var(--dim);font-size:.95rem}
+  .pmid{display:grid;place-items:center;font-family:var(--roman);font-style:italic;color:var(--coral);font-size:1.1rem;writing-mode:vertical-rl;letter-spacing:.1em}
+  .seals{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:1.4rem}
+  .seal{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:26px 26px;overflow:hidden;transition:transform .4s,border-color .4s,box-shadow .4s}
+  .seal:hover{transform:translateY(-6px);border-color:rgba(212,168,87,.5);box-shadow:0 20px 50px -24px rgba(212,168,87,.4)}
+  .seal .ph{font-family:var(--brush);font-size:1.9rem;color:var(--gold);line-height:1;margin-bottom:.2rem}
+  .seal h3{font-size:1.06rem;font-weight:900;margin:.1rem 0 .35rem;color:var(--text)}
+  .seal .gloss{font-size:.97rem;color:var(--dim);margin:0}
+  .seal::after{content:"";position:absolute;right:-26px;bottom:-26px;width:96px;height:96px;border:1px solid var(--blue);border-radius:50%;opacity:.12}
+
+  /* 路径 */
+  .path{position:relative;margin-top:2.4rem}
+  .path::before{content:"";position:absolute;left:31px;top:8px;bottom:40px;width:2px;background:linear-gradient(var(--gold),var(--blue-deep) 60%,transparent);opacity:.5}
+  .stop{position:relative;padding:0 0 46px 84px}
+  .stop .node{position:absolute;left:14px;top:2px;width:36px;height:36px;border-radius:50%;background:var(--ink);border:2px solid var(--gold);display:grid;place-items:center;font-family:var(--roman);font-style:italic;color:var(--gold);font-size:1.05rem;z-index:2}
+  .stop.star .node{border-color:var(--coral);color:var(--coral);box-shadow:0 0 0 6px rgba(207,107,90,.12)}
+  .stop .chno{font-family:var(--roman);font-style:italic;letter-spacing:.13em;color:var(--blue);font-size:.88rem;text-transform:uppercase}
+  .stop h3{font-size:1.36rem;font-weight:900;margin:.15rem 0 .15rem;color:var(--text)}
+  .stop h3 .star-mark{color:var(--coral);font-size:.9rem;vertical-align:super;margin-left:.3em}
+  .stop .trans{font-family:var(--roman);font-style:italic;color:var(--dim);font-size:.95rem;margin:0 0 .7rem}
+  .stop .tagline{font-family:var(--brush);font-size:1.4rem;color:var(--gold-bright);margin:.1rem 0 .7rem;letter-spacing:.03em}
+  .qa{display:grid;gap:.5rem}
+  .qa .row{display:grid;grid-template-columns:auto 1fr;gap:.85rem;align-items:baseline}
+  .qa .tag{font-family:var(--roman);font-style:italic;font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;padding-top:.15rem;white-space:nowrap}
+  .qa .tag.q{color:var(--blue)} .qa .tag.a{color:var(--gold)}
+  .qa .txt{color:var(--text);font-size:1rem} .qa .txt.dimmed{color:var(--dim)}
+  .qa .txt strong{color:var(--gold-bright);font-weight:600}
+  .remember{margin-top:.85rem;position:relative;background:rgba(207,107,90,.06);border:1px solid rgba(207,107,90,.25);border-radius:3px;padding:.8rem 3.4rem .8rem 1rem;font-size:1rem;color:var(--text)}
+  .remember .stamp{position:absolute;right:.7rem;top:50%;transform:translateY(-50%) rotate(-8deg);width:42px;height:42px;border:1.5px solid var(--coral);border-radius:5px;color:var(--coral);font-family:var(--serif);font-weight:900;font-size:.7rem;display:grid;place-items:center;line-height:1;text-align:center;opacity:.9}
+
+  /* 主线 */
+  .spine{display:grid;grid-template-columns:repeat(3,1fr);margin-top:2.4rem;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+  .spine .cell{padding:34px 22px;border-right:1px solid var(--line);position:relative;text-align:center}
+  .spine .cell:last-child{border-right:0}
+  .spine .role{font-family:var(--roman);font-style:italic;letter-spacing:.13em;text-transform:uppercase;font-size:.86rem;margin-bottom:.7rem}
+  .spine .term{font-family:var(--brush);font-size:2.9rem;line-height:1;margin-bottom:.5rem}
+  .spine .cell.a .role{color:var(--coral)} .spine .cell.a .term{color:var(--coral)}
+  .spine .cell.b .role{color:var(--blue)} .spine .cell.b .term{color:var(--blue)}
+  .spine .cell.c .role{color:var(--gold)} .spine .cell.c .term{color:var(--gold)}
+  .spine .cell small{color:var(--dim);display:block;font-size:.94rem}
+  .spine .arrow{position:absolute;right:-11px;top:50%;transform:translateY(-50%);z-index:4;color:var(--gold);font-size:1.3rem}
+  .spine .cell:last-child .arrow{display:none}
+  .spine-cap{text-align:center;margin-top:1.6rem;color:var(--dim)}
+  .spine-cap b{color:var(--gold-bright);font-weight:600}
+
+  /* 概念 */
+  .concepts{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:2.2rem}
+  .cc{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:22px;transition:transform .35s,border-color .35s}
+  .cc:hover{transform:translateY(-4px);border-color:rgba(111,143,176,.5)}
+  .cc .name{font-weight:900;font-size:1.12rem;color:var(--gold);margin-bottom:.25rem}
+  .cc .one{color:var(--dim);font-size:.96rem}
+
+  /* 边界 */
+  .limits{display:grid;gap:14px;margin-top:2rem}
+  .limit{display:grid;grid-template-columns:auto 1fr;gap:1rem;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--blue);border-radius:3px;padding:20px 22px}
+  .limit b{font-family:var(--roman);font-style:italic;color:var(--blue);font-size:1.25rem;line-height:1.2}
+  .limit p{margin:0;color:var(--dim);font-size:.99rem}
+  .limit p strong{color:var(--gold-bright);font-weight:600}
+
+  /* 闭环 */
+  .loop{background:linear-gradient(180deg,rgba(111,143,176,.06),transparent)}
+  .bridges{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:2.2rem}
+  .bridge{background:var(--panel-2);border:1px solid var(--line);border-radius:4px;padding:24px 22px}
+  .bridge .pair{display:flex;align-items:center;gap:.5rem;justify-content:center;margin-bottom:.9rem;flex-wrap:wrap}
+  .bridge .side{font-weight:900;font-size:.98rem}
+  .bridge .side.l{color:var(--blue)} .bridge .side.r{color:var(--gold)}
+  .bridge .eq{color:var(--coral);font-size:1.3rem;font-family:var(--roman)}
+  .bridge p{font-size:.95rem;color:var(--dim);margin:0;text-align:center}
+  .bridge p em{color:var(--text);font-style:normal}
+  .bridge .tagx{display:block;margin-top:.7rem;font-family:var(--roman);font-style:italic;font-size:.82rem;color:var(--dim-2);letter-spacing:.06em}
+  .closures{margin-top:2rem;display:grid}
+  .closure{display:grid;grid-template-columns:auto 1fr;gap:1rem;padding:1rem 0;border-bottom:1px solid var(--line)}
+  .closure:first-child{border-top:1px solid var(--line)}
+  .closure .n{font-family:var(--roman);font-style:italic;color:var(--gold);font-size:1.5rem;line-height:1}
+  .closure p{margin:0;color:var(--text);font-size:1rem}
+  .closure p em{color:var(--gold-bright);font-style:normal}
+
+  /* 行动 */
+  .actions{display:grid;gap:14px;margin-top:2rem}
+  .act{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:22px 24px}
+  .act h4{margin:0 0 .35rem;font-size:1.12rem;color:var(--gold);font-weight:900}
+  .act p{margin:0;color:var(--dim);font-size:.99rem}
+  .act .test{color:var(--text)} .act .test em{color:var(--gold-bright);font-style:normal}
+
+  footer{padding:60px 24px 80px;text-align:center}
+  footer .seal-final{font-family:var(--brush);color:var(--gold);font-size:2.4rem;margin-bottom:.4rem}
+  footer p{color:var(--dim-2);font-size:.95rem;font-family:var(--roman);font-style:italic;margin:0}
+
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .9s ease,transform .9s cubic-bezier(.2,.8,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  @media(max-width:760px){
+    .context{grid-template-columns:1fr;gap:30px}
+    .isnot,.concepts,.seals{grid-template-columns:1fr}
+    .twopath{grid-template-columns:1fr}
+    .pmid{writing-mode:horizontal-tb;padding:.4rem 0}
+    .spine,.bridges{grid-template-columns:1fr}
+    .spine .cell{border-right:0;border-bottom:1px solid var(--line)}
+    .spine .cell:last-child{border-bottom:0}
+    .spine .arrow{right:50%;top:auto;bottom:-12px;transform:translateX(50%) rotate(90deg)}
+    .spine .cell:last-child .arrow{display:none}
+    .stop{padding-left:64px}.path::before{left:23px}.stop .node{left:6px;width:34px;height:34px}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+    .reveal{opacity:1;transform:none}
+    .bigtitle span,.hero .kicker,.entitle,.subtitle,.meta,.promise,.scrollcue{opacity:1!important}
+  }
+</style>
+
+<!-- HERO -->
+<header class="hero">
+  <svg class="conc" id="conc" viewBox="-250 -250 500 500" aria-hidden="true"></svg>
+  <div class="hero-inner">
+    <div class="kicker">Maitreya · Six Sutras · Reading Notes</div>
+    <h1 class="bigtitle" aria-label="弥勒">
+      <span style="animation-delay:.2s">弥</span><span style="animation-delay:.34s">勒</span>
+    </h1>
+    <p class="entitle">The Six Sutras of Maitreya · 弥勒菩萨六部经</p>
+    <p class="subtitle">六部经，一种朝向未来的心理结构：慈，与希望。</p>
+    <p class="meta">弥勒六部经 · 大正藏第十四册 · 上生 · 下生 · 本愿 三系</p>
+    <span class="promise">「慈氏」未来佛——把现在的慈与善，搭成一座通往龙华三会的桥</span>
+  </div>
+  <div class="scrollcue">向下，朝未来</div>
+</header>
+
+<!-- 坐标 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">读之前 · 先校准坐标</p>
+    <h2>不是一本书，<br>是一组<span class="ko">关于「未来佛」的经</span></h2>
+    <p class="lead">「弥勒六部经」不是单一文本，是六部围绕弥勒菩萨的汉译经的合称（多为同一故事的异译）。弥勒（Maitreya）梵文意为「慈爱」，故称慈氏——他是继释迦之后的下一位佛、当来下生的未来佛，现住兜率天内院。这套经的内核，是一种面向未来的心理结构。</p>
+    <div class="isnot">
+      <div class="col no">
+        <h4>它不是</h4>
+        <ul>
+          <li>一部独立著作——是六部经的合称，多为异译</li>
+          <li>讲「胖弥勒笑佛」的——那是五代布袋和尚的化身传说</li>
+          <li>纯粹的来世幻想——它要你「现在」就修慈与十善</li>
+          <li>政治预言——「弥勒出世」屡被借为起义旗号，非经义</li>
+        </ul>
+      </div>
+      <div class="col yes">
+        <h4>它是</h4>
+        <ul>
+          <li>弥勒信仰的根本经群，分上生 / 下生 / 本愿三系</li>
+          <li>两条路：上生兜率净土，或等弥勒下生人间</li>
+          <li>「慈」作为情感内核的法门（慈氏 = 慈爱）</li>
+          <li>一套「如何持有遥远希望」的心理范本</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 来历 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">经的来历 · 一群译本的合称</p>
+    <h2>同一个未来，<br>被反复<span class="ko">译了又译</span></h2>
+    <div class="context" style="margin-top:2.2rem">
+      <div>
+        <p class="relic">中国译弥勒经，自西晋起先后有三十余种，可归为<span class="hl">上生、下生、本愿</span>三系。「六部经」即：观弥勒上生经、弥勒下生经、弥勒来时经、观弥勒菩萨下生经、弥勒下生成佛经、弥勒大成佛经——其中<span class="hl">上生、下生、大成佛三部又称「弥勒三经」</span>，是修学弥勒法门的核心。同一个下生故事被竺法护、鸠摩罗什、义净等反复重译，<span class="hl">译本之多本身，就是弥勒信仰极普及的证据</span>。
+          <span class="src">—— 一个故事被一译再译，说明它击中了某种持久的集体期待</span></p>
+      </div>
+      <div class="facts">
+        <div class="fact"><b>合称</b><span>弥勒菩萨六部经，皆收于《大正藏》第十四册</span></div>
+        <div class="fact"><b>三系</b><span>上生（往生兜率）· 下生（下生人间成佛）· 本愿（弥勒所问本愿）</span></div>
+        <div class="fact"><b>三经</b><span>上生经（沮渠京声）· 下生经（竺法护）· 大成佛经（鸠摩罗什）</span></div>
+        <div class="fact"><b>异名</b><span>弥勒 = 慈氏（Maitrī 慈爱）；阿逸多；当来下生弥勒尊佛</span></div>
+        <div class="fact"><b>注意</b><span>诸本异译、译者归属古来有错置（如下生经实为《增一阿含》别抄）</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 中枢命题 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">中枢命题 · 通往同一未来的两条路</p>
+    <h2>上生，还是<span class="ko">下生</span>？</h2>
+    <p class="lead">弥勒法门的核心，是「未来得度」的两种取向——你是主动向上去亲近未来，还是耐心在此地等未来降临。两条路，同一个龙华三会。</p>
+    <div class="twopath">
+      <div class="pcard up"><div class="dir">上生</div><h3>主动向上</h3><p>现世修十善、念弥勒名 → 命终上生兜率内院，先去亲近弥勒，随他将来下生。</p></div>
+      <div class="pmid">同一未来</div>
+      <div class="pcard down"><div class="dir">下生</div><h3>耐心守候</h3><p>弥勒将来下生人间、龙华树下成道、三会说法度众；发愿值遇得度。</p></div>
+    </div>
+    <div class="seals">
+      <div class="seal"><div class="ph">慈氏</div><h3>慈，是情感内核</h3><p class="gloss">弥勒因地修慈、入慈三昧而得名——这套法门的底色是慈爱。</p></div>
+      <div class="seal"><div class="ph">兜率</div><h3>内院净土</h3><p class="gloss">弥勒现住兜率天内院，一生补处，候补成佛——一个可往生的「近处净土」。</p></div>
+      <div class="seal"><div class="ph">龙华</div><h3>龙华三会</h3><p class="gloss">弥勒成佛后三会说法，九十六 / 九十四 / 九十二亿一时得道——巨大的未来承诺。</p></div>
+      <div class="seal"><div class="ph">下生</div><h3>此土清净</h3><p class="gloss">下生时人间五谷丰登、天下太平，此土转为清净庄严——希望落回大地。</p></div>
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 逐章之路 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">逐部精读 · 六部各一站</p>
+    <h2>沿六部<span class="ko">走一遍</span></h2>
+    <p class="lead">六部多为异译，差异在启问者、繁简、偈散与侧重。带 <span style="color:var(--coral)">★</span> 的两部——上生经、大成佛经——是修行路径与大乘义理的两个高点。</p>
+
+    <div class="path" style="margin-top:2.4rem">
+
+      <div class="stop star">
+        <div class="node">壹</div>
+        <div class="chno">上生系 · The Ascent</div>
+        <h3>观弥勒上生经<span class="star-mark">★</span></h3>
+        <p class="trans">刘宋 · 沮渠京声 译 · 六部中最晚译出</p>
+        <div class="tagline">上生兜率内院</div>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">弥勒要五十多亿年后才下生成佛，太遥远——现在我能做什么？</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">不必空等。现世修<strong>十善、念弥勒名号</strong>，命终即可上生兜率天内院，先去亲近弥勒、听他说法，随他将来一同下生。叙述方式与《观无量寿经》相似，是弥勒净土信仰的主要所依。这是「先上去等」的近路。</span></div>
+        </div>
+        <div class="remember">面对遥远的未来，不必干等——可以现在就主动向它靠近一步。<span class="stamp">记住</span></div>
+      </div>
+
+      <div class="stop">
+        <div class="node">贰</div>
+        <div class="chno">下生系 · The Descent</div>
+        <h3>弥勒下生经</h3>
+        <p class="trans">题西晋竺法护译（实为《增一阿含》卷四四别抄）· 最通行</p>
+        <div class="tagline">当来下生</div>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">那个「未来」到底是什么景象？空有希望、没有画面，撑不住。</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">经文给了具体图景：人寿八万岁、蠰佉转轮圣王正法治世、人间五谷丰登天下太平时，弥勒下生、龙华树下成道、三会说法度众，并受释迦所托僧伽梨于大迦叶。由阿难启问（与他经多由舍利弗启问不同，是其特色）。</span></div>
+        </div>
+        <div class="remember">希望要撑得住，得有具体的画面——弥勒把未来描述成一幅可期的人间图景。<span class="stamp">记住</span></div>
+      </div>
+
+      <div class="stop">
+        <div class="node">叁</div>
+        <div class="chno">下生 · 简本</div>
+        <h3>弥勒来时经</h3>
+        <p class="trans">失译（译者不详）· 较他经简略</p>
+        <div class="tagline">来时之相</div>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">这么多下生异译，最精简的那本，留下了什么核心？</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">本经篇幅最简，由舍利弗启问，提炼下生与龙华会的核心轮廓。它的存在证明：<strong>这套「未来得度」的图景被反复以不同繁简重讲</strong>，是弥勒信仰最稳定的内核。</span></div>
+        </div>
+        <div class="remember">同一个盼望被反复重述、删到最简仍留着——那就是它真正的内核。<span class="stamp">记住</span></div>
+      </div>
+
+      <div class="stop">
+        <div class="node">肆</div>
+        <div class="chno">下生 · 异译</div>
+        <h3>观弥勒菩萨下生经</h3>
+        <p class="trans">竺法护译 · 与「弥勒下生经」为异译同源</p>
+        <div class="tagline">异译之繁</div>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">同一个下生故事，为什么要有这么多版本？</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">下生经有多种异译（竺法护、罗什、义净…），启问者、繁简、偈散各不同。<strong>异译之多，本身就是「弥勒信仰极普及」的硬证据</strong>——被广泛需要的文本，才会被一译再译。</span></div>
+        </div>
+        <div class="remember">版本越多，越说明它被广泛需要——需求催生重译。<span class="stamp">记住</span></div>
+      </div>
+
+      <div class="stop">
+        <div class="node">伍</div>
+        <div class="chno">成佛 · 偈颂</div>
+        <h3>弥勒下生成佛经</h3>
+        <p class="trans">唐 · 义净 译（701）· 偈颂体 · 由舍利弗启问</p>
+        <div class="tagline">成道度众</div>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">「下生」和「成佛」差在哪一步？</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">焦点从「降生」推进到「<strong>成道与度众</strong>」那一刻：弥勒龙华树下成佛、三会说法，无量众一时得度。义净本为偈颂体，与藏译本相符。希望的终点不是某人降临，是龙华会上众生一时得度。</span></div>
+        </div>
+        <div class="remember">希望真正的终点，不是某个人降临，是无量人在那场会上一起被度。<span class="stamp">记住</span></div>
+      </div>
+
+      <div class="stop star">
+        <div class="node">陆</div>
+        <div class="chno">成佛 · 大乘浓郁</div>
+        <h3>弥勒大成佛经<span class="star-mark">★</span></h3>
+        <p class="trans">姚秦 · 鸠摩罗什 译（402）· 六部中义理最丰满</p>
+        <div class="tagline">此土清净庄严</div>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">这套信仰的「大乘高度」在哪里？只是换个佛来度人吗？</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">罗什译本大乘特色最浓：详述龙华三会（九十六 / 九十四 / 九十二亿一时得道），并含<strong>发菩提心、末法</strong>等篇幅；更关键的是——下生时<strong>「此土」转为清净庄严</strong>。未来不在别处，是现在脚下这片土地被转净。</span></div>
+        </div>
+        <div class="remember">最高的盼望不是逃去别处，是这片土地、此时此地，被转成清净庄严。<span class="stamp">记住</span></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 主线 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">若只记一条主线</p>
+    <h2>慈 · 取向 · <span class="ko">得度</span></h2>
+    <p class="lead">把六部看成一套「面向未来的心理结构」：以当下的慈为因，选一条朝向未来的路，最终在龙华三会兑现。</p>
+    <div class="spine">
+      <div class="cell a"><div class="role">因 · 当下</div><div class="term">慈</div><small>修慈心、十善——现在就开始的功夫</small><span class="arrow">→</span></div>
+      <div class="cell b"><div class="role">取向</div><div class="term">上生<br>下生</div><small>主动向上 / 耐心守候，两条路通同一未来</small><span class="arrow">→</span></div>
+      <div class="cell c"><div class="role">果 · 未来</div><div class="term">龙华</div><small>龙华三会得度，此土转为清净庄严</small></div>
+    </div>
+    <p class="spine-cap">弥勒法门的要害——<b>不在空等未来降临，在当下就用慈与善，搭起通往未来的那座桥。</b></p>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 概念地图 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">贯穿六部 · 八个关键词</p>
+    <h2>核心概念<span class="ko">地图</span></h2>
+    <div class="concepts">
+      <div class="cc"><div class="name">弥勒 / 慈氏</div><div class="one">继释迦之后的下一位佛，当来下生；慈氏＝慈爱。</div></div>
+      <div class="cc"><div class="name">兜率天内院</div><div class="one">弥勒现住的近处净土，一生补处之地。</div></div>
+      <div class="cc"><div class="name">上生</div><div class="one">现世修十善念佛名 → 往生兜率内院的路。</div></div>
+      <div class="cc"><div class="name">下生</div><div class="one">弥勒将来下生人间、龙华成道度众。</div></div>
+      <div class="cc"><div class="name">龙华三会</div><div class="one">弥勒成佛后三次大法会，无量众一时得度。</div></div>
+      <div class="cc"><div class="name">一生补处</div><div class="one">弥勒是候补佛，距成佛仅一生之隔。</div></div>
+      <div class="cc"><div class="name">慈三昧</div><div class="one">弥勒因地所修，慈心作为可训练的情感基线。</div></div>
+      <div class="cc"><div class="name">弥勒三经</div><div class="one">上生 / 下生 / 大成佛，六部中的核心三部。</div></div>
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 边界 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">批判性阅读 · 它的边界</p>
+    <h2>「等待未来」，<br>是一把<span class="ko">双刃刀</span></h2>
+    <div class="limits">
+      <div class="limit"><b>乱</b><p>下生 / 成佛多本异译，译者归属古来有错置（下生经实为《增一阿含》别抄，误题竺法护）。<strong>别把六部当六个独立原创文本。</strong></p></div>
+      <div class="limit"><b>政</b><p>「弥勒出世」屡被借为起义、夺权旗号（南北朝隋起义、武则天《大云经》）。<strong>「等待未来救世」的心理，极易被人操纵。</strong></p></div>
+      <div class="limit"><b>逃</b><p>把希望全押在五十多亿年后的龙华会，可能滑成逃避当下、消极空等。<strong>这套法门自带解药：现在就修慈、修十善。</strong></p></div>
+      <div class="limit"><b>争</b><p>兜率上生与弥陀西方往生，古来并行又有竞争。<strong>不必非此即彼——两者是两种「近处 / 远处净土」的取向，可按自身选。</strong></p></div>
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 闭环 -->
+<section class="loop">
+  <div class="wrap reveal">
+    <p class="eyebrow">接入你的判断系统 · 闭环</p>
+    <h2>它给你的弧，<br>加一条<span class="ko">正交的轴</span></h2>
+    <p class="lead">你前几本在「空 ↔ 有」这条本体论轴上。弥勒经不在那条轴上——它在另一条：<strong>时间轴（未来 / 希望 / 愿力）</strong>。它讲的不是「实相是什么」，是「如何朝向未来」。以下仅作素材，判断权归你。</p>
+    <div class="bridges">
+      <div class="bridge">
+        <div class="pair"><span class="side l">见地（空↔有）</span><span class="eq">×</span><span class="side r">取向（当下↔未来）</span></div>
+        <p>前六本是横切面（实相是什么），弥勒经是纵贯线（如何朝向未来）。<em>它给你的阅读弧加了一条正交维度。</em><span class="tagx">正交轴：希望 / 愿力</span></p>
+      </div>
+      <div class="bridge">
+        <div class="pair"><span class="side l">希望管理</span><span class="eq">≈</span><span class="side r">心理结构</span></div>
+        <p>健康的希望＝用遥远未来驱动当下行动；一旦变成「空等降临」就退化成逃避。<em>判据：这个希望让我现在更行动，还是更停滞？</em><span class="tagx">心理 / 自我维度</span></p>
+      </div>
+      <div class="bridge">
+        <div class="pair"><span class="side l">慈三昧</span><span class="eq">≈</span><span class="side r">可训练的情绪基线</span></div>
+        <p>慈氏因地「入慈三昧」——慈不是等来的好心情，是像练肌肉一样练出的底色。<em>对接你的自我维度：主动修一个稳定的慈。</em><span class="tagx">loving-kindness</span></p>
+      </div>
+    </div>
+
+    <p class="eyebrow" style="margin-top:3rem">候选 · 可归入 memory.md 的闭环认知</p>
+    <div class="closures">
+      <div class="closure"><span class="n">壹</span><p>希望管理：健康的希望＝<em>用遥远未来驱动当下行动</em>；变成「空等降临」即退化为逃避。判据——它让我现在更行动，还是更停滞？</p></div>
+      <div class="closure"><span class="n">贰</span><p>慈是可训练的基线：像练肌肉一样练<em>慈三昧</em>，而非被动等好心情自然来。</p></div>
+      <div class="closure"><span class="n">叁</span><p>给阅读弧加一条正交轴：<em>见地（空↔有）× 取向（当下↔未来）</em>——弥勒法门补的是「未来 / 愿力」这一极。</p></div>
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 行动 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">可落地</p>
+    <h2>怎么<span class="ko">读 / 用</span></h2>
+    <div class="actions">
+      <div class="act"><h4>读弥勒三经即可</h4><p>六部不必全读。读《上生经》（沮渠京声）把握「上生兜率」的修行路径，读《下生经》（竺法护）或《大成佛经》（罗什）把握「下生龙华」的未来图景——三经足够。</p></div>
+      <div class="act"><h4>看清两条路</h4><p>把「上生（现在主动向上）」与「下生（耐心等未来降临）」两种取向看清，对照自己面对任何远期目标时，是哪一种姿态。</p></div>
+      <div class="act"><h4>慈心当练习</h4><p>取弥勒「慈三昧」的内核，做现代慈心练习——给自我维度加一个稳定的慈的底色，而不是等心情。</p></div>
+      <div class="act"><h4>一个检验动作</h4><p class="test">读它时问自己：我是在<em>用一个遥远的未来安慰现在的无力</em>，还是真的<em>让那个未来逼我现在就开始修慈与善</em>？</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="seal-final">慈</div>
+  <p>当来下生，慈心在今 · 判断归人 · 不空等未来，在当下搭桥</p>
+</footer>
+
+<script>
+  // —— 签名图形：同心圆（慈的扩散 + 龙华三会三环 + 兜率内院）——
+  (function(){
+    const svg=document.getElementById('conc'); if(!svg) return;
+    const NS='http://www.w3.org/2000/svg';
+    const gold='#d4a857', blue='#6f8fb0', coral='#cf6b5a';
+    function el(p,t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e;}
+
+    // 背景同心圆（慈的扩散波纹）
+    for(let r=24;r<=232;r+=15){
+      const emph=(Math.abs(r-78)<4||Math.abs(r-138)<4||Math.abs(r-198)<4); // 龙华三会三环
+      el(svg,'circle',{r:r,fill:'none',stroke:emph?gold:blue,'stroke-width':emph?1.4:0.7,
+        opacity:emph?.5:.22-(r/900),class:emph?'pulse':''});
+    }
+    // 三环上的点（三会得度的众生）
+    [78,138,198].forEach(function(r,k){
+      const n=12+k*8;
+      const g=el(svg,'g',{class:k%2?'spin rev':'spin'});
+      for(let i=0;i<n;i++){const a=i/n*Math.PI*2;el(g,'circle',{cx:Math.cos(a)*r,cy:Math.sin(a)*r,r:1.5,fill:gold,opacity:.5});}
+    });
+    // 旋转放射线（慈光）
+    const rays=el(svg,'g',{class:'spin'});
+    for(let i=0;i<24;i++){const a=i/24*Math.PI*2;el(rays,'line',{x1:Math.cos(a)*40,y1:Math.sin(a)*40,x2:Math.cos(a)*232,y2:Math.sin(a)*232,stroke:gold,'stroke-width':.4,opacity:.08});}
+    // 兜率内院（中心暖核）
+    el(svg,'circle',{r:40,fill:'none',stroke:gold,'stroke-width':1,opacity:.5});
+    el(svg,'circle',{r:26,fill:'none',stroke:blue,'stroke-width':.8,opacity:.4});
+    el(svg,'circle',{r:13,fill:coral,opacity:.55,class:'pulse'});
+    el(svg,'circle',{r:6,fill:gold,opacity:.9});
+  })();
+
+  // 滚动揭示
+  const io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(function(x){io.observe(x);});
+</script>
