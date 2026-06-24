@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paimon 提交锁超时 · 故障复盘报告</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f1216;
+    --panel:#161b22;
+    --panel-2:#1b212b;
+    --code:#11151b;
+    --border:#272f3a;
+    --border-soft:#1f262f;
+    --ink:#d8dee6;
+    --ink-mid:#9aa5b3;
+    --ink-dim:#69727f;
+    --amber:#e3a13d;      /* 锁 / WAITING — 本案主角色 */
+    --amber-soft:#3a2e17;
+    --teal:#46c0a6;       /* 已解决 / 健康 */
+    --teal-soft:#16302b;
+    --red:#e5564b;        /* 故障 */
+    --red-soft:#3a1f1d;
+    --blue:#5b9bd5;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;
+    font-size:15px;line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--amber);color:#0f1216}
+  code,pre,.mono{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+
+  .layout{display:grid;grid-template-columns:248px 1fr;max-width:1200px;margin:0 auto;min-height:100vh}
+
+  /* ---------- Sidebar ---------- */
+  aside{
+    position:sticky;top:0;align-self:start;height:100vh;
+    border-right:1px solid var(--border-soft);
+    padding:34px 22px;overflow-y:auto;
+  }
+  .brand{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .brand .glyph{
+    width:30px;height:30px;flex:none;border:1.5px solid var(--amber);border-radius:7px;
+    display:grid;place-items:center;color:var(--amber);
+  }
+  .brand .glyph svg{width:15px;height:15px}
+  .brand .t{font-family:'Space Grotesk';font-weight:700;font-size:13px;letter-spacing:.04em;color:var(--ink)}
+  .brand .s{font-size:11px;color:var(--ink-dim);letter-spacing:.16em;text-transform:uppercase}
+  nav{margin-top:28px;display:flex;flex-direction:column;gap:1px}
+  nav a{
+    color:var(--ink-mid);text-decoration:none;font-size:13.5px;
+    padding:7px 11px;border-radius:7px;display:flex;gap:11px;align-items:baseline;
+    transition:background .15s,color .15s;
+  }
+  nav a .n{font-family:'JetBrains Mono';font-size:11px;color:var(--ink-dim);width:16px;flex:none}
+  nav a:hover{background:var(--panel);color:var(--ink)}
+  nav a.active{background:var(--panel);color:var(--amber)}
+  nav a.active .n{color:var(--amber)}
+
+  /* ---------- Main ---------- */
+  main{padding:0 0 120px;min-width:0}
+  .wrap{padding:0 56px}
+
+  /* header / incident ticket */
+  header.hero{padding:64px 56px 40px;border-bottom:1px solid var(--border-soft);position:relative;overflow:hidden}
+  header.hero::after{
+    content:"";position:absolute;right:-60px;top:-60px;width:260px;height:260px;
+    background:radial-gradient(circle,rgba(227,161,61,.10),transparent 70%);pointer-events:none;
+  }
+  .eyebrow{font-family:'JetBrains Mono';font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--amber);margin-bottom:18px}
+  h1{font-family:'Space Grotesk';font-weight:700;font-size:38px;line-height:1.12;letter-spacing:-.01em;margin-bottom:14px}
+  h1 .dim{color:var(--ink-mid);font-weight:500}
+  .sub{color:var(--ink-mid);font-size:16px;max-width:620px}
+  .meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px}
+  .chip{
+    font-family:'JetBrains Mono';font-size:11.5px;letter-spacing:.02em;
+    padding:6px 11px;border:1px solid var(--border);border-radius:6px;background:var(--panel);
+    display:flex;gap:8px;align-items:center;color:var(--ink-mid);
+  }
+  .chip b{color:var(--ink);font-weight:500}
+  .chip .dot{width:6px;height:6px;border-radius:50%}
+  .dot.red{background:var(--red)}.dot.amber{background:var(--amber)}.dot.teal{background:var(--teal)}
+
+  /* sections */
+  section{padding:52px 56px;border-bottom:1px solid var(--border-soft)}
+  .sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:24px}
+  .sec-head .num{font-family:'JetBrains Mono';font-size:13px;color:var(--amber);padding-top:3px}
+  h2{font-family:'Space Grotesk';font-weight:600;font-size:25px;letter-spacing:-.01em}
+  h2 .en{display:block;font-family:'JetBrains Mono';font-size:11px;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim);margin-top:4px}
+  h3{font-family:'Space Grotesk';font-weight:600;font-size:16.5px;margin:26px 0 12px;color:var(--ink)}
+  p{margin:12px 0;color:var(--ink)}
+  p.lead{font-size:16.5px;color:var(--ink-mid)}
+  strong{color:#fff;font-weight:600}
+  em{color:var(--amber);font-style:normal;font-weight:500}
+  .ink-dim{color:var(--ink-dim)}
+
+  ul.clean{list-style:none;margin:14px 0;display:flex;flex-direction:column;gap:9px}
+  ul.clean li{position:relative;padding-left:20px;color:var(--ink)}
+  ul.clean li::before{content:"";position:absolute;left:2px;top:11px;width:6px;height:6px;border-radius:1px;background:var(--amber);transform:rotate(45deg)}
+
+  /* callout */
+  .call{border:1px solid var(--border);border-left-width:3px;border-radius:8px;padding:16px 18px;margin:20px 0;background:var(--panel)}
+  .call .tag{font-family:'JetBrains Mono';font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px;display:block}
+  .call.amber{border-left-color:var(--amber)} .call.amber .tag{color:var(--amber)}
+  .call.red{border-left-color:var(--red)} .call.red .tag{color:var(--red)}
+  .call.teal{border-left-color:var(--teal)} .call.teal .tag{color:var(--teal)}
+  .call p{margin:6px 0}
+
+  /* code */
+  pre{background:var(--code);border:1px solid var(--border-soft);border-radius:9px;padding:16px 18px;overflow-x:auto;margin:16px 0;font-size:13px;line-height:1.65}
+  pre .cmt{color:#5d6875}
+  pre .key{color:var(--blue)}
+  pre .val{color:var(--teal)}
+  pre .warn{color:var(--amber)}
+  pre .err{color:var(--red)}
+  pre .hl{background:rgba(229,86,75,.12);display:block;margin:0 -18px;padding:0 18px;border-left:2px solid var(--red)}
+  pre .hlw{background:rgba(227,161,61,.10);display:block;margin:0 -18px;padding:0 18px;border-left:2px solid var(--amber)}
+  code.inline{background:var(--panel-2);border:1px solid var(--border-soft);padding:1px 6px;border-radius:5px;font-size:12.5px;color:var(--amber)}
+
+  /* causal chain — signature */
+  .chain{margin:22px 0;display:flex;flex-direction:column}
+  .link{display:grid;grid-template-columns:34px 1fr;gap:16px;position:relative;padding-bottom:18px}
+  .link:last-child{padding-bottom:0}
+  .link .rail{display:flex;flex-direction:column;align-items:center}
+  .link .node{width:34px;height:34px;flex:none;border-radius:9px;border:1px solid var(--border);background:var(--panel);
+    display:grid;place-items:center;font-family:'JetBrains Mono';font-size:13px;font-weight:700;color:var(--ink-mid);z-index:1}
+  .link .line{width:1px;flex:1;background:var(--border);margin-top:2px}
+  .link:last-child .line{display:none}
+  .link .body{padding-top:5px}
+  .link .ttl{font-weight:600;color:var(--ink);font-size:14.5px}
+  .link .desc{color:var(--ink-mid);font-size:13.5px;margin-top:3px}
+  .link.break .node{border-color:var(--red);color:var(--red);box-shadow:0 0 0 4px var(--red-soft)}
+  .link.break .ttl{color:var(--red)}
+  .link.root .node{border-color:var(--amber);color:var(--amber);box-shadow:0 0 0 4px var(--amber-soft)}
+  .link.root .ttl{color:var(--amber)}
+  .badge{font-family:'JetBrains Mono';font-size:10px;letter-spacing:.08em;padding:2px 7px;border-radius:4px;margin-left:8px;vertical-align:middle}
+  .badge.r{background:var(--red-soft);color:var(--red)}
+  .badge.a{background:var(--amber-soft);color:var(--amber)}
+
+  /* table */
+  .tbl{width:100%;border-collapse:collapse;margin:18px 0;font-size:13.5px}
+  .tbl th,.tbl td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--border-soft);vertical-align:top}
+  .tbl th{font-family:'JetBrains Mono';font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);font-weight:400}
+  .tbl td:first-child{color:var(--ink);font-weight:500;white-space:nowrap}
+  .tbl .verdict{font-family:'JetBrains Mono';font-size:11px;padding:2px 8px;border-radius:4px}
+  .v-no{background:var(--red-soft);color:var(--red)}
+  .v-ok{background:var(--teal-soft);color:var(--teal)}
+  .v-mb{background:var(--amber-soft);color:var(--amber)}
+
+  /* checklist */
+  .check{display:flex;flex-direction:column;gap:2px;margin:16px 0}
+  .check .row{display:grid;grid-template-columns:24px 1fr;gap:12px;padding:11px 12px;border-radius:8px;align-items:start}
+  .check .row:hover{background:var(--panel)}
+  .check .box{width:18px;height:18px;border:1.5px solid var(--amber);border-radius:5px;margin-top:3px;flex:none;position:relative}
+  .check .box::after{content:"";position:absolute;inset:3px;border-radius:2px;background:transparent}
+  .check .txt b{color:#fff;font-weight:600}
+  .check .txt .d{color:var(--ink-mid);font-size:13px;display:block;margin-top:1px}
+
+  /* method two-up */
+  .duo{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px 0}
+  .duo .card{border:1px solid var(--border);border-radius:10px;padding:18px;background:var(--panel)}
+  .duo .card h4{font-family:'Space Grotesk';font-size:15px;color:var(--amber);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .duo .card p{font-size:13.5px;color:var(--ink-mid);margin:7px 0}
+
+  footer{padding:40px 56px;color:var(--ink-dim);font-size:12.5px;font-family:'JetBrains Mono';display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+
+  /* reveal */
+  .reveal{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease}
+  .reveal.in{opacity:1;transform:none}
+
+  @media (max-width:880px){
+    .layout{grid-template-columns:1fr}
+    aside{position:static;height:auto;border-right:none;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;justify-content:space-between;padding:18px 24px}
+    aside nav{display:none}
+    header.hero{padding:44px 24px 32px}
+    h1{font-size:29px}
+    .wrap,section{padding-left:24px;padding-right:24px}
+    .duo{grid-template-columns:1fr}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .reveal{opacity:1;transform:none;transition:none}
+    html{scroll-behavior:auto}
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <div class="brand">
+      <div class="glyph">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+        </svg>
+      </div>
+      <div>
+        <div class="t">INCIDENT REVIEW</div>
+        <div class="s">Paimon · Commit Lock</div>
+      </div>
+    </div>
+    <nav id="nav">
+      <a href="#overview"><span class="n">00</span>概览</a>
+      <a href="#symptom"><span class="n">01</span>故障现象</a>
+      <a href="#impact"><span class="n">02</span>影响范围</a>
+      <a href="#root"><span class="n">03</span>根因分析</a>
+      <a href="#mechanism"><span class="n">04</span>机制原理</a>
+      <a href="#cos"><span class="n">05</span>COS 决策</a>
+      <a href="#fix"><span class="n">06</span>解决方案</a>
+      <a href="#prevent"><span class="n">07</span>复发预防</a>
+      <a href="#alt"><span class="n">08</span>备选对比</a>
+      <a href="#method"><span class="n">09</span>方法论沉淀</a>
+    </nav>
+  </aside>
+
+  <main>
+    <header class="hero" id="overview">
+      <div class="eyebrow">Post-Mortem · 2026-06-18</div>
+      <h1>实时写入卡死的真凶<br><span class="dim">不是数据冲突，是一把泄漏的 Hive 锁</span></h1>
+      <p class="sub">单 Flink 任务写 8 张 Paimon 表，唯独 <code class="inline">ods_icv_can_e16reev</code> 的 Global Committer 长期卡在初始化，最终因 8 分钟拿不到 HMS 表锁而失败。本报告还原从误导性报错到根因的完整链路，并给出在 COS 存储下保留 Hive Catalog 的根治配置。</p>
+      <div class="meta">
+        <span class="chip"><span class="dot red"></span>故障级别 <b>P2 · 单表链路中断</b></span>
+        <span class="chip">发生时间 <b>2026-06-17 08:06</b></span>
+        <span class="chip">组件 <b>Flink + Paimon + Hive Catalog + COS</b></span>
+        <span class="chip"><span class="dot amber"></span>状态 <b>根因已定位 · 待配置上线</b></span>
+      </div>
+    </header>
+
+    <!-- 00 概览 -->
+    <section class="reveal">
+      <div class="sec-head"><span class="num">00</span><h2>一句话结论<span class="en">Executive Summary</span></h2></div>
+      <p class="lead">报错顶层的「multiple jobs commit conflict」是 Paimon 的通用包装语，<strong>不是真因</strong>。真因藏在堆栈最底层：<em>上一个实例在持有该表提交锁的瞬间非优雅退出，锁泄漏在 Hive Metastore；而 HMS 没有运行锁回收，死锁永不释放</em>——新实例恢复时申请同一张表的锁，等满默认 8 分钟超时后失败。</p>
+      <div class="call teal">
+        <span class="tag">修复方向</span>
+        <p>保留 Hive Catalog（COS 必须有锁、且需 HMS 同步元数据给 Hive 外部表），把修复落在 <strong>HMS 端的锁回收（housekeeping / reaper）</strong> 与 <strong>优雅停止</strong> 上。Paimon 端配置无需改动。</p>
+      </div>
+    </section>
+
+    <!-- 01 现象 -->
+    <section class="reveal" id="symptom">
+      <div class="sec-head"><span class="num">01</span><h2>故障现象<span class="en">Symptom</span></h2></div>
+      <ul class="clean">
+        <li>一个 Flink 任务消费 Kafka，写入 <strong>8 张 Paimon 表</strong>（每张约 210 字段），上层创建 Hive 外部表读取。</li>
+        <li>其余 7 张表写入正常，<strong>唯独 <code class="inline">ods.ods_icv_can_e16reev</code> 异常</strong>。</li>
+        <li>算子 <code class="inline">Global Committer: ods_icv_can_e16reev +- Writer</code> 长期停留在 <em>INITIALIZING</em> 状态。</li>
+        <li>最终在恢复阶段抛出提交失败异常。关键堆栈（精简）如下。</li>
+      </ul>
+      <pre><span class="cmt"># 顶层：通用包装语，具有误导性</span>
+Commit failed after ... with 10 retries,
+  there maybe exist <span class="warn">commit conflicts between multiple jobs</span>.
+  ...
+Caused by: Exception occurs when committing snapshot #181 ... kind APPEND.
+  Cannot clean up because we can't determine the success.
+<span class="hl">Caused by: Acquire <span class="err">lock failed</span> for table ods.ods_icv_can_e16reev
+  (lockId=958737) after <span class="err">485079ms</span>. Final lock state: <span class="err">WAITING</span></span>
+  at org.apache.paimon.hive.HiveCatalogLock.lock(HiveCatalogLock.java:125)
+  at ...CommitterOperator.initializeState(CommitterOperator.java:147)</pre>
+      <div class="call amber">
+        <span class="tag">第一个信号</span>
+        <p>485079ms ≈ <strong>8.08 分钟</strong>，正好是 Paimon <code class="inline">lock.acquire-timeout</code> 的默认值（480000ms）。提交本身没失败——是<strong>拿不到锁，等满超时被迫放弃</strong>。</p>
+      </div>
+    </section>
+
+    <!-- 02 影响 -->
+    <section class="reveal" id="impact">
+      <div class="sec-head"><span class="num">02</span><h2>影响范围<span class="en">Impact</span></h2></div>
+      <ul class="clean">
+        <li><strong>受影响：</strong>仅 <code class="inline">ods_icv_can_e16reev</code> 一张表的实时写入链路中断，下游 Hive 外部表数据停更。</li>
+        <li><strong>未受影响：</strong>同任务内其余 7 张表正常——因为 Paimon 的提交锁是<strong>按表粒度</strong>，各表各自申请、互不干扰。</li>
+        <li><strong>失败模式：</strong>响亮、可恢复（有明确报错，清锁即恢复）。这一点在后文 COS 决策中是重要对照。</li>
+      </ul>
+    </section>
+
+    <!-- 03 根因 -->
+    <section class="reveal" id="root">
+      <div class="sec-head"><span class="num">03</span><h2>根因分析<span class="en">Root Cause Chain</span></h2></div>
+      <p class="lead">从现象到根因，是一条因果链。两个红/橙节点是断裂点——其中橙色为最终根因。</p>
+      <div class="chain">
+        <div class="link"><div class="rail"><div class="node">1</div><div class="line"></div></div>
+          <div class="body"><div class="ttl">Global Committer 卡 INITIALIZING，最终提交失败</div>
+          <div class="desc">触发点在 <code class="inline">initializeState → recover → filterAndCommit</code>，即<strong>作业重启/恢复</strong>时重放 snapshot #181 的提交。</div></div></div>
+
+        <div class="link"><div class="rail"><div class="node">2</div><div class="line"></div></div>
+          <div class="body"><div class="ttl">顶层「multiple jobs commit conflict」<span class="badge a">误导</span></div>
+          <div class="desc">Paimon 在任何提交失败时都会套这句通用语，并非真的存在多作业数据冲突。</div></div></div>
+
+        <div class="link"><div class="rail"><div class="node">3</div><div class="line"></div></div>
+          <div class="body"><div class="ttl">真实信号：拿不到锁，等满 8 分钟默认超时</div>
+          <div class="desc">485079ms ≈ <code class="inline">lock.acquire-timeout</code> 默认值。问题是「锁」，不是「数据」，更不是 210 字段宽表。</div></div></div>
+
+        <div class="link break"><div class="rail"><div class="node">4</div><div class="line"></div></div>
+          <div class="body"><div class="ttl">断裂点①：上个实例持锁瞬间非优雅退出 → 锁泄漏</div>
+          <div class="desc">崩溃时恰好持有 <code class="inline">ods_icv_can_e16reev</code> 的提交锁（其余 7 张已提交完释放），<code class="inline">unlock()</code> 没机会执行，锁残留在 HMS。</div></div></div>
+
+        <div class="link root"><div class="rail"><div class="node">5</div><div class="line"></div></div>
+          <div class="body"><div class="ttl">断裂点②（根因）：HMS 未回收死锁 <span class="badge a">ROOT CAUSE</span></div>
+          <div class="desc">Paimon 的 Hive 锁<strong>不发心跳</strong>，依赖 HMS 的 reaper 回收死锁。HMS 的 housekeeping/reaper 未开启或链路中无进程运行它，死锁永久 ACQUIRED。</div></div></div>
+
+        <div class="link"><div class="rail"><div class="node">6</div></div>
+          <div class="body"><div class="ttl">结果：新实例申请同表锁 → WAITING 至超时 → 单表链路中断</div></div></div>
+      </div>
+      <div class="call amber">
+        <span class="tag">为什么只有一张表</span>
+        <p>提交锁按表粒度、短时持有。上次崩溃的瞬间只可能持有一张表的锁，恰好是它。<strong>210 字段宽表与本故障无关</strong>，纯粹是锁问题，不必往 schema 方向排查。</p>
+      </div>
+    </section>
+
+    <!-- 04 机制 -->
+    <section class="reveal" id="mechanism">
+      <div class="sec-head"><span class="num">04</span><h2>机制原理：这把锁到底是什么<span class="en">Mechanism</span></h2></div>
+
+      <h3>是什么锁</h3>
+      <p>开启 <code class="inline">lock.enabled</code> 且用 Hive Catalog 时，Paimon 走 <code class="inline">HiveCatalogLock</code>，底层调 HMS 的 <code class="inline">lock()</code> Thrift API，请求体是一把 <strong>EXCLUSIVE / TABLE 级</strong>锁：</p>
+      <pre><span class="key">LockComponent</span>(type=<span class="warn">EXCLUSIVE</span>, level=<span class="warn">TABLE</span>, dbname=ods, tablename=ods_icv_can_e16reev)</pre>
+      <p>它复用了 Hive ACID 的锁子系统（<code class="inline">HIVE_LOCKS</code> 表、TxnHandler），但 Paimon 只把它当<strong>一把分布式互斥锁</strong>用，不是真开 Hive 事务。锁粒度按表，所以 8 张表互不影响。</p>
+
+      <h3>用来做什么</h3>
+      <p>保护 <strong>snapshot commit 的临界区</strong>。Paimon 是乐观并发 + 文件式快照，一次提交做三件事：读当前最新 snapshot id → 占用 <code class="inline">snapshot-(N+1)</code> → 把临时文件 rename 成 <code class="inline">snapshot-N</code>。核心约束是<strong>同一个快照编号全局只能有一个写成功</strong>。这把锁负责把「读 latest → 占 N → 落文件」整段串行化，保证快照编号单调、提交不互相覆盖。</p>
+
+      <h3>什么时候释放</h3>
+      <ul class="clean">
+        <li><strong>正常：</strong>一次提交拿一次锁（按 checkpoint），<code class="inline">finally { unlock() }</code> 立即释放，持锁仅几十毫秒到几秒。</li>
+        <li><strong>异常但 JVM 存活：</strong>finally 照样 unlock，能正常释放。</li>
+        <li><strong>JVM 在持锁瞬间猝死</strong>（kill -9 / OOM / TM crash）：unlock 跑不到 → <em>锁泄漏</em>。Paimon 不发心跳，只能靠 HMS reaper（按 <code class="inline">hive.txn.timeout</code>）回收——reaper 不工作即永久泄漏。</li>
+      </ul>
+    </section>
+
+    <!-- 05 COS 决策 -->
+    <section class="reveal" id="cos">
+      <div class="sec-head"><span class="num">05</span><h2>关键决策：COS 上为何不能换 filesystem catalog<span class="en">Why Not Filesystem Catalog</span></h2></div>
+      <p class="lead">排查中曾观察到「换成 filesystem catalog 就正常」。这是一个<strong>危险的幸存者偏差</strong>，必须纠正。</p>
+      <div class="call red">
+        <span class="tag">Paimon 官方约束</span>
+        <p>Paimon 靠文件系统 rename 提交快照，在 HDFS 上原子安全；但<strong>对象存储（OSS/S3/COS）的 RENAME 没有原子语义，必须配置 Hive 或 JDBC metastore 并开启 lock.enabled，否则有丢快照的风险</strong>。在 COS 上，这把锁不是可选项，而是<strong>对象存储缺失的原子 rename 的替代品</strong>。</p>
+      </div>
+      <p>filesystem catalog 在 COS 上「看起来正常」，只是因为你是<strong>单写</strong>，还没触发并发提交去抢同一个快照。一旦出现重启时新旧实例重叠、新增 compaction 作业、或任何第二个 writer——COS 上没锁就会<strong>静默丢/覆盖快照</strong>。</p>
+      <div class="duo">
+        <div class="card" style="border-color:var(--amber)">
+          <h4>Hive 锁泄漏（本案）</h4>
+          <p>响亮 · 报错明确 · <strong style="color:var(--teal)">可恢复</strong>（清锁即可）。</p>
+        </div>
+        <div class="card" style="border-color:var(--red)">
+          <h4>COS + filesystem 无锁冲突</h4>
+          <p>安静 · 无报错 · <strong style="color:var(--red)">数据不可恢复</strong>。</p>
+        </div>
+      </div>
+      <p class="ink-dim">注：新版 Paimon 已在检测到底层为对象存储时自动启用 catalog lock（社区 PR #3954），正是为堵这个坑。结论：<strong style="color:var(--ink)">在 COS 上 filesystem catalog 是唯一应明确避免的选项</strong>——它是用一个「响亮可修」的错误换一个「沉默致命」的错误。</p>
+    </section>
+
+    <!-- 06 解决方案 -->
+    <section class="reveal" id="fix">
+      <div class="sec-head"><span class="num">06</span><h2>解决方案<span class="en">Resolution</span></h2></div>
+      <p class="lead">杠杆在 HMS，不在 Paimon。Paimon 端锁配置其实已生效（日志里已拿到 lockId），真正缺的是 HMS 没有回收泄漏的锁。</p>
+
+      <h3>① 即时恢复 — 清掉当前残留锁</h3>
+      <pre><span class="key">SHOW LOCKS</span> ods.ods_icv_can_e16reev <span class="key">EXTENDED</span>;
+<span class="cmt">-- 确认那条 ACQUIRED 死锁的 host 对应的作业确实已死后：</span>
+<span class="key">DELETE FROM</span> HIVE_LOCKS
+  <span class="key">WHERE</span> HL_TABLE=<span class="val">'ods_icv_can_e16reev'</span> <span class="key">AND</span> HL_LOCK_STATE=<span class="val">'a'</span>;
+<span class="cmt">-- ⚠ 删前务必先 SHOW LOCKS 确认持有者真死，别误删活作业的锁</span></pre>
+
+      <h3>② 根治 — HMS 端开启锁回收（最关键）</h3>
+      <p>改 <code class="inline">hive-site.xml</code> / <code class="inline">metastore-site.xml</code>，重启 HMS：</p>
+      <pre><span class="key">hive.support.concurrency</span>=<span class="val">true</span>
+<span class="key">hive.txn.manager</span>=<span class="val">org.apache.hadoop.hive.ql.lockmgr.DbTxnManager</span>
+<span class="key">hive.txn.timeout</span>=<span class="val">300</span>                          <span class="cmt"># 秒，超此时长无心跳的锁判定为死</span>
+<span class="hlw"><span class="key">hive.metastore.housekeeping.threads.on</span>=<span class="val">true</span>   <span class="cmt"># 最关键：开它才有 reaper（Hive3: metastore.housekeeping.threads.on）</span></span>
+<span class="key">hive.timedout.txn.reaper.interval</span>=<span class="val">180s</span>        <span class="cmt"># reaper 扫描间隔</span>
+<span class="key">hive.compactor.initiator.on</span>=<span class="val">true</span>             <span class="cmt"># 通常与 housekeeping 一并开</span></pre>
+      <div class="call amber">
+        <span class="tag">非显而易见的关键点</span>
+        <p>回收死锁的 reaper（<code class="inline">AcidHouseKeeperService</code>）<strong>需要有进程在跑它</strong>。Hive3 独立 HMS 中它随 <code class="inline">housekeeping.threads.on</code> 启动；Hive2 中通常跑在 HiveServer2 里。而本链路是 <strong>Paimon 直连 HMS、无 HiveServer2</strong>——若集群是 Hive2 且无任何组件运行 reaper，死锁将永不回收，这正是 8 分钟等满仍未释放的根因。<strong>必须先确认 Hive 版本，并确保确有进程运行 reaper。</strong></p>
+      </div>
+
+      <h3>③ Paimon 端 — 确认即可（已就位）</h3>
+      <pre><span class="key">CREATE CATALOG</span> paimon <span class="key">WITH</span> (
+  <span class="val">'type'</span>=<span class="val">'paimon'</span>, <span class="val">'metastore'</span>=<span class="val">'hive'</span>,
+  <span class="val">'uri'</span>=<span class="val">'thrift://&lt;hms&gt;:9083'</span>,
+  <span class="val">'warehouse'</span>=<span class="val">'s3://&lt;bucket&gt;/&lt;path&gt;'</span>,   <span class="cmt">-- COS endpoint 已配</span>
+  <span class="val">'lock.enabled'</span>=<span class="val">'true'</span>,
+  <span class="val">'lock.type'</span>=<span class="val">'hive'</span>,
+  <span class="val">'lock.acquire-timeout'</span>=<span class="val">'60000'</span>     <span class="cmt">-- 可调小，让卡死快速失败重试（非治本）</span>
+);</pre>
+    </section>
+
+    <!-- 07 预防 -->
+    <section class="reveal" id="prevent">
+      <div class="sec-head"><span class="num">07</span><h2>复发预防清单<span class="en">Prevention Checklist</span></h2></div>
+      <div class="check">
+        <div class="row"><div class="box"></div><div class="txt"><b>HMS housekeeping / reaper 已开启且确有进程在运行</b><span class="d">按 Hive 版本核对参数前缀（hive.* vs metastore.*）与 reaper 运行位置</span></div></div>
+        <div class="row"><div class="box"></div><div class="txt"><b>停作业统一使用 stop-with-savepoint</b><span class="d">禁止 kill -9 / 直接停集群——硬杀即在 HMS 留锁</span></div></div>
+        <div class="row"><div class="box"></div><div class="txt"><b>检查 Flink restart 策略，避免新旧实例长时间并存</b><span class="d">本次根因大概率即旧 attempt 未死干净、新 attempt 抢同表锁</span></div></div>
+        <div class="row"><div class="box"></div><div class="txt"><b>监控告警：HIVE_LOCKS 中长期处于 ACQUIRED 的锁</b><span class="d">把锁泄漏从「事后排查」前移到「主动发现」</span></div></div>
+        <div class="row"><div class="box"></div><div class="txt"><b>验证闭环：模拟 kill → 锁残留 → 等过 txn.timeout → 锁被自动回收</b><span class="d">能自动清掉才算真正配好，否则只是没复现</span></div></div>
+        <div class="row"><div class="box"></div><div class="txt"><b>守住底线：COS 上永不使用 filesystem catalog / 永不关闭锁</b><span class="d">对象存储缺原子 rename，无锁 = 静默丢快照</span></div></div>
+      </div>
+    </section>
+
+    <!-- 08 备选 -->
+    <section class="reveal" id="alt">
+      <div class="sec-head"><span class="num">08</span><h2>决策备选对比<span class="en">Alternatives Considered</span></h2></div>
+      <table class="tbl">
+        <thead><tr><th>方案</th><th>结论</th><th>理由 / 代价</th></tr></thead>
+        <tbody>
+          <tr><td>保留 Hive Catalog<br>+ 修 HMS 锁回收</td><td><span class="verdict v-ok">采用</span></td><td>改动最小、最贴合现状；保留 HMS 自动同步元数据（Hive 外部表读所依赖）；既不丢对象存储安全性也不丢元数据便利。</td></tr>
+          <tr><td>换 filesystem catalog</td><td><span class="verdict v-no">否决</span></td><td>COS 无原子 rename，无锁会静默丢快照；当前「正常」只是单写幸存者偏差。</td></tr>
+          <tr><td>换 JDBC(MySQL) catalog 锁</td><td><span class="verdict v-mb">备选</span></td><td>MySQL 锁更可控、不依赖 Hive ACID housekeeping；代价是失去 Hive 自动元数据同步，需自管外部表。</td></tr>
+          <tr><td>单写 + 关闭锁<br>(lock.enabled=false)</td><td><span class="verdict v-no">不建议</span></td><td>需保证永远单写且重启绝不重叠；而「重启重叠」正是本次诱因，COS 上失败后果是不可恢复的数据损坏。</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 09 方法论 -->
+    <section class="reveal" id="method">
+      <div class="sec-head"><span class="num">09</span><h2>方法论沉淀<span class="en">Principles</span></h2></div>
+      <div class="duo">
+        <div class="card">
+          <h4>贝叶斯 · 用新证据更新根因</h4>
+          <p>「单任务」→ 排除多作业并发；「7/8 正常」→ 锁定单表锁泄漏；「底座是 COS」→ 直接否决 filesystem catalog。每一条新事实都在重排根因概率，而非推翻重来。</p>
+        </div>
+        <div class="card">
+          <h4>奥卡姆 · 最简解释优先</h4>
+          <p>不被顶层「multiple jobs conflict」误导，最简且自洽的解释是「单表死锁泄漏 + reaper 缺失」，直指堆栈最底层那一行，无需引入更复杂的假设。</p>
+        </div>
+      </div>
+      <div class="call teal">
+        <span class="tag">失败模式权衡 · 一条值得记住的原则</span>
+        <p>在分布式存储里，<strong>响亮且可恢复的失败，优于安静且不可恢复的失败</strong>。Hive 锁泄漏会报错、能清掉；COS 无锁丢快照不报错、不可逆。选型时优先保留「会报错」的那条路。</p>
+      </div>
+      <div class="call amber">
+        <span class="tag">待确认项</span>
+        <p>当前 <strong>Hive 版本（2.x / 3.x）</strong>——它决定 HMS housekeeping 参数前缀（<code class="inline">hive.*</code> vs <code class="inline">metastore.*</code>）以及 reaper 的运行位置。确认后即可锁定第 06 节的精确配置项。</p>
+      </div>
+    </section>
+
+    <footer>
+      <span>INCIDENT · ods_icv_can_e16reev · Paimon commit lock timeout</span>
+      <span>复盘 2026-06-18 · 状态：根因已定位，待配置上线</span>
+    </footer>
+  </main>
+</div>
+
+<script>
+  // scroll reveal
+  const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+  // active nav
+  const links=[...document.querySelectorAll('#nav a')];
+  const map=links.map(a=>({a,sec:document.querySelector(a.getAttribute('href'))})).filter(x=>x.sec);
+  const so=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){const id='#'+e.target.id;links.forEach(l=>l.classList.toggle('active',l.getAttribute('href')===id))}})},{rootMargin:'-45% 0px -50% 0px'});
+  map.forEach(m=>so.observe(m.sec));
+</script>
+</body>
+</html>
