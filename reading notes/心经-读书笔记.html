@@ -1,0 +1,594 @@
+<!-- 《般若波罗蜜多心经》深度读书笔记 · 科技/AI配色 · 星座网络/电路签名 -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>心经 · 深度读书笔记</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Long+Cang&family=Noto+Serif+SC:wght@400;600;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ink:#0a0e14;          /* 深空蓝黑 · 底 */
+    --panel:#0f141d;
+    --panel-2:#141b26;
+    --teal:#5cd6c0;         /* 青绿 · 主角 */
+    --teal-bright:#92ead8;
+    --blue:#7aa2ff;         /* 电蓝 · 结构色 */
+    --blue-deep:#5476c4;
+    --alert:#ff6b6b;        /* 警示红 · 印章/强调 */
+    --text:#cdd6e0;         /* 冷银 · 正文 */
+    --dim:#8b97a8;
+    --dim-2:#5f6b7c;
+    --line:rgba(92,214,192,.15);
+    --serif:'Noto Serif SC',serif;
+    --brush:'Long Cang',cursive;
+    --roman:'Cormorant Garamond',serif;
+    --maxw:980px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--ink);color:var(--text);font-family:var(--serif);font-weight:400;
+    line-height:1.85;letter-spacing:.01em;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;
+    background:
+      radial-gradient(120% 90% at 50% -10%, rgba(92,214,192,.12), transparent 55%),
+      radial-gradient(120% 120% at 50% 120%, rgba(122,162,255,.08), transparent 60%);
+    mix-blend-mode:screen}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:2;opacity:.04;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+  .wrap{position:relative;z-index:3;max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  a{color:var(--teal-bright);text-decoration:none}
+  ::selection{background:rgba(255,107,107,.35);color:#fff}
+
+  .eyebrow{font-family:var(--roman);font-style:italic;font-size:.95rem;letter-spacing:.18em;
+    color:var(--blue);text-transform:uppercase;display:flex;align-items:center;gap:.7em;margin:0 0 .9rem}
+  .eyebrow::before{content:"";width:34px;height:1px;background:var(--blue);opacity:.6}
+  h2{font-family:var(--serif);font-weight:900;font-size:clamp(1.7rem,4.2vw,2.7rem);line-height:1.25;
+    margin:0 0 1.1rem;letter-spacing:.02em}
+  h2 .ko{color:var(--teal)}
+  p{margin:0 0 1.05rem}
+  .lead{font-size:1.12rem;color:var(--dim)}
+  section{padding:clamp(64px,9vw,118px) 0;position:relative}
+  .rule{height:1px;background:var(--line);max-width:var(--maxw);margin:0 auto}
+
+  /* HERO */
+  .hero{min-height:100svh;display:grid;place-items:center;text-align:center;padding:80px 24px 64px;
+    position:relative;overflow:hidden}
+  .net{position:absolute;top:50%;left:50%;width:min(126vw,1040px);aspect-ratio:1;
+    transform:translate(-50%,-53%);opacity:.55;z-index:0}
+  .net .spin{transform-origin:center;animation:spin 240s linear infinite}
+  .net .spin.rev{animation-duration:180s;animation-direction:reverse}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .net .pulse{animation:pulse 3.2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.35}50%{opacity:1}}
+  .hero-inner{position:relative;z-index:1}
+  .hero .kicker{font-family:var(--roman);font-style:italic;letter-spacing:.3em;color:var(--blue);
+    font-size:1rem;text-transform:uppercase;margin-bottom:1.1rem;opacity:0;animation:rise .9s .15s forwards}
+  .bigtitle{font-family:var(--brush);color:var(--teal);font-size:clamp(5rem,22vw,15rem);line-height:.9;
+    margin:0;text-shadow:0 0 44px rgba(92,214,192,.32)}
+  .bigtitle span{display:inline-block;opacity:0;transform:translateY(28px) rotate(-3deg);
+    animation:drop .85s cubic-bezier(.2,.8,.2,1) forwards}
+  @keyframes drop{to{opacity:1;transform:none}}
+  @keyframes rise{to{opacity:1}}
+  .entitle{font-family:var(--roman);font-style:italic;color:var(--dim);letter-spacing:.06em;
+    font-size:1.05rem;margin-top:.5rem;opacity:0;animation:rise 1s .8s forwards}
+  .subtitle{font-size:clamp(1rem,2.4vw,1.28rem);color:var(--text);margin:1.5rem auto 0;max-width:31ch;
+    opacity:0;animation:rise 1s 1s forwards}
+  .meta{font-family:var(--roman);color:var(--dim);letter-spacing:.05em;margin-top:1.1rem;font-size:1.02rem;
+    opacity:0;animation:rise 1s 1.2s forwards}
+  .promise{margin-top:2.2rem;display:inline-block;border:1px solid var(--line);border-radius:2px;
+    padding:.7rem 1.4rem;font-size:.98rem;color:var(--teal-bright);background:rgba(92,214,192,.05);
+    opacity:0;animation:rise 1s 1.4s forwards}
+  .scrollcue{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);font-family:var(--roman);
+    font-style:italic;color:var(--dim-2);font-size:.9rem;letter-spacing:.1em;opacity:0;animation:rise 1s 1.7s forwards}
+  .scrollcue::after{content:"";display:block;width:1px;height:34px;margin:.5rem auto 0;
+    background:linear-gradient(var(--teal),transparent);animation:cue 2s ease-in-out infinite}
+  @keyframes cue{0%,100%{transform:scaleY(.4);opacity:.3}50%{transform:scaleY(1);opacity:1}}
+
+  /* 坐标 */
+  .isnot{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:2.2rem}
+  .isnot .col{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:24px}
+  .isnot .col h4{margin:0 0 .8rem;font-family:var(--roman);font-style:italic;letter-spacing:.1em;
+    font-size:1.05rem;text-transform:uppercase}
+  .isnot .col.no h4{color:var(--alert)} .isnot .col.yes h4{color:var(--teal)}
+  .isnot ul{margin:0;padding-left:1.1rem;color:var(--dim);font-size:.99rem}
+  .isnot li{margin:.4rem 0}
+
+  /* 来历 */
+  .context{display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:start}
+  .relic{font-size:1.1rem;line-height:1.9;color:var(--text);border-left:2px solid var(--alert);padding-left:1.3rem}
+  .relic .hl{color:var(--teal-bright);font-weight:600}
+  .relic .src{display:block;margin-top:.8rem;font-family:var(--roman);font-style:italic;color:var(--dim);font-size:.98rem}
+  .facts{display:flex;flex-direction:column}
+  .fact{padding:.85rem 0;border-bottom:1px solid var(--line);display:flex;gap:1rem}
+  .fact:first-child{border-top:1px solid var(--line)}
+  .fact b{font-family:var(--roman);color:var(--blue);font-weight:600;font-style:italic;min-width:5.2em;letter-spacing:.04em}
+  .fact span{color:var(--dim)}
+  .compress{margin-top:1.8rem;display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center;
+    background:var(--panel-2);border:1px solid var(--line);border-radius:4px;padding:22px}
+  .compress .big{font-family:var(--brush);font-size:2.4rem;color:var(--teal)}
+  .compress .arr{color:var(--alert);font-family:var(--roman);font-size:1.4rem}
+  .compress small{display:block;color:var(--dim);font-size:.86rem;font-family:var(--roman);font-style:italic;letter-spacing:.04em}
+
+  /* 中枢命题 */
+  .equation{text-align:center;margin:2rem 0 1.4rem}
+  .equation .big{font-family:var(--brush);font-size:clamp(2.4rem,7vw,4rem);color:var(--teal-bright);line-height:1.1}
+  .equation p{margin:.6rem auto 0;color:var(--dim);max-width:50ch}
+  .seals{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:1.4rem}
+  .seal{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:26px 26px;
+    overflow:hidden;transition:transform .4s,border-color .4s,box-shadow .4s}
+  .seal:hover{transform:translateY(-6px);border-color:rgba(92,214,192,.5);box-shadow:0 20px 50px -24px rgba(92,214,192,.45)}
+  .seal .ph{font-family:var(--brush);font-size:1.7rem;color:var(--teal);line-height:1;margin-bottom:.3rem}
+  .seal .gloss{font-size:.98rem;color:var(--dim);margin:0}
+  .seal::after{content:"";position:absolute;right:-26px;bottom:-26px;width:96px;height:96px;border:1px solid var(--blue);border-radius:50%;opacity:.10}
+
+  /* 路径 */
+  .path{position:relative;margin-top:2.4rem}
+  .path::before{content:"";position:absolute;left:31px;top:8px;bottom:40px;width:2px;
+    background:linear-gradient(var(--teal),var(--blue-deep) 60%,transparent);opacity:.5}
+  .stop{position:relative;padding:0 0 44px 84px}
+  .stop .node{position:absolute;left:14px;top:2px;width:36px;height:36px;border-radius:50%;background:var(--ink);
+    border:2px solid var(--teal);display:grid;place-items:center;font-family:var(--roman);font-style:italic;
+    color:var(--teal);font-size:1.05rem;z-index:2}
+  .stop.star .node{border-color:var(--alert);color:var(--alert);box-shadow:0 0 0 6px rgba(255,107,107,.12)}
+  .stop .chno{font-family:var(--roman);font-style:italic;letter-spacing:.14em;color:var(--blue);font-size:.9rem;text-transform:uppercase}
+  .stop h3{font-size:1.34rem;font-weight:900;margin:.15rem 0 .25rem;color:var(--text)}
+  .stop h3 .star-mark{color:var(--alert);font-size:.9rem;vertical-align:super;margin-left:.3em}
+  .stop .sutra{font-family:var(--brush);font-size:1.45rem;color:var(--teal-bright);margin:.1rem 0 .7rem;letter-spacing:.03em;line-height:1.4}
+  .stop .sutra::before{content:"「";opacity:.45}.stop .sutra::after{content:"」";opacity:.45}
+  .qa{display:grid;gap:.5rem}
+  .qa .row{display:grid;grid-template-columns:auto 1fr;gap:.85rem;align-items:baseline}
+  .qa .tag{font-family:var(--roman);font-style:italic;font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;padding-top:.15rem;white-space:nowrap}
+  .qa .tag.q{color:var(--blue)} .qa .tag.a{color:var(--teal)}
+  .qa .txt{color:var(--text);font-size:1rem} .qa .txt.dimmed{color:var(--dim)}
+  .qa .txt strong{color:var(--teal-bright);font-weight:600}
+  .remember{margin-top:.85rem;position:relative;background:rgba(255,107,107,.06);border:1px solid rgba(255,107,107,.25);
+    border-radius:3px;padding:.8rem 3.4rem .8rem 1rem;font-size:1rem;color:var(--text)}
+  .remember .stamp{position:absolute;right:.7rem;top:50%;transform:translateY(-50%) rotate(-8deg);width:42px;height:42px;
+    border:1.5px solid var(--alert);border-radius:5px;color:var(--alert);font-family:var(--serif);font-weight:900;
+    font-size:.7rem;display:grid;place-items:center;line-height:1;text-align:center;opacity:.9}
+
+  /* 主线 */
+  .spine{display:grid;grid-template-columns:repeat(3,1fr);margin-top:2.4rem;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+  .spine .cell{padding:34px 22px;border-right:1px solid var(--line);position:relative;text-align:center}
+  .spine .cell:last-child{border-right:0}
+  .spine .role{font-family:var(--roman);font-style:italic;letter-spacing:.13em;text-transform:uppercase;font-size:.86rem;margin-bottom:.7rem}
+  .spine .term{font-family:var(--brush);font-size:2.9rem;line-height:1;margin-bottom:.5rem}
+  .spine .cell.a .role{color:var(--blue)} .spine .cell.a .term{color:var(--blue)}
+  .spine .cell.b .role{color:var(--alert)} .spine .cell.b .term{color:var(--alert)}
+  .spine .cell.c .role{color:var(--teal)} .spine .cell.c .term{color:var(--teal)}
+  .spine .cell small{color:var(--dim);display:block;font-size:.94rem}
+  .spine .arrow{position:absolute;right:-11px;top:50%;transform:translateY(-50%);z-index:4;color:var(--teal);font-size:1.3rem}
+  .spine .cell:last-child .arrow{display:none}
+  .spine-cap{text-align:center;margin-top:1.6rem;color:var(--dim)}
+  .spine-cap b{color:var(--teal-bright);font-weight:600}
+
+  /* 概念 */
+  .concepts{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:2.2rem}
+  .cc{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:22px;transition:transform .35s,border-color .35s}
+  .cc:hover{transform:translateY(-4px);border-color:rgba(122,162,255,.5)}
+  .cc .name{font-weight:900;font-size:1.12rem;color:var(--teal);margin-bottom:.25rem}
+  .cc .one{color:var(--dim);font-size:.96rem}
+
+  /* 边界 */
+  .limits{display:grid;gap:14px;margin-top:2rem}
+  .limit{display:grid;grid-template-columns:auto 1fr;gap:1rem;background:var(--panel);border:1px solid var(--line);
+    border-left:3px solid var(--blue);border-radius:3px;padding:20px 22px}
+  .limit b{font-family:var(--roman);font-style:italic;color:var(--blue);font-size:1.25rem;line-height:1.2}
+  .limit p{margin:0;color:var(--dim);font-size:.99rem}
+  .limit p strong{color:var(--teal-bright);font-weight:600}
+
+  /* 闭环 */
+  .loop{background:linear-gradient(180deg,rgba(122,162,255,.06),transparent)}
+  .bridges{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:2.2rem}
+  .bridge{background:var(--panel-2);border:1px solid var(--line);border-radius:4px;padding:24px 22px}
+  .bridge .pair{display:flex;align-items:center;gap:.5rem;justify-content:center;margin-bottom:.9rem;flex-wrap:wrap}
+  .bridge .side{font-weight:900;font-size:.98rem}
+  .bridge .side.l{color:var(--blue)} .bridge .side.r{color:var(--teal)}
+  .bridge .eq{color:var(--alert);font-size:1.3rem;font-family:var(--roman)}
+  .bridge p{font-size:.95rem;color:var(--dim);margin:0;text-align:center}
+  .bridge p em{color:var(--text);font-style:normal}
+  .bridge .tagx{display:block;margin-top:.7rem;font-family:var(--roman);font-style:italic;font-size:.82rem;color:var(--dim-2);letter-spacing:.06em}
+  .closures{margin-top:2rem;display:grid}
+  .closure{display:grid;grid-template-columns:auto 1fr;gap:1rem;padding:1rem 0;border-bottom:1px solid var(--line)}
+  .closure:first-child{border-top:1px solid var(--line)}
+  .closure .n{font-family:var(--roman);font-style:italic;color:var(--teal);font-size:1.5rem;line-height:1}
+  .closure p{margin:0;color:var(--text);font-size:1rem}
+  .closure p em{color:var(--teal-bright);font-style:normal}
+
+  /* 行动 */
+  .actions{display:grid;gap:14px;margin-top:2rem}
+  .act{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:22px 24px}
+  .act h4{margin:0 0 .35rem;font-size:1.12rem;color:var(--teal);font-weight:900}
+  .act p{margin:0;color:var(--dim);font-size:.99rem}
+  .act .test{color:var(--text)} .act .test em{color:var(--teal-bright);font-style:normal}
+
+  footer{padding:60px 24px 80px;text-align:center}
+  footer .seal-final{font-family:var(--brush);color:var(--teal);font-size:2.4rem;margin-bottom:.4rem}
+  footer p{color:var(--dim-2);font-size:.95rem;font-family:var(--roman);font-style:italic;margin:0}
+
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .9s ease,transform .9s cubic-bezier(.2,.8,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  @media(max-width:760px){
+    .context{grid-template-columns:1fr;gap:30px}
+    .isnot,.concepts,.seals{grid-template-columns:1fr}
+    .spine,.bridges{grid-template-columns:1fr}
+    .spine .cell{border-right:0;border-bottom:1px solid var(--line)}
+    .spine .cell:last-child{border-bottom:0}
+    .spine .arrow{right:50%;top:auto;bottom:-12px;transform:translateX(50%) rotate(90deg)}
+    .spine .cell:last-child .arrow{display:none}
+    .stop{padding-left:64px}.path::before{left:23px}.stop .node{left:6px;width:34px;height:34px}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+    .reveal{opacity:1;transform:none}
+    .bigtitle span,.hero .kicker,.entitle,.subtitle,.meta,.promise,.scrollcue{opacity:1!important}
+  }
+</style>
+
+<!-- HERO -->
+<header class="hero">
+  <svg class="net" id="net" viewBox="-250 -250 500 500" aria-hidden="true"></svg>
+  <div class="hero-inner">
+    <div class="kicker">Prajñāpāramitā Hṛdaya · Reading Notes</div>
+    <h1 class="bigtitle" aria-label="心经">
+      <span style="animation-delay:.2s">心</span><span style="animation-delay:.34s">经</span>
+    </h1>
+    <p class="entitle">The Heart Sutra</p>
+    <p class="subtitle">把六百卷《大般若经》，压缩进 260 字的内核。</p>
+    <p class="meta">《般若波罗蜜多心经》 · 玄奘 译 · 649 · 正文 260 字</p>
+    <span class="promise">一串「无」，系统性地把诸法逐项置空——再返回「度一切苦厄」</span>
+  </div>
+  <div class="scrollcue">向下，进入内核</div>
+</header>
+
+<!-- 坐标 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">读之前 · 先校准坐标</p>
+    <h2>不是越长越深——<br>它短到<span class="ko">只剩内核</span></h2>
+    <p class="lead">《心经》是 600 卷《大般若经》的「心髓」，把整个般若学压成一段可背诵的运行流程：先观照五蕴皆空，再用一连串「无」逐项遣除执着，最后心无罣碍、度一切苦厄。</p>
+    <div class="isnot">
+      <div class="col no">
+        <h4>它不是</h4>
+        <ul>
+          <li>护身 / 求平安的符咒（虽常被这样用）</li>
+          <li>独立著作——是《大般若经》的抽取浓缩</li>
+          <li>虚无主义：「空」不是「没有」</li>
+          <li>一张要背的名词表</li>
+        </ul>
+      </div>
+      <div class="col yes">
+        <h4>它是</h4>
+        <ul>
+          <li>整个般若学的极致压缩内核</li>
+          <li>观自在菩萨与舍利子关于空性的问答</li>
+          <li>一段「去执」的运行流程：照见 → 遮遣 → 度苦</li>
+          <li>与《金刚经》并称、曾被称「经王」的般若经</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 来历 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">经的来历 · 一次极致压缩</p>
+    <h2>六百卷，<br>压进<span class="ko">一颗「心」</span></h2>
+    <div class="context" style="margin-top:2.2rem">
+      <div>
+        <p class="relic">玄奘一生译经 1335 卷，其中阐发般若的<span class="hl">600 卷《大般若经》几乎占了一半</span>。而这 600 卷的核心要义，又被高度浓缩进<span class="hl">短短 260 字</span>——这就是《心经》。「心」即心髓、内核。它的主体取自《大般若经》观照品与劝持品，末尾的咒取自《陀罗尼集经》，拼装成今天的形态。
+          <span class="src">—— 它是所有佛经里字数最少、却被念诵最多的一部</span></p>
+        <div class="compress">
+          <div><div class="big">600 卷</div><small>《大般若经》</small></div>
+          <div class="arr">⟶ 压缩 ⟶</div>
+          <div><div class="big">260 字</div><small>《心经》内核</small></div>
+        </div>
+      </div>
+      <div class="facts">
+        <div class="fact"><b>译者</b><span>玄奘（649 年），260 字，最流行；另有罗什等七种汉译</span></div>
+        <div class="fact"><b>来源</b><span>《大般若经》的抽取浓缩，故名「心」（心髓）</span></div>
+        <div class="fact"><b>主体</b><span>观自在菩萨 ↔ 舍利子，关于空性的问答</span></div>
+        <div class="fact"><b>版本</b><span>玄奘本为略本（只正宗分）；广本另含序分、流通分</span></div>
+        <div class="fact"><b>地位</b><span>与《金刚经》并为通行最广的般若经，曾称「经王」</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 中枢命题 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">中枢命题 · 全经的心脏</p>
+    <h2>那组著名的<span class="ko">等式</span></h2>
+    <div class="equation">
+      <div class="big">色即是空 · 空即是色</div>
+      <p>「色」（一切物质现象）与「空」（无独立常存的自性），不是两样东西，也不是一样东西——是「不一不异」的中道。破除「色 / 空二分」的执着，是整部经的支点。</p>
+    </div>
+    <div class="seals">
+      <div class="seal"><div class="ph">色不异空</div><p class="gloss">现象离不开空性——任何「东西」都没有自带的固定本质。</p></div>
+      <div class="seal"><div class="ph">空不异色</div><p class="gloss">空性不在现象之外——别把「空」又执成一个独立的东西。</p></div>
+      <div class="seal"><div class="ph">色即是空</div><p class="gloss">当下即是，不是先有色、再变空——同一件事的两面。</p></div>
+      <div class="seal"><div class="ph">受想行识亦复如是</div><p class="gloss">其余四蕴同理——身心全体，无一例外。</p></div>
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 逐段之路 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">逐段精读 · 七分结构 · 经文为公有古本</p>
+    <h2>沿这段流程<span class="ko">走一遍</span></h2>
+    <p class="lead">古来把《心经》判为七分：总纲 → 色空 → 本体 → 妙用 → 果德 → 证知 → 秘密。带 <span style="color:var(--alert)">★</span> 的两段，是引擎与产出。</p>
+
+    <div class="path" style="margin-top:2.4rem">
+
+      <div class="stop">
+        <div class="node">壹</div>
+        <div class="chno">总纲分 · The Thesis</div>
+        <h3>照见五蕴皆空，度一切苦厄</h3>
+        <div class="sutra">观自在菩萨，行深般若波罗蜜多时，照见五蕴皆空，度一切苦厄</div>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">第一句就把结论和承诺都说完了——后面还讲什么？</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">这是全经的总纲：用「深般若」去观照，照见构成身心的五蕴本无自性（皆空），于是度脱一切苦厄。后面六段，都是把这一句<strong>展开、论证、收束</strong>。</span></div>
+        </div>
+        <div class="remember">整部经就一句话：看清五蕴皆空，苦就被度过去了。其余都是注脚。<span class="stamp">记住</span></div>
+      </div>
+
+      <div class="stop">
+        <div class="node">贰</div>
+        <div class="chno">色空分 · The Equation</div>
+        <h3>色即是空，空即是色</h3>
+        <div class="sutra">色不异空，空不异色；色即是空，空即是色</div>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">现象明明在眼前，怎么说它「即是空」？</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">空不是说现象不存在，是说它<strong>没有独立、不变的自性</strong>。现象与空性「不一不异」：离开现象没有空可谈，离开空性现象也立不住。（详见上一节「中枢命题」）</span></div>
+        </div>
+        <div class="remember">空不是把世界删掉，是看穿世界里没有一个「自己说了算」的东西。<span class="stamp">记住</span></div>
+      </div>
+
+      <div class="stop">
+        <div class="node">叁</div>
+        <div class="chno">本体分 · The Property</div>
+        <h3>诸法空相，六个「不」</h3>
+        <div class="sutra">是诸法空相，不生不灭，不垢不净，不增不减</div>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">「空」到底长什么样？能描述吗？</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">只能用「不」来标定：不生不灭、不垢不净、不增不减。<strong>凡是成对的二分（生/灭、净/垢、增/减），在空性层面都不成立</strong>——因为那些都是依赖比较才有的概念，不是事物自带的属性。</span></div>
+        </div>
+        <div class="remember">空性没有正面画像，只能靠拆掉一切二元对立来逼近。<span class="stamp">记住</span></div>
+      </div>
+
+      <div class="stop star">
+        <div class="node">肆</div>
+        <div class="chno">妙用 / 法用分 · The Great Negation</div>
+        <h3>一串「无」，把诸法逐项置空<span class="star-mark">★</span></h3>
+        <div class="sutra">无眼耳鼻舌身意，无色声香味触法……无苦集灭道，无智亦无得</div>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">这么多「无」，是不是把佛法本身也否定了？</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">这是全经的引擎：它<strong>逐项遮遣</strong>——无五蕴、无十二处、无十八界、无十二因缘（无无明…无老死）、无四谛（无苦集灭道）、乃至无能证的智与所得。连佛法的范畴也「空」。不是否定它们的作用，是<strong>否定它们有固定自性、不可被执取</strong>。最后落到「无所得」，般若的妙用才真正启动。</span></div>
+        </div>
+        <div class="remember">把每一个被你当真的范畴，逐个置空——包括「佛法」这一项。清空，才腾得出地方。<span class="stamp">记住</span></div>
+      </div>
+
+      <div class="stop star">
+        <div class="node">伍</div>
+        <div class="chno">果德分 · The Payoff</div>
+        <h3>无罣碍，故无有恐怖<span class="star-mark">★</span></h3>
+        <div class="sutra">心无罣碍，无罣碍故，无有恐怖，远离颠倒梦想，究竟涅槃</div>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">清空了一切「有」，得到的是什么？</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">因为「无所得」，心里就没有挂碍；没有挂碍，就<strong>没有恐惧</strong>，远离一切颠倒妄想，抵达究竟的安稳。这是整段「去执」流程的实际产出——<strong>不是得到什么，是不再被什么卡住。</strong></span></div>
+        </div>
+        <div class="remember">恐惧的根，是心里有放不下的「罣碍」。空掉罣碍，恐惧自然没了着力点。<span class="stamp">记住</span></div>
+      </div>
+
+      <div class="stop">
+        <div class="node">陆</div>
+        <div class="chno">证知分 · The Proof</div>
+        <h3>三世诸佛，皆依此成就</h3>
+        <div class="sutra">三世诸佛，依般若波罗蜜多故，得阿耨多罗三藐三菩提</div>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">凭什么相信这条路走得通？</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">经文给出担保：过去、现在、未来一切觉者，都是依靠这同一个「般若」成就无上正觉的。<strong>不是新发明的捷径，是所有人验证过的同一条路。</strong></span></div>
+        </div>
+        <div class="remember">最高的成就，靠的不是更复杂的方法，是同一个「照见空性」。<span class="stamp">记住</span></div>
+      </div>
+
+      <div class="stop">
+        <div class="node">柒</div>
+        <div class="chno">秘密分 · The Kernel</div>
+        <h3>收于一咒：揭谛揭谛</h3>
+        <div class="sutra">揭谛揭谛，波罗揭谛，波罗僧揭谛，菩提萨婆诃</div>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">前面都在讲道理，最后为什么突然给一句不翻译的咒？</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">咒（真言）是<strong>不入概念解析、直接持诵的内核</strong>——前六段把义理讲尽，最后把它压成一句「去吧、去吧、到彼岸去」，不再让你「想」，而让你「行」。义理是源码，咒是可直接运行的那一句。</span></div>
+        </div>
+        <div class="remember">道理讲到尽头，剩下的是「做」。咒，就是把全部义理收成一个可执行的动作。<span class="stamp">记住</span></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 主线 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">若只记一条主线</p>
+    <h2>照见 · 遮遣 · <span class="ko">度苦</span></h2>
+    <p class="lead">把全经看成一段极短、却完整可执行的流程：先观照，再把一切固执逐项置空，最后心无罣碍、度一切苦厄。</p>
+    <div class="spine">
+      <div class="cell a"><div class="role">SCAN · 观照</div><div class="term">照见</div><small>用深般若观照五蕴，看清皆空</small><span class="arrow">→</span></div>
+      <div class="cell b"><div class="role">CLEAR · 遮遣</div><div class="term">空</div><small>一串「无」，把诸法逐项置空、清缓存</small><span class="arrow">→</span></div>
+      <div class="cell c"><div class="role">FREE · 产出</div><div class="term">度苦</div><small>心无罣碍、无有恐怖，度一切苦厄</small></div>
+    </div>
+    <p class="spine-cap">260 字，就是这一条流程的<b>压缩可执行版</b>——短到能背诵，却没丢任何一个关键步骤。</p>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 概念地图 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">贯穿全经 · 八个关键词</p>
+    <h2>核心概念<span class="ko">地图</span></h2>
+    <div class="concepts">
+      <div class="cc"><div class="name">般若（prajñā）</div><div class="one">照见空的智慧，不是聪明、不是知识。</div></div>
+      <div class="cc"><div class="name">波罗蜜多</div><div class="one">到彼岸——从执着此岸渡到自在彼岸。</div></div>
+      <div class="cc"><div class="name">五蕴</div><div class="one">色受想行识，身心的五个聚合。</div></div>
+      <div class="cc"><div class="name">空（性）</div><div class="one">无独立常存的自性，不等于「没有」。</div></div>
+      <div class="cc"><div class="name">色即是空</div><div class="one">现象与空性不一不异的中道。</div></div>
+      <div class="cc"><div class="name">大遮遣</div><div class="one">一串「无」逐项置空五蕴 / 处 / 界 / 因缘 / 四谛 / 智得。</div></div>
+      <div class="cc"><div class="name">无所得</div><div class="one">连「得」也放下，般若妙用自启。</div></div>
+      <div class="cc"><div class="name">咒（揭谛）</div><div class="one">不入解析、直接持诵的可执行内核。</div></div>
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 边界 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">批判性阅读 · 它的边界</p>
+    <h2>短，<br>也最容易被<span class="ko">误用</span></h2>
+    <div class="limits">
+      <div class="limit"><b>符</b><p>极短易被当护身 / 平安咒念，求感应。<strong>但经义是「破执、无所得」——工具化求福，恰与它相反。</strong></p></div>
+      <div class="limit"><b>虚</b><p>没有般若学背景，一串「无」很容易读成消极否定。它是<strong>「无自性」，不是「无一切」</strong>。</p></div>
+      <div class="limit"><b>源</b><p>学界有「《心经》或原为汉文、再回译梵文，回译者可能即玄奘本人」之说（那体慧等），也有反对。<strong>成立史与版本仍有争议，别当定论。</strong></p></div>
+      <div class="limit"><b>略</b><p>玄奘本是略本，无序分 / 流通分，单读易丢「谁对谁说、为何而说」。<strong>需要上下文时可参广本。</strong></p></div>
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 闭环 -->
+<section class="loop">
+  <div class="wrap reveal">
+    <p class="eyebrow">接入你的判断系统 · 闭环</p>
+    <h2>260 字，<br>当场拆掉了上一本的<span class="ko">「有」</span></h2>
+    <p class="lead">你刚读的《大毗婆沙论》，把五蕴 / 十二处 / 十八界 / 十二因缘 / 四谛建成「实有恒有」。而《心经》用「无色…无苦集灭道…无智亦无得」逐项遮遣——这就是「空」对「有」的当场合龙。你的阅读弧在这里闭合。</p>
+    <div class="bridges">
+      <div class="bridge">
+        <div class="pair"><span class="side l">大毗婆沙的「有」</span><span class="eq">⟷</span><span class="side r">心经的「无」</span></div>
+        <p>那部精密建起的诸法范畴，被这 260 字逐项置空。<em>空—有—空 不是绕圈，是螺旋：经过「有」的精密，再读「空」，空才不是空话。</em><span class="tagx">阅读弧合龙</span></p>
+      </div>
+      <div class="bridge">
+        <div class="pair"><span class="side l">600 卷 → 260 字</span><span class="eq">≈</span><span class="side r">闭环蒸馏</span></div>
+        <p>极致有损压缩却保全核心义。<em>正是你 memory.md「只留闭环、剥离噪声」的古典极限演示——能压到不能再压，才算吃透。</em><span class="tagx">压缩 = 理解的标尺</span></p>
+      </div>
+      <div class="bridge">
+        <div class="pair"><span class="side l">无所得</span><span class="eq">≈</span><span class="side r">清空固定先验</span></div>
+        <p>连「智与得」都遮遣。<em>对接贝叶斯——不锁死任何结论；也对接筏喻——连般若法也不执。</em><span class="tagx">反过拟合</span></p>
+      </div>
+    </div>
+
+    <p class="eyebrow" style="margin-top:3rem">候选 · 可归入 memory.md 的闭环认知</p>
+    <div class="closures">
+      <div class="closure"><span class="n">壹</span><p>真正的「懂」是能压缩：<em>能把一个体系压到不能再压、且不失核心（600→260），才算吃透。</em>这是检验理解深度的标尺。</p></div>
+      <div class="closure"><span class="n">贰</span><p>「遮遣」是主动操作：卡顿或恐惧时，回到<em>「照见 → 空 → 无罣碍」</em>流程，逐项问「我把什么执成实有了」，置空它。</p></div>
+      <div class="closure"><span class="n">叁</span><p>心经收束了你这条阅读弧：<em>空（八万四千问 / 正见 / 金刚经）→ 有（大毗婆沙）→ 再回到空（心经）</em>——螺旋上升，不是原地打转。</p></div>
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 行动 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">可落地</p>
+    <h2>怎么<span class="ko">读 / 用</span></h2>
+    <div class="actions">
+      <div class="act"><h4>整篇背下来</h4><p>260 字，是你这条书目里唯一值得全文背诵的。背熟后，它会在卡顿、恐惧时自动浮现，成为一段随身可运行的流程。</p></div>
+      <div class="act"><h4>抓那组等式深挖</h4><p>「色即是空，空即是色」对照《正见》「一切是空」章、《金刚经》「凡所有相」——三处互证，等式才真站得住。</p></div>
+      <div class="act"><h4>对照「有」合龙</h4><p>把心经那串「无」逐项对回《大毗婆沙》建的「有」，看空有如何正面相接——这是你整条阅读线的合龙点。</p></div>
+      <div class="act"><h4>一个检验动作</h4><p class="test">念完问自己：我是<em>把它当护身符念过了</em>，还是真的，此刻，<em>把某个执成实有的东西，遮遣了一下</em>？</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="seal-final">心</div>
+  <p>色即是空，空即是色 · 判断归人 · 六百卷，压进一颗心</p>
+</footer>
+
+<script>
+  // —— 签名图形：星座网络 / 电路（缘起依存之网）——
+  (function(){
+    const svg=document.getElementById('net'); if(!svg) return;
+    const NS='http://www.w3.org/2000/svg';
+    const teal='#5cd6c0', blue='#7aa2ff', alert='#ff6b6b';
+    function el(t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;}
+    function rnd(s){return Math.sin(s*127.1+311.7)*43758.5453%1;} // 伪随机（确定性）
+
+    // 生成节点（同心环 + 抖动）
+    const rings=[[44,5],[88,8],[135,10],[182,12],[226,9]];
+    const nodes=[];
+    let id=0;
+    rings.forEach((rg,ri)=>{
+      const [rBase,cnt]=rg;
+      for(let i=0;i<cnt;i++){
+        const jit=(rnd(id*3.1)-0)*0.3;
+        const a=(i/cnt)*Math.PI*2 + ri*0.4 + jit;
+        const r=rBase + (rnd(id*7.7))*18 - 9;
+        nodes.push({x:Math.cos(a)*r, y:Math.sin(a)*r, i:id});
+        id++;
+      }
+    });
+
+    const graph=el('g',{class:'spin'}); svg.appendChild(graph);
+    const edges=el('g',{}); graph.appendChild(edges);
+
+    // 连边：每个节点连最近的 2 个
+    nodes.forEach(n=>{
+      const near=nodes.filter(m=>m!==n)
+        .map(m=>({m,d:Math.hypot(m.x-n.x,m.y-n.y)}))
+        .sort((a,b)=>a.d-b.d).slice(0,2);
+      near.forEach(({m,d})=>{
+        if(d>160) return;
+        // 偶尔走直角折线，呼应"电路"
+        if(rnd(n.i*5+m.i)>0.62){
+          const mx=m.x, my=n.y;
+          edges.appendChild(el('path',{d:`M${n.x.toFixed(1)} ${n.y.toFixed(1)} L${mx.toFixed(1)} ${my.toFixed(1)} L${m.x.toFixed(1)} ${m.y.toFixed(1)}`,
+            fill:'none',stroke:blue,'stroke-width':.6,opacity:.22}));
+        }else{
+          edges.appendChild(el('line',{x1:n.x,y1:n.y,x2:m.x,y2:m.y,stroke:blue,'stroke-width':.6,opacity:.2}));
+        }
+      });
+    });
+
+    // 节点
+    nodes.forEach(n=>{
+      const isAlert = rnd(n.i*9.3)>0.84;
+      const sz = 1.4 + rnd(n.i*2.2)*2.4;
+      const c = isAlert? alert : teal;
+      const dot=el('circle',{cx:n.x,cy:n.y,r:sz,fill:c,opacity:.85});
+      if(isAlert||rnd(n.i*4.4)>0.7) dot.setAttribute('class','pulse');
+      // 光晕
+      graph.appendChild(el('circle',{cx:n.x,cy:n.y,r:sz*2.6,fill:c,opacity:.10}));
+      graph.appendChild(dot);
+    });
+
+    // 中心：缘起密核
+    graph.appendChild(el('circle',{r:6,fill:teal,opacity:.9,class:'pulse'}));
+    graph.appendChild(el('circle',{r:15,fill:'none',stroke:teal,'stroke-width':.8,opacity:.4}));
+
+    // 外圈刻度环（逆向缓转，电路/罗盘意象）
+    const dial=el('g',{class:'spin rev'}); svg.appendChild(dial);
+    dial.appendChild(el('circle',{r:240,fill:'none',stroke:blue,'stroke-width':.5,opacity:.22}));
+    for(let i=0;i<48;i++){
+      const a=i/48*Math.PI*2;
+      dial.appendChild(el('line',{x1:Math.cos(a)*234,y1:Math.sin(a)*234,x2:Math.cos(a)*240,y2:Math.sin(a)*240,
+        stroke:i%4===0?teal:blue,'stroke-width':i%4===0?1:.5,opacity:.35}));
+    }
+  })();
+
+  // 滚动揭示
+  const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
