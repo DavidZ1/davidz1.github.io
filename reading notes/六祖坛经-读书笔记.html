@@ -1,0 +1,547 @@
+<!-- 《六祖坛经》深度读书笔记 · 科技/AI配色 · 电路签名 -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>六祖坛经 · 深度读书笔记</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Long+Cang&family=Noto+Serif+SC:wght@400;600;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ink:#0a0e14;
+    --panel:#0f141d;
+    --panel-2:#141b26;
+    --teal:#5cd6c0;
+    --teal-bright:#92ead8;
+    --blue:#7aa2ff;
+    --blue-deep:#5476c4;
+    --alert:#ff6b6b;
+    --text:#cdd6e0;
+    --dim:#8b97a8;
+    --dim-2:#5f6b7c;
+    --line:rgba(92,214,192,.15);
+    --serif:'Noto Serif SC',serif;
+    --brush:'Long Cang',cursive;
+    --roman:'Cormorant Garamond',serif;
+    --maxw:980px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--ink);color:var(--text);font-family:var(--serif);font-weight:400;
+    line-height:1.85;letter-spacing:.01em;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;
+    background:
+      radial-gradient(120% 90% at 50% -10%, rgba(92,214,192,.12), transparent 55%),
+      radial-gradient(120% 120% at 50% 120%, rgba(122,162,255,.08), transparent 60%);
+    mix-blend-mode:screen}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:2;opacity:.04;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+  .wrap{position:relative;z-index:3;max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  a{color:var(--teal-bright);text-decoration:none}
+  ::selection{background:rgba(255,107,107,.35);color:#fff}
+
+  .eyebrow{font-family:var(--roman);font-style:italic;font-size:.95rem;letter-spacing:.18em;
+    color:var(--blue);text-transform:uppercase;display:flex;align-items:center;gap:.7em;margin:0 0 .9rem}
+  .eyebrow::before{content:"";width:34px;height:1px;background:var(--blue);opacity:.6}
+  h2{font-family:var(--serif);font-weight:900;font-size:clamp(1.7rem,4.2vw,2.7rem);line-height:1.25;margin:0 0 1.1rem;letter-spacing:.02em}
+  h2 .ko{color:var(--teal)}
+  p{margin:0 0 1.05rem}
+  .lead{font-size:1.12rem;color:var(--dim)}
+  section{padding:clamp(64px,9vw,118px) 0;position:relative}
+  .rule{height:1px;background:var(--line);max-width:var(--maxw);margin:0 auto}
+
+  /* HERO */
+  .hero{min-height:100svh;display:grid;place-items:center;text-align:center;padding:80px 24px 64px;position:relative;overflow:hidden}
+  .circuit{position:absolute;top:50%;left:50%;width:min(126vw,1040px);aspect-ratio:1;transform:translate(-50%,-53%);opacity:.5;z-index:0}
+  .circuit .spin{transform-origin:center;animation:spin 240s linear infinite}
+  .circuit .spin.rev{animation-duration:170s;animation-direction:reverse}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .circuit .pulse{animation:pulse 2.8s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
+  .hero-inner{position:relative;z-index:1}
+  .hero .kicker{font-family:var(--roman);font-style:italic;letter-spacing:.3em;color:var(--blue);font-size:1rem;text-transform:uppercase;margin-bottom:1.1rem;opacity:0;animation:rise .9s .15s forwards}
+  .bigtitle{font-family:var(--brush);color:var(--teal);font-size:clamp(5rem,22vw,15rem);line-height:.9;margin:0;text-shadow:0 0 44px rgba(92,214,192,.32)}
+  .bigtitle span{display:inline-block;opacity:0;transform:translateY(28px) rotate(-3deg);animation:drop .85s cubic-bezier(.2,.8,.2,1) forwards}
+  @keyframes drop{to{opacity:1;transform:none}}
+  @keyframes rise{to{opacity:1}}
+  .entitle{font-family:var(--roman);font-style:italic;color:var(--dim);letter-spacing:.06em;font-size:1.05rem;margin-top:.5rem;opacity:0;animation:rise 1s .8s forwards}
+  .subtitle{font-size:clamp(1rem,2.4vw,1.28rem);color:var(--text);margin:1.5rem auto 0;max-width:32ch;opacity:0;animation:rise 1s 1s forwards}
+  .meta{font-family:var(--roman);color:var(--dim);letter-spacing:.05em;margin-top:1.1rem;font-size:1.02rem;opacity:0;animation:rise 1s 1.2s forwards}
+  .promise{margin-top:2.2rem;display:inline-block;border:1px solid var(--line);border-radius:2px;padding:.7rem 1.4rem;font-size:.98rem;color:var(--teal-bright);background:rgba(92,214,192,.05);opacity:0;animation:rise 1s 1.4s forwards}
+  .scrollcue{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);font-family:var(--roman);font-style:italic;color:var(--dim-2);font-size:.9rem;letter-spacing:.1em;opacity:0;animation:rise 1s 1.7s forwards}
+  .scrollcue::after{content:"";display:block;width:1px;height:34px;margin:.5rem auto 0;background:linear-gradient(var(--teal),transparent);animation:cue 2s ease-in-out infinite}
+  @keyframes cue{0%,100%{transform:scaleY(.4);opacity:.3}50%{transform:scaleY(1);opacity:1}}
+
+  /* 坐标 */
+  .isnot{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:2.2rem}
+  .isnot .col{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:24px}
+  .isnot .col h4{margin:0 0 .8rem;font-family:var(--roman);font-style:italic;letter-spacing:.1em;font-size:1.05rem;text-transform:uppercase}
+  .isnot .col.no h4{color:var(--alert)} .isnot .col.yes h4{color:var(--teal)}
+  .isnot ul{margin:0;padding-left:1.1rem;color:var(--dim);font-size:.99rem}
+  .isnot li{margin:.4rem 0}
+
+  /* 来历 */
+  .context{display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:start}
+  .relic{font-size:1.1rem;line-height:1.9;color:var(--text);border-left:2px solid var(--alert);padding-left:1.3rem}
+  .relic .hl{color:var(--teal-bright);font-weight:600}
+  .relic .src{display:block;margin-top:.8rem;font-family:var(--roman);font-style:italic;color:var(--dim);font-size:.98rem}
+  .facts{display:flex;flex-direction:column}
+  .fact{padding:.85rem 0;border-bottom:1px solid var(--line);display:flex;gap:1rem}
+  .fact:first-child{border-top:1px solid var(--line)}
+  .fact b{font-family:var(--roman);color:var(--blue);font-weight:600;font-style:italic;min-width:5.2em;letter-spacing:.04em}
+  .fact span{color:var(--dim)}
+
+  /* 中枢命题 顿渐偈赛 */
+  .versus{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:stretch;margin:2rem 0 1.4rem}
+  .vcard{background:var(--panel-2);border:1px solid var(--line);border-radius:4px;padding:26px 24px;text-align:center}
+  .vcard.jian{border-top:3px solid var(--blue)} .vcard.dun{border-top:3px solid var(--alert)}
+  .vcard .who{font-family:var(--roman);font-style:italic;letter-spacing:.08em;font-size:.9rem;margin-bottom:.2rem}
+  .vcard.jian .who{color:var(--blue)} .vcard.dun .who{color:var(--alert)}
+  .vcard .mode{font-family:var(--brush);font-size:1.7rem;line-height:1;margin-bottom:.7rem}
+  .vcard.jian .mode{color:var(--blue)} .vcard.dun .mode{color:var(--alert)}
+  .vcard .gatha{font-family:var(--brush);font-size:1.3rem;color:var(--teal-bright);line-height:1.55;letter-spacing:.03em}
+  .vcard small{display:block;color:var(--dim);font-size:.92rem;margin-top:.7rem}
+  .vmid{display:grid;place-items:center;font-family:var(--roman);font-style:italic;color:var(--teal);font-size:1.4rem}
+  .verdict{text-align:center;margin-top:1.2rem;color:var(--dim)}
+  .verdict b{color:var(--teal-bright);font-weight:600}
+  .seals{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:1.6rem}
+  .seal{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:26px 26px;overflow:hidden;transition:transform .4s,border-color .4s,box-shadow .4s}
+  .seal:hover{transform:translateY(-6px);border-color:rgba(92,214,192,.5);box-shadow:0 20px 50px -24px rgba(92,214,192,.45)}
+  .seal .ph{font-family:var(--brush);font-size:1.8rem;color:var(--teal);line-height:1;margin-bottom:.2rem}
+  .seal h3{font-size:1.04rem;font-weight:900;margin:.1rem 0 .35rem;color:var(--text)}
+  .seal .gloss{font-size:.97rem;color:var(--dim);margin:0}
+  .seal::after{content:"";position:absolute;right:-26px;bottom:-26px;width:96px;height:96px;border:1px solid var(--blue);border-radius:50%;opacity:.10}
+
+  /* 路径 */
+  .path{position:relative;margin-top:2.4rem}
+  .path::before{content:"";position:absolute;left:31px;top:8px;bottom:40px;width:2px;background:linear-gradient(var(--teal),var(--blue-deep) 60%,transparent);opacity:.5}
+  .stop{position:relative;padding:0 0 46px 84px}
+  .stop .node{position:absolute;left:14px;top:2px;width:36px;height:36px;border-radius:50%;background:var(--ink);border:2px solid var(--teal);display:grid;place-items:center;font-family:var(--roman);font-style:italic;color:var(--teal);font-size:1.05rem;z-index:2}
+  .stop.star .node{border-color:var(--alert);color:var(--alert);box-shadow:0 0 0 6px rgba(255,107,107,.12)}
+  .stop .chno{font-family:var(--roman);font-style:italic;letter-spacing:.13em;color:var(--blue);font-size:.88rem;text-transform:uppercase}
+  .stop h3{font-size:1.36rem;font-weight:900;margin:.15rem 0 .2rem;color:var(--text)}
+  .stop h3 .star-mark{color:var(--alert);font-size:.9rem;vertical-align:super;margin-left:.3em}
+  .stop .sutra{font-family:var(--brush);font-size:1.42rem;color:var(--teal-bright);margin:.1rem 0 .7rem;letter-spacing:.03em;line-height:1.5}
+  .stop .sutra::before{content:"「";opacity:.45}.stop .sutra::after{content:"」";opacity:.45}
+  .qa{display:grid;gap:.5rem}
+  .qa .row{display:grid;grid-template-columns:auto 1fr;gap:.85rem;align-items:baseline}
+  .qa .tag{font-family:var(--roman);font-style:italic;font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;padding-top:.15rem;white-space:nowrap}
+  .qa .tag.q{color:var(--blue)} .qa .tag.a{color:var(--teal)}
+  .qa .txt{color:var(--text);font-size:1rem} .qa .txt.dimmed{color:var(--dim)}
+  .qa .txt strong{color:var(--teal-bright);font-weight:600}
+  .remember{margin-top:.85rem;position:relative;background:rgba(255,107,107,.06);border:1px solid rgba(255,107,107,.25);border-radius:3px;padding:.8rem 3.4rem .8rem 1rem;font-size:1rem;color:var(--text)}
+  .remember .stamp{position:absolute;right:.7rem;top:50%;transform:translateY(-50%) rotate(-8deg);width:42px;height:42px;border:1.5px solid var(--alert);border-radius:5px;color:var(--alert);font-family:var(--serif);font-weight:900;font-size:.7rem;display:grid;place-items:center;line-height:1;text-align:center;opacity:.9}
+
+  /* 主线 */
+  .spine{display:grid;grid-template-columns:repeat(3,1fr);margin-top:2.4rem;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+  .spine .cell{padding:34px 22px;border-right:1px solid var(--line);position:relative;text-align:center}
+  .spine .cell:last-child{border-right:0}
+  .spine .role{font-family:var(--roman);font-style:italic;letter-spacing:.13em;text-transform:uppercase;font-size:.86rem;margin-bottom:.7rem}
+  .spine .term{font-family:var(--brush);font-size:3rem;line-height:1;margin-bottom:.5rem}
+  .spine .cell.a .role{color:var(--blue)} .spine .cell.a .term{color:var(--blue)}
+  .spine .cell.b .role{color:var(--alert)} .spine .cell.b .term{color:var(--alert)}
+  .spine .cell.c .role{color:var(--teal)} .spine .cell.c .term{color:var(--teal)}
+  .spine .cell small{color:var(--dim);display:block;font-size:.94rem}
+  .spine .arrow{position:absolute;right:-11px;top:50%;transform:translateY(-50%);z-index:4;color:var(--teal);font-size:1.3rem}
+  .spine .cell:last-child .arrow{display:none}
+  .spine-cap{text-align:center;margin-top:1.6rem;color:var(--dim)}
+  .spine-cap b{color:var(--teal-bright);font-weight:600}
+
+  /* 概念 */
+  .concepts{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:2.2rem}
+  .cc{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:22px;transition:transform .35s,border-color .35s}
+  .cc:hover{transform:translateY(-4px);border-color:rgba(122,162,255,.5)}
+  .cc .name{font-weight:900;font-size:1.12rem;color:var(--teal);margin-bottom:.25rem}
+  .cc .one{color:var(--dim);font-size:.96rem}
+
+  /* 边界 */
+  .limits{display:grid;gap:14px;margin-top:2rem}
+  .limit{display:grid;grid-template-columns:auto 1fr;gap:1rem;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--blue);border-radius:3px;padding:20px 22px}
+  .limit b{font-family:var(--roman);font-style:italic;color:var(--blue);font-size:1.25rem;line-height:1.2}
+  .limit p{margin:0;color:var(--dim);font-size:.99rem}
+  .limit p strong{color:var(--teal-bright);font-weight:600}
+
+  /* 闭环 */
+  .loop{background:linear-gradient(180deg,rgba(122,162,255,.06),transparent)}
+  .bridges{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:2.2rem}
+  .bridge{background:var(--panel-2);border:1px solid var(--line);border-radius:4px;padding:24px 22px}
+  .bridge .pair{display:flex;align-items:center;gap:.5rem;justify-content:center;margin-bottom:.9rem;flex-wrap:wrap}
+  .bridge .side{font-weight:900;font-size:.98rem}
+  .bridge .side.l{color:var(--blue)} .bridge .side.r{color:var(--teal)}
+  .bridge .eq{color:var(--alert);font-size:1.3rem;font-family:var(--roman)}
+  .bridge p{font-size:.95rem;color:var(--dim);margin:0;text-align:center}
+  .bridge p em{color:var(--text);font-style:normal}
+  .bridge .tagx{display:block;margin-top:.7rem;font-family:var(--roman);font-style:italic;font-size:.82rem;color:var(--dim-2);letter-spacing:.06em}
+  .closures{margin-top:2rem;display:grid}
+  .closure{display:grid;grid-template-columns:auto 1fr;gap:1rem;padding:1rem 0;border-bottom:1px solid var(--line)}
+  .closure:first-child{border-top:1px solid var(--line)}
+  .closure .n{font-family:var(--roman);font-style:italic;color:var(--teal);font-size:1.5rem;line-height:1}
+  .closure p{margin:0;color:var(--text);font-size:1rem}
+  .closure p em{color:var(--teal-bright);font-style:normal}
+
+  /* 行动 */
+  .actions{display:grid;gap:14px;margin-top:2rem}
+  .act{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:22px 24px}
+  .act h4{margin:0 0 .35rem;font-size:1.12rem;color:var(--teal);font-weight:900}
+  .act p{margin:0;color:var(--dim);font-size:.99rem}
+  .act .test{color:var(--text)} .act .test em{color:var(--teal-bright);font-style:normal}
+
+  footer{padding:60px 24px 80px;text-align:center}
+  footer .seal-final{font-family:var(--brush);color:var(--teal);font-size:2.4rem;margin-bottom:.4rem}
+  footer p{color:var(--dim-2);font-size:.95rem;font-family:var(--roman);font-style:italic;margin:0}
+
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .9s ease,transform .9s cubic-bezier(.2,.8,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  @media(max-width:760px){
+    .context{grid-template-columns:1fr;gap:30px}
+    .isnot,.concepts,.seals{grid-template-columns:1fr}
+    .versus{grid-template-columns:1fr}
+    .vmid{padding:.4rem 0;transform:rotate(90deg)}
+    .spine,.bridges{grid-template-columns:1fr}
+    .spine .cell{border-right:0;border-bottom:1px solid var(--line)}
+    .spine .cell:last-child{border-bottom:0}
+    .spine .arrow{right:50%;top:auto;bottom:-12px;transform:translateX(50%) rotate(90deg)}
+    .spine .cell:last-child .arrow{display:none}
+    .stop{padding-left:64px}.path::before{left:23px}.stop .node{left:6px;width:34px;height:34px}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+    .reveal{opacity:1;transform:none}
+    .bigtitle span,.hero .kicker,.entitle,.subtitle,.meta,.promise,.scrollcue{opacity:1!important}
+  }
+</style>
+
+<!-- HERO -->
+<header class="hero">
+  <svg class="circuit" id="circuit" viewBox="-250 -250 500 500" aria-hidden="true"></svg>
+  <div class="hero-inner">
+    <div class="kicker">The Platform Sutra · Reading Notes</div>
+    <h1 class="bigtitle" aria-label="坛经">
+      <span style="animation-delay:.2s">坛</span><span style="animation-delay:.34s">经</span>
+    </h1>
+    <p class="entitle">The Platform Sutra of the Sixth Patriarch</p>
+    <p class="subtitle">顿悟——不是慢慢擦干净镜子，是发现镜子本来无尘。</p>
+    <p class="meta">六祖惠能 说 · 法海 集 · 中国唯一被尊称「经」的佛典</p>
+    <span class="promise">自性本自清净——能力本已预置；见性不是新增，是接通</span>
+  </div>
+  <div class="scrollcue">向下，点亮自性</div>
+</header>
+
+<!-- 坐标 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">读之前 · 先校准坐标</p>
+    <h2>一部「不立文字」的经，<br>却由一个<span class="ko">不识字的人</span>说</h2>
+    <p class="lead">惠能是岭南樵夫，不识字，听人诵《金刚经》「应无所住而生其心」而开悟。他主张「直指人心，见性成佛」，用最朴素的方法取代繁琐义学。这部经的全部要点，是绕过文字符号，直接看见本来清净的自性。</p>
+    <div class="isnot">
+      <div class="col no">
+        <h4>它不是</h4>
+        <ul>
+          <li>佛（释迦）说的经——是中国人惠能说，唯一被尊称「经」</li>
+          <li>渐进修行的操作手册</li>
+          <li>要「读懂文字」才能悟——惠能不识字</li>
+          <li>否定一切修行——它反对的是「执」，不是修</li>
+        </ul>
+      </div>
+      <div class="col yes">
+        <h4>它是</h4>
+        <ul>
+          <li>禅宗（南宗）根本经典，记惠能生平 + 言教</li>
+          <li>核心：直指人心，见性成佛</li>
+          <li>「自性本清净、顿悟成佛」的纲领</li>
+          <li>一套绕过符号、直连本心的方法</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 来历 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">经的来历 · 一个樵夫的逆袭</p>
+    <h2>从碓坊舂米的行者，<br>到<span class="ko">第六代祖</span></h2>
+    <div class="context" style="margin-top:2.2rem">
+      <div>
+        <p class="relic">惠能（638–713），岭南新州樵夫，<span class="hl">不识字</span>，闻《金刚经》「应无所住而生其心」开悟，北上黄梅谒五祖弘忍，在碓坊舂米。神秀于廊下书偈「时时勤拂拭」，五祖评其「只到门前、未见自性」；惠能请人代书一偈对之。五祖夜里讲《金刚经》至「应无所住而生其心」，惠能<span class="hl">言下大悟</span>，密授衣钵，为六代祖，连夜南遁。后于曹溪大倡顿悟，成中国禅主流——南宗。
+          <span class="src">—— 道不在识不识字；它在一颗能「言下顿见」的心</span></p>
+      </div>
+      <div class="facts">
+        <div class="fact"><b>说 / 集</b><span>六祖惠能（638–713）说，弟子法海集记</span></div>
+        <div class="fact"><b>唯一</b><span>中国佛教著作被尊称「经」的，仅此一部</span></div>
+        <div class="fact"><b>版本</b><span>敦煌本（最古、最近原意）· 宗宝本（元代、通行、十品）等十余种</span></div>
+        <div class="fact"><b>全名</b><span>含「摩诃般若波罗蜜」「无相戒」——般若为骨，禅为用</span></div>
+        <div class="fact"><b>流派</b><span>南顿（惠能·曹溪）对北渐（神秀）；南宗成禅之主流</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 中枢命题 顿渐偈赛 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">中枢命题 · 两首偈，一场分野</p>
+    <h2>擦镜子，<br>还是<span class="ko">本来无尘</span>？</h2>
+    <div class="versus">
+      <div class="vcard jian">
+        <div class="who">神秀 · 上座</div>
+        <div class="mode">渐</div>
+        <div class="gatha">身是菩提树<br>心如明镜台<br>时时勤拂拭<br>勿使惹尘埃</div>
+        <small>把心当成要持续打扫的镜子——迭代擦拭、渐次清净</small>
+      </div>
+      <div class="vmid">vs</div>
+      <div class="vcard dun">
+        <div class="who">惠能 · 行者</div>
+        <div class="mode">顿</div>
+        <div class="gatha">菩提本无树<br>明镜亦非台<br>本来无一物<br>何处惹尘埃</div>
+        <small>根本没有尘要擦——本来清净，言下顿见</small>
+      </div>
+    </div>
+    <p class="verdict">五祖评神秀「只到门前，未见自性」。<b>但惠能并不全盘否定渐修——他反对的是「执」，渐修是对钝根者的方便。</b></p>
+    <div class="seals">
+      <div class="seal"><div class="ph">无念为宗</div><h3>于念而不念</h3><p class="gloss">不是没有念头，是念念不卡死在任何一念上。</p></div>
+      <div class="seal"><div class="ph">无相为体</div><h3>于相而离相</h3><p class="gloss">不被任何固定形象框住，相来相去而不黏。</p></div>
+      <div class="seal"><div class="ph">无住为本</div><h3>念念不住</h3><p class="gloss">这是人的本性——不停在任何一处，自然流动。</p></div>
+      <div class="seal"><div class="ph">定慧一体</div><h3>定是慧体，慧是定用</h3><p class="gloss">不是先定后慧，像灯与光——同时，不可分。</p></div>
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 逐品之路 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">逐品精读 · 取六个枢纽 · 经文为公有古本</p>
+    <h2>沿坛经<span class="ko">走一遍</span></h2>
+    <p class="lead">通行本分十品，这里取六个枢纽。带 <span style="color:var(--alert)">★</span> 的两站——得法因缘、自性本具——是故事与纲领的两个核心。</p>
+
+    <div class="path" style="margin-top:2.4rem">
+
+      <div class="stop star">
+        <div class="node">壹</div>
+        <div class="chno">行由品 · The Origin</div>
+        <h3>得法因缘<span class="star-mark">★</span></h3>
+        <div class="sutra">应无所住而生其心</div>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">一个不识字的樵夫，凭什么得六祖之位、传顿教？</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">正因为道不在文字。惠能闻《金刚经》此句而初悟，又在五祖夜讲到此句时<strong>言下大悟</strong>——衔接你已读的《金刚经》。得法靠的不是学问积累，是那一刻「无所住」地直接看见。偈赛与衣钵密传，全在印证这点。</span></div>
+        </div>
+        <div class="remember">悟，不靠学问厚薄，靠能不能在某一句下，松开、直接看见。<span class="stamp">记住</span></div>
+      </div>
+
+      <div class="stop star">
+        <div class="node">贰</div>
+        <div class="chno">自性 · The Kernel</div>
+        <h3>自性本具<span class="star-mark">★</span></h3>
+        <div class="sutra">菩提自性，本来清净，但用此心，直了成佛</div>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">成佛是不是要修出一个新东西、去外面求来？</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">不是。自性<strong>本来清净、本自具足</strong>——一切万法皆从自性起用。见性不是「获得」，是「接通」本已在的。如同电路本来布好，点亮它即可——不假外求，不向外觅。</span></div>
+        </div>
+        <div class="remember">你要的不在外面，本来就在里面。见性不是新增，是接通本具。<span class="stamp">记住</span></div>
+      </div>
+
+      <div class="stop">
+        <div class="node">叁</div>
+        <div class="chno">定慧品 · Unified</div>
+        <h3>定慧一体，不是先后</h3>
+        <div class="sutra">定是慧体，慧是定用</div>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">是不是要先修「定」（专注），定够了再生「慧」（智慧）？</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">不是串行的两步。定与慧<strong>一体不二</strong>，像灯与光——有灯即有光，不是先有灯过一会儿才有光。把定慧拆成先后，恰恰是没见性。</span></div>
+        </div>
+        <div class="remember">真正的功夫不是流水线（先A后B），是一体同时起用。<span class="stamp">记住</span></div>
+      </div>
+
+      <div class="stop">
+        <div class="node">肆</div>
+        <div class="chno">三大纲 · No-latch</div>
+        <h3>无念 · 无相 · 无住</h3>
+        <div class="sutra">不是风动，不是幡动，仁者心动</div>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">「无念」是要把念头都灭掉、变成木头吗？</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">恰恰不是。无念是<strong>于念而不被念粘住</strong>、念念不住。广州那场风幡之辩——争的不是风还是幡，惠能一句「仁者心动」点破：问题从来在那颗<strong>动而被境牵走</strong>的心。心不著相，即是无缚。</span></div>
+        </div>
+        <div class="remember">问题不在外境（风/幡），在那颗黏上去、被牵走的心。<span class="stamp">记住</span></div>
+      </div>
+
+      <div class="stop">
+        <div class="node">伍</div>
+        <div class="chno">顿渐品 · Sudden vs Gradual</div>
+        <h3>南顿北渐，法本一种</h3>
+        <div class="sutra">法无顿渐，人有利钝</div>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">顿悟和渐修，到底谁对？是不是顿就废了修？</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">法本身没有顿渐之分，是<strong>人的根器有利钝</strong>。惠能标「顿教」，却不否定渐修——渐修是对钝根者的方便引导。他真正反对的，是<strong>把方法、把法执成实有</strong>。顿不是「不用功」，是看见本来具足。</span></div>
+        </div>
+        <div class="remember">顿不是躺平开悟，渐不是低人一等——分顿渐的是人，不是法。<span class="stamp">记住</span></div>
+      </div>
+
+      <div class="stop">
+        <div class="node">陆</div>
+        <div class="chno">付嘱 · In the World</div>
+        <h3>佛法在世间</h3>
+        <div class="sutra">佛法在世间，不离世间觉</div>
+        <div class="qa">
+          <div class="row"><span class="tag q">困惑</span><span class="txt dimmed">见性要不要离开红尘、躲进深山？</span></div>
+          <div class="row"><span class="tag a">立场</span><span class="txt">不必。「离世觅菩提，恰如求兔角」。觉悟就在<strong>行住坐卧的日常</strong>里：自性自度、烦恼即菩提。一行三昧——于一切处常行直心。修行不在别处，就在此刻的生活。</span></div>
+        </div>
+        <div class="remember">离开生活去找觉悟，像在头上找兔角——根本没有。道就在日常里。<span class="stamp">记住</span></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 主线 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">若只记一条主线</p>
+    <h2>本具 · 顿见 · <span class="ko">起用</span></h2>
+    <p class="lead">把全经看成一条电路的逻辑：线路本来布好，一瞬接通点亮，然后在日常里持续起用。</p>
+    <div class="spine">
+      <div class="cell a"><div class="role">本具</div><div class="term">自性</div><small>本来清净、本自具足——线路早已布好</small><span class="arrow">→</span></div>
+      <div class="cell b"><div class="role">顿见</div><div class="term">接通</div><small>言下顿见，不擦尘、不渐热——一瞬点亮</small><span class="arrow">→</span></div>
+      <div class="cell c"><div class="role">起用</div><div class="term">在世间</div><small>见性后于日常起用，不离世间觉</small></div>
+    </div>
+    <p class="spine-cap">坛经的内核——<b>自性像一条本来布好的电路；顿悟不是慢慢加热把它修出来，是一瞬间接通、点亮它，然后在生活里用起来。</b></p>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 概念地图 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">贯穿全经 · 八个关键词</p>
+    <h2>核心概念<span class="ko">地图</span></h2>
+    <div class="concepts">
+      <div class="cc"><div class="name">自性</div><div class="one">本自清净的觉性，万法皆从自性起用。</div></div>
+      <div class="cc"><div class="name">顿悟</div><div class="one">言下见性的瞬时跳变，非渐次积累。</div></div>
+      <div class="cc"><div class="name">见性成佛</div><div class="one">见自本性即是佛，不向外求。</div></div>
+      <div class="cc"><div class="name">无念 / 无相 / 无住</div><div class="one">三大纲：于念离念、于相离相、念念不住。</div></div>
+      <div class="cc"><div class="name">定慧一体</div><div class="one">定是慧体、慧是定用，如灯与光，不二。</div></div>
+      <div class="cc"><div class="name">不立文字</div><div class="one">直指人心、教外别传，绕过符号层。</div></div>
+      <div class="cc"><div class="name">南顿北渐</div><div class="one">惠能顿教 vs 神秀渐修；法无顿渐，人有利钝。</div></div>
+      <div class="cc"><div class="name">佛法在世间</div><div class="one">不离世间觉，烦恼即菩提，自性自度。</div></div>
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 边界 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">批判性阅读 · 它的边界</p>
+    <h2>「顿悟」，<br>最容易被读成<span class="ko">「不用修」</span></h2>
+    <div class="limits">
+      <div class="limit"><b>误</b><p>顿悟常被误读为「不用功、躺平开悟」。<strong>惠能本人不否定渐修，反对的只是「执」</strong>——把顿当借口偷懒，恰恰背离。</p></div>
+      <div class="limit"><b>层</b><p>版本差异大：敦煌本最古最近原意，通行宗宝本经后人增益润饰（如「本来无一物」与敦煌本「佛性常清净」关键句不同）。<strong>读时要意识到文本是层累的。</strong></p></div>
+      <div class="limit"><b>悖</b><p>一部「不立文字」的禅经，本身却是广为传诵的文字经典。<strong>它反的是「执文字」，不是废文字</strong>——别把这层悖论读丢了。</p></div>
+      <div class="limit"><b>滑</b><p>「自性」若听成一个常住的实体小我，就滑回外道常见。<strong>它是空之上的妙用，不是「有个东西」</strong>——需以般若空打底。</p></div>
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 闭环 -->
+<section class="loop">
+  <div class="wrap reveal">
+    <p class="eyebrow">接入你的判断系统 · 闭环</p>
+    <h2>它是你这条线的<br><span class="ko">汇流点</span></h2>
+    <p class="lead">惠能正是闻《金刚经》「应无所住而生其心」而悟——坛经直接接你已读的金刚经；又把《涅槃经》的佛性 / 妙有落到「顿见自性」的实修。般若空 × 佛性妙有，在禅的「顿见」里合一。以下仅作素材，判断权归你。</p>
+    <div class="bridges">
+      <div class="bridge">
+        <div class="pair"><span class="side l">顿悟 / 渐修</span><span class="eq">≈</span><span class="side r">瞬时跳变 / 迭代逼近</span></div>
+        <p>神秀「时时勤拂拭」＝持续微调；惠能「本来无一物」＝相变式一跃。<em>有些理解只能渐修积累，有些是突然接通——别把所有进步都当渐进。</em><span class="tagx">两种进步方式</span></p>
+      </div>
+      <div class="bridge">
+        <div class="pair"><span class="side l">自性本具</span><span class="eq">≈</span><span class="side r">能力已预置·调用</span></div>
+        <p>见性不是外求新东西，是 elicit 本已在的。<em>很多「新知」其实是接通本有锚点（闭环），不是增加实体——呼应你 memory.md。</em><span class="tagx">接通 ≠ 新增</span></p>
+      </div>
+      <div class="bridge">
+        <div class="pair"><span class="side l">不立文字</span><span class="eq">≈</span><span class="side r">指月之指</span></div>
+        <p>惠能不识字而见性，证明道不在符号里。<em>提醒：别把「建好了漂亮的笔记」当成「懂了」——这正是这套读书笔记最大的反讽风险。</em><span class="tagx">警惕精神物质主义</span></p>
+      </div>
+    </div>
+
+    <p class="eyebrow" style="margin-top:3rem">候选 · 可归入 memory.md 的闭环认知</p>
+    <div class="closures">
+      <div class="closure"><span class="n">壹</span><p>进步有两种：<em>渐修（迭代逼近）与顿悟（相变跳变）</em>。别用渐修的耐心干等顿悟，也别用顿悟的幻想逃避渐修。</p></div>
+      <div class="closure"><span class="n">贰</span><p>见性 ≈ 调用本具：很多「学会」是<em>接通本有锚点（闭环）</em>，不是增加实体——别把「做了漂亮笔记」当「懂了」。</p></div>
+      <div class="closure"><span class="n">叁</span><p>坛经是阅读弧的汇流点：<em>空（金刚经）× 妙有（涅槃经）在「顿见自性」里合一</em>——即空即有、即体即用。</p></div>
+    </div>
+  </div>
+</section>
+<div class="rule"></div>
+
+<!-- 行动 -->
+<section>
+  <div class="wrap reveal">
+    <p class="eyebrow">可落地</p>
+    <h2>怎么<span class="ko">读 / 用</span></h2>
+    <div class="actions">
+      <div class="act"><h4>选哪个本</h4><p>想读最近原意，读敦煌本（法海集，铃木大拙校）；想读流畅完整，读通行宗宝本（十品）。先读「行由品」——故事最抓人，也最能领你入门。</p></div>
+      <div class="act"><h4>抓那场偈赛</h4><p>把神秀、惠能两偈并读，对照自己：面对一个难题，我在「擦镜子」（渐次清理），还是能「看见本来无尘」（一眼看穿）？</p></div>
+      <div class="act"><h4>接上金刚经</h4><p>惠能闻「应无所住而生其心」而悟——和你已读的《金刚经》对读，看「顿悟」落在哪一句、怎么落。</p></div>
+      <div class="act"><h4>一个检验动作</h4><p class="test">读它时问自己：我是想<em>再收一句「本来无一物」当格言</em>（又一次精神物质主义），还是真的在某处，<em>绕过文字、直接看了一眼本心</em>？</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="seal-final">悟</div>
+  <p>本来无一物，何处惹尘埃 · 判断归人 · 自性本具，言下接通</p>
+</footer>
+
+<script>
+  // —— 签名图形：电路（本具的线路被点亮 = 见性）——
+  (function(){
+    const svg=document.getElementById('circuit'); if(!svg) return;
+    const NS='http://www.w3.org/2000/svg';
+    const teal='#5cd6c0', blue='#7aa2ff', alert='#ff6b6b';
+    function el(p,t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;}
+
+    const board=el(svg,'g',{class:'spin'}); svg.appendChild(board);
+    // PCB 外框（圆角方）
+    [232,168,104].forEach(function(r,i){
+      board.appendChild(el(board,'rect',{x:-r,y:-r,width:r*2,height:r*2,rx:14,fill:'none',
+        stroke:i===1?blue:teal,'stroke-width':.7,opacity:.2}));
+    });
+    // 阶梯式放射走线（右角折线）+ 焊盘 + 过孔
+    const dirs=12;
+    for(let k=0;k<dirs;k++){
+      const a=(k+0.5)/dirs*Math.PI*2;
+      const L=32, steps=5;
+      const dx=Math.cos(a)*L, dy=Math.sin(a)*L;
+      let x=0,y=0; let d='M0 0';
+      const corners=[];
+      for(let i=0;i<steps;i++){ x+=dx; d+=' L'+x.toFixed(1)+' '+y.toFixed(1); corners.push([x,y]); y+=dy; d+=' L'+x.toFixed(1)+' '+y.toFixed(1); corners.push([x,y]); }
+      const lit = k%4===0;
+      board.appendChild(el(board,'path',{d:d,fill:'none',stroke:lit?teal:blue,'stroke-width':lit?1.3:0.7,
+        opacity:lit?.7:.28, class:lit?'pulse':''}));
+      // 过孔
+      corners.forEach(function(c,ci){if(ci%2===0)board.appendChild(el(board,'circle',{cx:c[0],cy:c[1],r:1.6,fill:'none',stroke:blue,'stroke-width':.6,opacity:.35}));});
+      // 末端焊盘
+      board.appendChild(el(board,'rect',{x:x-3.2,y:y-3.2,width:6.4,height:6.4,rx:1,fill:lit?teal:'none',stroke:lit?teal:blue,'stroke-width':.8,opacity:lit?.65:.4}));
+    }
+    // 几条切向连接（焊盘间）
+    for(let k=0;k<dirs;k++){
+      const a1=(k+0.5)/dirs*Math.PI*2, a2=(k+1.5)/dirs*Math.PI*2, r=150;
+      board.appendChild(el(board,'line',{x1:Math.cos(a1)*r,y1:Math.sin(a1)*r,x2:Math.cos(a2)*r,y2:Math.sin(a2)*r,
+        stroke:blue,'stroke-width':.5,opacity:.14}));
+    }
+    // 中心核（自性 · 点亮）
+    svg.appendChild(el(svg,'rect',{x:-30,y:-30,width:60,height:60,rx:10,fill:'none',stroke:teal,'stroke-width':1,opacity:.5}));
+    svg.appendChild(el(svg,'circle',{r:18,fill:'none',stroke:blue,'stroke-width':.8,opacity:.4}));
+    svg.appendChild(el(svg,'circle',{r:9,fill:alert,opacity:.6,class:'pulse'}));
+    svg.appendChild(el(svg,'circle',{r:4,fill:teal,opacity:.95}));
+  })();
+
+  // 滚动揭示
+  const io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(function(x){io.observe(x);});
+</script>
