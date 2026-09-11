@@ -1,0 +1,2075 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI &amp; Agent 知识图谱</title>
+<style>
+:root{
+  --bg:#06070c;--tx:#e8ecf6;--dm:#96a0b6;--ft:#6b7488;
+  --bd:rgba(255,255,255,.09);
+  --ac:#4fd1ff;--ac-rgb:79,209,255;
+  --topbar-h:60px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--tx);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  line-height:1.65;overflow-x:hidden;-webkit-font-smoothing:antialiased;
+  transition:--ac .4s;
+}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:99px}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ---------- 背景 ---------- */
+.bg{position:fixed;inset:0;z-index:-1;overflow:hidden;background:#06070c}
+.bg::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(1100px 560px at 12% -8%,rgba(var(--ac-rgb),.11),transparent 60%),
+    radial-gradient(900px 500px at 94% 8%,rgba(var(--ac-rgb),.06),transparent 60%);
+  transition:background .5s;
+}
+.bg::after{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.026) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.026) 1px,transparent 1px);
+  background-size:46px 46px;
+  -webkit-mask-image:radial-gradient(ellipse 90% 60% at 50% 0%,#000 10%,transparent 76%);
+  mask-image:radial-gradient(ellipse 90% 60% at 50% 0%,#000 10%,transparent 76%);
+}
+.blob{position:absolute;border-radius:50%;filter:blur(110px);opacity:.26;transition:background .5s}
+.b1{width:520px;height:520px;background:var(--ac);top:-190px;left:-130px;animation:f1 30s ease-in-out infinite}
+.b2{width:440px;height:440px;background:var(--ac);bottom:-140px;right:-140px;opacity:.18;animation:f2 34s ease-in-out infinite}
+@keyframes f1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(80px,60px) scale(1.12)}}
+@keyframes f2{0%,100%{transform:translate(0,0) scale(1.1)}50%{transform:translate(-70px,-60px) scale(.9)}}
+
+/* ---------- 顶栏 ---------- */
+.topbar{
+  position:sticky;top:0;z-index:150;
+  height:var(--topbar-h);
+  display:flex;align-items:center;gap:14px;
+  padding:0 20px;
+  background:rgba(6,7,12,.85);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+.brand{
+  display:flex;align-items:center;gap:10px;
+  text-decoration:none;color:var(--tx);flex:0 0 auto;
+}
+.brand-mark{
+  width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
+  font-weight:800;font-size:12px;color:#04121c;
+  background:linear-gradient(135deg,var(--ac),rgba(var(--ac-rgb),.55));
+  box-shadow:0 0 22px -6px rgba(var(--ac-rgb),.85);
+  transition:background .4s,box-shadow .4s;
+}
+.brand-txt{display:flex;flex-direction:column;line-height:1.2}
+.brand-txt b{font-size:13.5px;letter-spacing:-.005em}
+.brand-txt span{font-size:10px;color:var(--ft);letter-spacing:.1em}
+
+.tabs{
+  display:flex;gap:4px;flex:1;overflow-x:auto;
+  scrollbar-width:none;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 16px,#000 calc(100% - 16px),transparent 100%);
+  mask-image:linear-gradient(90deg,transparent 0,#000 16px,#000 calc(100% - 16px),transparent 100%);
+  padding:0 4px;
+}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  display:flex;align-items:center;gap:6px;flex:0 0 auto;
+  padding:7px 12px;border-radius:9px;
+  font-size:12.5px;color:var(--dm);text-decoration:none;
+  border:1px solid transparent;white-space:nowrap;
+  transition:.2s;cursor:pointer;
+}
+.tab:hover{color:var(--tx);background:rgba(255,255,255,.05)}
+.tab.active{
+  color:#fff;
+  background:linear-gradient(135deg,rgba(var(--ac-rgb),.2),rgba(var(--ac-rgb),.04));
+  border-color:rgba(var(--ac-rgb),.35);
+}
+.tab em{font-style:normal;font-size:13px;opacity:.85}
+
+.search-wrap{
+  position:relative;flex:0 0 220px;
+}
+.search-wrap input{
+  width:100%;padding:8px 34px 8px 32px;
+  border-radius:9px;background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.09);
+  color:var(--tx);font-size:12.5px;font-family:inherit;outline:none;
+  transition:.2s;
+}
+.search-wrap input::placeholder{color:var(--ft)}
+.search-wrap input:focus{
+  border-color:rgba(var(--ac-rgb),.5);
+  background:rgba(var(--ac-rgb),.07);
+  box-shadow:0 0 0 3px rgba(var(--ac-rgb),.1);
+}
+.search-wrap svg{
+  position:absolute;left:10px;top:50%;transform:translateY(-50%);
+  width:13px;height:13px;color:var(--ft);pointer-events:none;
+}
+.search-kbd{
+  position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  font-size:10px;padding:2px 6px;border-radius:4px;
+  background:rgba(255,255,255,.07);color:var(--ft);
+  border:1px solid rgba(255,255,255,.08);pointer-events:none;
+}
+
+/* ---------- 布局 ---------- */
+.body{
+  display:grid;grid-template-columns:240px minmax(0,1fr);
+  max-width:1440px;margin:0 auto;
+  min-height:calc(100vh - var(--topbar-h));
+}
+.sidebar{
+  position:sticky;top:var(--topbar-h);
+  height:calc(100vh - var(--topbar-h));
+  display:flex;flex-direction:column;
+  padding:18px 10px 12px;
+  border-right:1px solid rgba(255,255,255,.06);
+  background:rgba(8,10,18,.5);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  overflow-y:auto;
+}
+.side-head{
+  padding:0 10px 12px;margin-bottom:6px;
+  border-bottom:1px solid rgba(255,255,255,.055);
+}
+.side-title{font-size:12.5px;font-weight:700;color:#fff;letter-spacing:-.005em}
+.side-sub{font-size:10.5px;color:var(--ft);letter-spacing:.06em;margin-top:2px;text-transform:uppercase}
+.nav{display:flex;flex-direction:column;gap:2px;margin-top:8px}
+.nav a{
+  display:flex;align-items:center;gap:9px;
+  padding:7px 11px;border-radius:9px;
+  color:var(--dm);font-size:12.5px;text-decoration:none;
+  border:1px solid transparent;transition:.18s;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.nav a:hover{color:var(--tx);background:rgba(255,255,255,.055)}
+.nav a.active{
+  color:#fff;
+  background:linear-gradient(90deg,rgba(var(--ac-rgb),.16),rgba(var(--ac-rgb),.02));
+  border-color:rgba(var(--ac-rgb),.28);
+}
+.nav em{font-style:normal;font-size:12px;opacity:.8;flex:0 0 auto}
+.nav span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.main{
+  min-width:0;padding:0 44px 130px;
+  max-width:1060px;width:100%;margin:0 auto;
+}
+
+/* ---------- 总览页 ---------- */
+.overview-hero{padding:64px 0 40px}
+.badge{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:10.5px;font-weight:700;letter-spacing:.18em;
+  color:var(--ac);padding:6px 13px;border-radius:999px;
+  border:1px solid rgba(var(--ac-rgb),.32);
+  background:rgba(var(--ac-rgb),.07);
+  margin-bottom:20px;transition:.3s;
+}
+.badge::before{
+  content:'';width:6px;height:6px;border-radius:50%;
+  background:var(--ac);box-shadow:0 0 10px var(--ac);
+  animation:pulse 2s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.85)}}
+.overview-hero h1{
+  font-size:clamp(32px,4.6vw,54px);
+  line-height:1.08;letter-spacing:-.035em;font-weight:800;
+  margin-bottom:16px;
+}
+.grad{
+  background:linear-gradient(100deg,var(--ac),#fff 55%,var(--ac));
+  background-size:220% auto;
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:shimmer 7s linear infinite;
+}
+@keyframes shimmer{to{background-position:220% center}}
+.overview-hero p{
+  font-size:15px;color:var(--dm);max-width:640px;line-height:1.8;
+}
+.overview-stats{
+  display:flex;gap:36px;margin-top:34px;flex-wrap:wrap;
+}
+.stat{display:flex;flex-direction:column;gap:2px}
+.stat-num{
+  font-size:26px;font-weight:800;letter-spacing:-.02em;
+  background:linear-gradient(135deg,#fff,#8fa5c8);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.stat-label{font-size:11px;color:var(--ft);letter-spacing:.1em;text-transform:uppercase}
+
+/* ---------- 模块卡片网格 ---------- */
+.modules{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+  gap:14px;margin:36px 0 60px;
+}
+.mod{
+  position:relative;overflow:hidden;
+  padding:22px 22px 20px;border-radius:16px;
+  background:linear-gradient(158deg,rgba(255,255,255,.055),rgba(255,255,255,.018));
+  border:1px solid var(--bd);
+  text-decoration:none;color:inherit;
+  transition:transform .3s cubic-bezier(.2,.8,.2,1),border-color .3s,box-shadow .3s;
+  cursor:pointer;
+}
+.mod::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(400px circle at var(--mx,50%) var(--my,50%),rgba(var(--mc-rgb,var(--ac-rgb)),.16),transparent 62%);
+  opacity:0;transition:opacity .35s;
+}
+.mod:hover{
+  transform:translateY(-4px);
+  border-color:rgba(var(--mc-rgb,var(--ac-rgb)),.42);
+  box-shadow:0 16px 48px -16px rgba(var(--mc-rgb,var(--ac-rgb)),.7);
+}
+.mod:hover::before{opacity:1}
+.mod-icon{
+  width:44px;height:44px;border-radius:13px;
+  display:grid;place-items:center;font-size:22px;
+  background:linear-gradient(150deg,rgba(var(--mc-rgb,var(--ac-rgb)),.22),rgba(255,255,255,.03));
+  border:1px solid rgba(var(--mc-rgb,var(--ac-rgb)),.3);
+  box-shadow:0 0 30px -14px var(--mc,var(--ac));
+  margin-bottom:14px;
+}
+.mod-title{
+  font-size:17px;font-weight:750;letter-spacing:-.015em;
+  color:#fff;margin-bottom:6px;
+}
+.mod-sub{
+  font-size:12.5px;color:var(--dm);line-height:1.65;
+  margin-bottom:14px;min-height:40px;
+}
+.mod-meta{
+  display:flex;gap:14px;font-size:11px;color:var(--ft);
+  letter-spacing:.02em;
+}
+.mod-meta b{
+  color:var(--mc,var(--ac));font-weight:700;
+}
+
+/* ---------- 模块页 ---------- */
+.mod-hero{padding:56px 0 36px}
+.mod-hero .badge{color:var(--ac);border-color:rgba(var(--ac-rgb),.32);background:rgba(var(--ac-rgb),.07)}
+.mod-hero h1{
+  font-size:clamp(28px,4vw,46px);
+  line-height:1.1;letter-spacing:-.03em;font-weight:800;
+  margin-bottom:14px;
+}
+.mod-hero p{
+  font-size:14.5px;color:var(--dm);max-width:640px;line-height:1.8;
+}
+.mod-meta-row{
+  display:flex;gap:20px;margin-top:22px;flex-wrap:wrap;
+  font-size:12px;color:var(--ft);
+}
+.mod-meta-row b{color:var(--ac);font-weight:700}
+
+/* ---------- Section ---------- */
+.sec{
+  padding:38px 0 14px;scroll-margin-top:calc(var(--topbar-h) + 20px);
+  opacity:0;transform:translateY(22px);
+  transition:opacity .7s,transform .7s cubic-bezier(.2,.8,.2,1);
+}
+.sec.in{opacity:1;transform:none}
+.sec+.sec{border-top:1px solid rgba(255,255,255,.055)}
+.sh{display:flex;align-items:flex-start;gap:14px;margin-bottom:22px}
+.si{
+  width:44px;height:44px;flex:0 0 44px;border-radius:13px;
+  display:grid;place-items:center;font-size:21px;
+  background:linear-gradient(150deg,rgba(var(--ac-rgb),.2),rgba(255,255,255,.03));
+  border:1px solid rgba(var(--ac-rgb),.3);
+  box-shadow:0 0 30px -14px var(--ac);
+}
+.st{font-size:22px;font-weight:750;letter-spacing:-.02em;line-height:1.25}
+.ss{font-size:12.5px;color:var(--ft);margin-top:4px}
+
+.lead{font-size:14.5px;color:var(--dm);line-height:1.85;margin-bottom:18px}
+.lead b{color:#fff;font-weight:650}
+
+.sub{
+  display:flex;align-items:center;gap:12px;
+  margin:28px 0 13px;font-size:14px;font-weight:700;color:#fff;
+}
+.sub::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(255,255,255,.15),transparent)}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:12px}
+.card{
+  position:relative;overflow:hidden;
+  padding:16px 17px 15px;border-radius:14px;
+  background:linear-gradient(158deg,rgba(255,255,255,.055),rgba(255,255,255,.018));
+  border:1px solid var(--bd);
+  transition:transform .28s cubic-bezier(.2,.8,.2,1),border-color .28s,box-shadow .28s;
+}
+.card::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(320px circle at var(--mx,50%) var(--my,50%),rgba(var(--ac-rgb),.16),transparent 62%);
+  opacity:0;transition:opacity .32s;
+}
+.card:hover{
+  transform:translateY(-3px);
+  border-color:rgba(var(--ac-rgb),.42);
+  box-shadow:0 14px 44px -16px rgba(var(--ac-rgb),.7);
+}
+.card:hover::before{opacity:1}
+.ct{
+  font-size:14px;font-weight:680;color:#fff;
+  position:relative;padding-left:11px;margin-bottom:7px;
+}
+.ct::before{
+  content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);
+  width:4px;height:4px;border-radius:50%;
+  background:var(--ac);box-shadow:0 0 9px var(--ac);
+}
+.cd{font-size:13px;color:var(--dm);line-height:1.72;position:relative}
+.cd b{color:#fff;font-weight:600}
+.tag{
+  font-size:10px;padding:2px 8px;border-radius:999px;
+  color:var(--ac);background:rgba(var(--ac-rgb),.12);
+  border:1px solid rgba(var(--ac-rgb),.28);
+  font-weight:600;margin-left:6px;vertical-align:middle;
+}
+
+.steps{list-style:none;counter-reset:s;display:grid;gap:8px;margin:14px 0}
+.steps li{
+  counter-increment:s;position:relative;
+  padding:11px 15px 11px 48px;border-radius:11px;
+  background:rgba(255,255,255,.028);
+  border:1px solid rgba(255,255,255,.06);
+  font-size:13px;color:var(--dm);line-height:1.65;
+  transition:.22s;
+}
+.steps li::before{
+  content:counter(s,decimal-leading-zero);
+  position:absolute;left:14px;top:50%;transform:translateY(-50%);
+  font-family:ui-monospace,monospace;font-size:11px;font-weight:700;
+  color:var(--ac);opacity:.9;
+}
+.steps li:hover{
+  background:rgba(var(--ac-rgb),.07);
+  border-color:rgba(var(--ac-rgb),.24);
+  color:var(--tx);
+}
+.steps li b{color:#fff}
+
+.check{list-style:none;display:grid;gap:7px;margin:16px 0}
+.check li{
+  position:relative;padding:10px 14px 10px 40px;
+  border-radius:10px;background:rgba(255,255,255,.028);
+  border:1px solid rgba(255,255,255,.06);
+  font-size:13px;color:var(--dm);line-height:1.6;
+  transition:.2s;
+}
+.check li::before{
+  content:'✓';position:absolute;left:14px;top:50%;transform:translateY(-50%);
+  font-size:12px;font-weight:800;color:var(--ac);opacity:.9;
+}
+.check li:hover{
+  background:rgba(var(--ac-rgb),.07);
+  border-color:rgba(var(--ac-rgb),.24);
+  color:var(--tx);
+}
+.check li b{color:#fff}
+
+.note{
+  margin:18px 0;padding:14px 17px;border-radius:12px;
+  font-size:13px;line-height:1.72;color:var(--dm);
+  border-left:3px solid var(--ac);background:rgba(var(--ac-rgb),.06);
+}
+.note b{display:block;font-weight:700;color:#fff;margin-bottom:3px;font-size:13px}
+.note.warn{border-left-color:#fbbf24;background:rgba(251,191,36,.07)}
+.note.lime{border-left-color:#7dd3a0;background:rgba(125,211,160,.06)}
+.note.cyan{border-left-color:#4fd1ff;background:rgba(79,209,255,.06)}
+
+.tbl{
+  margin:16px 0;border-radius:13px;overflow:hidden;
+  border:1px solid var(--bd);background:rgba(255,255,255,.018);
+  overflow-x:auto;
+}
+table{width:100%;border-collapse:collapse;font-size:12.8px;min-width:520px}
+th{
+  text-align:left;padding:11px 15px;
+  font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ft);background:rgba(255,255,255,.032);
+  border-bottom:1px solid var(--bd);white-space:nowrap;
+}
+td{
+  padding:12px 15px;border-bottom:1px solid rgba(255,255,255,.045);
+  color:var(--dm);vertical-align:top;line-height:1.65;
+}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(var(--ac-rgb),.055)}
+td:first-child{color:#fff;font-weight:620;white-space:nowrap}
+
+.code{
+  margin:18px 0;padding:18px 20px;border-radius:13px;
+  background:rgba(0,0,0,.45);
+  border:1px solid rgba(255,255,255,.085);
+  overflow-x:auto;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:12.4px;line-height:1.85;color:#bfd0ea;
+  position:relative;
+}
+.code::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:2px;
+  background:linear-gradient(180deg,var(--ac),transparent);
+}
+.code .c{color:#5b667e;font-style:italic}
+
+.formula{
+  position:relative;overflow:hidden;
+  margin:20px 0;padding:18px 22px;border-radius:14px;
+  background:linear-gradient(120deg,rgba(var(--ac-rgb),.14),rgba(var(--ac-rgb),.028));
+  border:1px solid rgba(var(--ac-rgb),.28);
+}
+.formula::after{
+  content:'';position:absolute;top:0;left:-100%;width:55%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent);
+  animation:sweep 5s ease-in-out infinite;
+}
+@keyframes sweep{0%{left:-100%}55%,100%{left:170%}}
+.fl{font-size:10px;font-weight:800;letter-spacing:.2em;color:var(--ac);text-transform:uppercase}
+.fb{
+  margin-top:8px;font-size:clamp(13px,1.6vw,16px);
+  font-weight:680;color:#fff;line-height:1.6;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+
+.risk{display:grid;gap:10px;margin:16px 0}
+.risk-item{
+  padding:14px 16px;border-radius:12px;
+  background:rgba(251,191,36,.055);
+  border:1px solid rgba(251,191,36,.22);
+  border-left:3px solid #fbbf24;
+}
+.risk-item b{display:block;font-size:13.5px;color:#fff;margin-bottom:4px}
+.risk-item p{font-size:12.8px;color:var(--dm);line-height:1.65}
+.risk-item em{font-style:normal;color:#fbbf24;font-weight:600}
+
+/* ---------- 搜索结果 ---------- */
+.search-results{padding:44px 0 60px}
+.search-results h2{
+  font-size:20px;font-weight:750;letter-spacing:-.02em;margin-bottom:6px;
+}
+.search-results .hint{font-size:12.5px;color:var(--ft);margin-bottom:24px}
+.sr-list{display:grid;gap:8px}
+.sr-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:13px 16px;border-radius:12px;
+  background:rgba(255,255,255,.028);
+  border:1px solid rgba(255,255,255,.06);
+  text-decoration:none;color:inherit;
+  transition:.2s;
+}
+.sr-item:hover{
+  background:rgba(var(--ac-rgb),.07);
+  border-color:rgba(var(--ac-rgb),.28);
+  transform:translateX(3px);
+}
+.sr-icon{font-size:18px;flex:0 0 auto;opacity:.85}
+.sr-body{flex:1;min-width:0}
+.sr-title{font-size:13.5px;color:#fff;font-weight:650;margin-bottom:2px}
+.sr-title mark{background:rgba(var(--ac-rgb),.28);color:#fff;padding:0 3px;border-radius:3px}
+.sr-path{font-size:11.5px;color:var(--ft);margin-bottom:5px}
+.sr-excerpt{
+  font-size:12.5px;color:var(--dm);line-height:1.6;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.sr-excerpt mark{background:rgba(var(--ac-rgb),.28);color:#fff;padding:0 2px;border-radius:3px}
+
+.empty-state{
+  text-align:center;padding:70px 20px;color:var(--ft);font-size:14px;
+}
+.empty-state strong{display:block;font-size:17px;color:var(--dm);margin-bottom:8px}
+
+/* ---------- 回顶 ---------- */
+.toTop{
+  position:fixed;right:24px;bottom:24px;
+  width:42px;height:42px;border-radius:50%;
+  background:rgba(18,22,34,.85);
+  border:1px solid rgba(255,255,255,.12);
+  color:var(--dm);cursor:pointer;font-size:15px;
+  backdrop-filter:blur(10px);z-index:80;
+  opacity:0;pointer-events:none;transition:.25s;
+}
+.toTop.show{opacity:1;pointer-events:auto}
+.toTop:hover{
+  color:#fff;border-color:rgba(var(--ac-rgb),.55);
+  box-shadow:0 0 26px -6px rgba(var(--ac-rgb),.8);
+  transform:translateY(-2px);
+}
+
+/* ---------- 进度条 ---------- */
+.prog{position:fixed;top:0;left:0;right:0;height:2px;z-index:200;pointer-events:none}
+.prog i{
+  display:block;height:100%;width:0;
+  background:linear-gradient(90deg,var(--ac),#fff);
+  box-shadow:0 0 12px var(--ac);
+  transition:width .1s linear,background .4s;
+}
+
+/* ---------- 响应式 ---------- */
+@media(max-width:900px){
+  :root{--topbar-h:56px}
+  .topbar{padding:0 12px;gap:8px}
+  .brand-txt{display:none}
+  .search-wrap{flex:0 0 auto}
+  .search-wrap input{width:auto;padding:8px 32px 8px 32px}
+  .search-wrap input::placeholder{color:transparent}
+  .search-wrap input{width:36px;padding:8px;color:transparent}
+  .search-wrap input:focus{width:180px;padding:8px 34px 8px 32px;color:var(--tx)}
+  .search-kbd{display:none}
+  .body{grid-template-columns:1fr}
+  .sidebar{
+    position:sticky;top:var(--topbar-h);z-index:100;
+    height:auto;max-height:none;flex-direction:row;
+    padding:8px 12px;
+    border-right:none;border-bottom:1px solid rgba(255,255,255,.08);
+    background:rgba(6,7,12,.94);
+    overflow-x:auto;overflow-y:hidden;
+  }
+  .sidebar::-webkit-scrollbar{display:none}
+  .side-head{display:none}
+  .nav{flex-direction:row;margin:0;gap:6px;padding:0}
+  .nav a{padding:6px 11px;font-size:12px;flex:0 0 auto}
+  .main{padding:0 18px 100px}
+  .overview-hero{padding:40px 0 28px}
+  .mod-hero{padding:36px 0 24px}
+  .sec{padding:30px 0 10px}
+  .cards{grid-template-columns:1fr}
+  .modules{grid-template-columns:1fr}
+  .toTop{right:16px;bottom:16px}
+}
+</style>
+</head>
+<body>
+
+<div class="bg"><div class="blob b1"></div><div class="blob b2"></div></div>
+<div class="prog"><i id="prog"></i></div>
+
+<header class="topbar">
+  <a class="brand" href="#/">
+    <div class="brand-mark">AI</div>
+    <div class="brand-txt">
+      <b>知识图谱</b>
+      <span>AI &amp; AGENT</span>
+    </div>
+  </a>
+  <nav class="tabs" id="tabs"></nav>
+  <div class="search-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+      <circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>
+    </svg>
+    <input id="q" type="text" placeholder="搜索全部…" autocomplete="off" spellcheck="false">
+    <span class="search-kbd">/</span>
+  </div>
+</header>
+
+<div class="body">
+  <aside class="sidebar" id="sidebar">
+    <div class="side-head">
+      <div class="side-title" id="sideTitle">总览</div>
+      <div class="side-sub" id="sideSub">OVERVIEW</div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+  </aside>
+  <main class="main" id="main"></main>
+</div>
+
+<button class="toTop" id="toTop" aria-label="回到顶部">↑</button>
+
+<script>
+/* =========================================================
+   主题色
+   ========================================================= */
+const ACCENTS = {
+  cyan:   '#4fd1ff',
+  violet: '#a78bfa',
+  amber:  '#fbbf24',
+  lime:   '#7dd3a0',
+  pink:   '#f472b6'
+};
+function hexToRgb(hex){
+  const h = hex.replace('#','');
+  return [
+    parseInt(h.slice(0,2),16),
+    parseInt(h.slice(2,4),16),
+    parseInt(h.slice(4,6),16)
+  ].join(',');
+}
+function setAccent(name){
+  const hex = ACCENTS[name] || ACCENTS.cyan;
+  document.documentElement.style.setProperty('--ac', hex);
+  document.documentElement.style.setProperty('--ac-rgb', hexToRgb(hex));
+}
+
+/* =========================================================
+   数据
+   ========================================================= */
+const MODULES = [
+/* ============================================================
+   模块 0 · 概念图谱
+   ============================================================ */
+{
+  id:'map', icon:'🗺️', title:'概念图谱', sub:'从 AI 到 Agent 的完整地图',
+  accent:'cyan',
+  desc:'起点。用一张图把 AI、ML、DL、LLM、Agent 的层级关系讲清楚，适合先建立全局心智模型。',
+  sections:[
+  {id:'overview',icon:'🗺️',t:'总览地图',s:'AI · ML · DL · LLM · Agent 的层级关系',blocks:[
+    {type:'lead',text:'一句话记住：<b>AI 是目标，ML 是方法，DL 是技术，LLM 是模型，Agent 是应用形态。</b>'},
+    {type:'tbl',head:['层级','含义','例子'],rows:[
+      ['AI 人工智能','让机器表现出智能行为','下棋、识图、对话'],
+      ['ML 机器学习','从数据里学规律，不写死规则','垃圾邮件分类'],
+      ['DL 深度学习','用多层神经网络做机器学习','人脸识别、图像生成'],
+      ['生成式 AI','能生成文本、图片、音频、视频','ChatGPT、Midjourney'],
+      ['LLM 大语言模型','海量文本训练出的生成式模型','GPT、Claude、DeepSeek'],
+      ['Agent 智能体','以 LLM 为大脑，能规划、用工具、记忆、行动','自动查资料写报告']
+    ]},
+    {type:'formula',label:'Agent 核心公式',text:'Agent = LLM + 规划 + 工具 + 记忆 + 循环 + 环境 + 安全护栏'}
+  ]},
+  {id:'ml',icon:'📊',t:'机器学习基础',s:'模型到底是怎么「学会」的',blocks:[
+    {type:'lead',text:'传统程序是<b>人写规则</b>；机器学习是<b>人给数据，模型自己找规律</b>。'},
+    {type:'cards',items:[
+      {t:'数据 Data',d:'模型学习的原材料。数据质量往往比模型结构更决定上限。'},
+      {t:'特征 Feature',d:'数据中用于判断的信息。'},
+      {t:'标签 Label',d:'监督学习里的「标准答案」。'},
+      {t:'模型 Model',d:'本质是一个函数：输入数据，输出预测。'},
+      {t:'参数 Parameter',d:'模型内部学到的数值。训练就是在调它。'},
+      {t:'超参数',d:'人手工设定的，比如学习率、批大小。'},
+      {t:'训练 Training',d:'不断调整参数，让预测更准。'},
+      {t:'推理 Inference',d:'训练完后，用模型回答新问题。'},
+      {t:'损失函数 Loss',d:'衡量预测和真实答案差多少。'},
+      {t:'梯度下降',d:'沿着让损失变小的方向更新参数。'},
+      {t:'反向传播',d:'从损失往回算每个参数该怎么调。'},
+      {t:'过拟合',d:'训练集背得很熟，新数据表现差。'},
+      {t:'泛化',d:'在新数据上也能表现好。这是目标。'}
+    ]}
+  ]},
+  {id:'paradigms',icon:'🧭',t:'四种学习范式',s:'标签从哪来，决定怎么学',blocks:[
+    {type:'cards',items:[
+      {t:'监督学习',tag:'有标签',d:'输入到正确答案。分类、回归都属于这一类。'},
+      {t:'无监督学习',tag:'无标签',d:'自己找结构：聚类、降维、异常检测。'},
+      {t:'自监督学习',tag:'自己造标签',d:'从数据本身构造目标。LLM 预训练主要靠它。'},
+      {t:'强化学习',tag:'试错 + 奖励',d:'智能体在环境里行动，根据奖励学策略。'}
+    ]},
+    {type:'note',title:'为什么 LLM 是自监督？',text:'「下一个 token」这个标签直接从文本里拿到，不需要人工标注。这就是它能吃掉整个互联网的原因。'}
+  ]},
+  {id:'nn',icon:'🧠',t:'神经网络与 Transformer',s:'LLM 的骨架',blocks:[
+    {type:'cards',items:[
+      {t:'神经网络',d:'很多神经元分层连接，每个连接带权重。训练就是调这些权重。'},
+      {t:'CNN',d:'擅长图像，捕捉局部特征。'},
+      {t:'RNN / LSTM',d:'擅长序列，但难并行，长距离依赖易丢。'},
+      {t:'Transformer',d:'当前主流，核心是自注意力，可全并行。'},
+      {t:'自注意力',d:'每个 token 都能看到序列里其他 token，并决定关注谁。'},
+      {t:'Q / K / V',d:'Query 想找什么，Key 有什么，Value 实际内容。'},
+      {t:'多头注意力',d:'多个专家从不同角度看关系。'},
+      {t:'位置编码',d:'注意力本身不知道顺序，必须额外告诉它。'},
+      {t:'自回归',d:'一次生成一个 token，前面的影响后面。'}
+    ]}
+  ]},
+  {id:'llm',icon:'💬',t:'LLM 关键概念',s:'大语言模型是怎么炼成的',blocks:[
+    {type:'cards',items:[
+      {t:'Token',d:'模型眼中的文本碎片。不是字，也不一定是词。'},
+      {t:'词表',d:'所有 token 的集合，通常几万到十几万。'},
+      {t:'Embedding',d:'把 token 或句子变成一串数字向量。语义相近，距离近。'},
+      {t:'上下文窗口',d:'一次能看的 token 数量。是「工作台」，不是永久记忆。'},
+      {t:'Next Token Prediction',d:'预测下一个 token，LLM 最基本的目标。'},
+      {t:'预训练',d:'海量文本上学语言和世界知识。'},
+      {t:'SFT 指令微调',d:'用指令-回答数据，教模型听懂人话、按格式输出。'},
+      {t:'RLHF',d:'基于人类反馈的强化学习。'},
+      {t:'DPO',d:'直接偏好优化，比 RLHF 更简单。'},
+      {t:'对齐',d:'让模型有用、诚实、无害。'},
+      {t:'推理模型',d:'回答前先生成更多思考过程，适合复杂推理。'}
+    ]}
+  ]},
+  {id:'prompt',icon:'🎯',t:'Prompt · RAG · 微调',s:'怎么让模型干你想干的事',blocks:[
+    {type:'cards',items:[
+      {t:'Prompt',d:'你给模型的输入。分 system、user、assistant 三类消息。'},
+      {t:'Zero-shot',d:'不给例子直接问。'},
+      {t:'Few-shot',d:'给几个例子再问。'},
+      {t:'CoT 思维链',d:'让模型分步推理，显著提升复杂任务准确率。'},
+      {t:'RAG',d:'先查资料再回答。像开卷考试。'},
+      {t:'向量数据库',d:'存 embedding，做相似度搜索。'},
+      {t:'Rerank',d:'粗排后再精排，提高检索质量。'},
+      {t:'微调',d:'用特定数据继续训练，改变行为、风格、格式。'},
+      {t:'LoRA',d:'只训练一小部分参数，省显存。'}
+    ]},
+    {type:'tbl',head:['','RAG','微调'],rows:[
+      ['解决什么','补充新知识','改变行为方式'],
+      ['数据','文档、知识库','指令-回答样本'],
+      ['更新','随时换库','需重新训练'],
+      ['成本','低','中到高']
+    ]}
+  ]},
+  {id:'inference',icon:'🎛️',t:'推理参数与幻觉',s:'怎么控制模型的性格',blocks:[
+    {type:'cards',items:[
+      {t:'温度 Temperature',d:'越高越随机，越低越确定。工具调用常用低温。'},
+      {t:'Top-k',d:'只从概率最高的 k 个 token 里挑。'},
+      {t:'Top-p 核采样',d:'从累计概率达到 p 的集合里挑。'},
+      {t:'重复惩罚',d:'降低已出现 token 的权重。'},
+      {t:'幻觉',d:'模型编造看似合理但不真实的内容。'},
+      {t:'缓解幻觉',d:'RAG、引用来源、工具验证、低温、人工审核。'}
+    ]}
+  ]},
+  {id:'efficiency',icon:'⚡',t:'效率 · 多模态 · 边界',s:'更小、更快、更强',blocks:[
+    {type:'cards',items:[
+      {t:'量化',d:'FP16 压到 INT8/INT4，省显存提速，可能掉质。'},
+      {t:'蒸馏',d:'大模型当老师，教出一个小模型。'},
+      {t:'MoE 混合专家',d:'多专家网络，只激活一部分。'},
+      {t:'多模态',d:'文本、图像、音频、视频统一处理。'},
+      {t:'扩散模型',d:'图像生成主流：加噪再逐步去噪。'},
+      {t:'AGI',d:'通用人工智能，目前没有统一定义，也还没实现。'}
+    ]}
+  ]},
+  {id:'agent',icon:'🤖',t:'Agent 是什么',s:'从一问一答到能自己干完一件事',blocks:[
+    {type:'tbl',head:['','Chatbot','Agent'],rows:[
+      ['交互','一问一答','给个目标，自己干'],
+      ['步骤','单轮 / 少轮','多步循环'],
+      ['工具','通常没有','核心能力'],
+      ['记忆','只有当前对话','短期 + 长期'],
+      ['失败处理','不会','能观察结果并调整']
+    ]},
+    {type:'formula',label:'Agent 构成',text:'Agent = LLM + 规划 + 工具 + 记忆 + 循环 + 环境 + 安全护栏'}
+  ]},
+  {id:'loop',icon:'🔁',t:'Agent 运行循环',s:'它到底是怎么转起来的',blocks:[
+    {type:'code',text:[
+      'memory = []',
+      'while not done:',
+      '    obs     = 获取观察()',
+      '    thought = LLM(目标, 记忆, 工具列表, obs)',
+      '    action  = 解析(thought)',
+      '    result  = 执行(action)',
+      '    memory.append((obs, thought, action, result))',
+      '    done    = 判断是否完成()'
+    ].join('\n')},
+    {type:'steps',items:[
+      '接收用户目标','理解目标','规划步骤','选择工具',
+      '执行动作','观察结果','更新记忆','继续或结束'
+    ]}
+  ]},
+  {id:'components',icon:'🧩',t:'Agent 核心组件',s:'拆开看就这几块',blocks:[
+    {type:'sub',text:'① 模型 Model'},
+    {type:'cards',items:[
+      {t:'模型选型',d:'闭源 API 或本地开源。看能力、成本、延迟、隐私、上下文、工具调用能力。'}
+    ]},
+    {type:'sub',text:'② 规划 Planning'},
+    {type:'cards',items:[
+      {t:'任务分解',d:'大目标拆成可执行小步骤。'},
+      {t:'ReAct',d:'推理和行动交替。最经典的 Agent 范式。'},
+      {t:'Plan-and-Execute',d:'先列完整计划，再逐步执行。'},
+      {t:'Reflexion',d:'失败后反思，把教训写进记忆。'},
+      {t:'ToT 树状思考',d:'同时探索多条推理路径。'}
+    ]},
+    {type:'sub',text:'③ 工具 Tools'},
+    {type:'cards',items:[
+      {t:'常见工具',d:'搜索、计算器、代码解释器、数据库、API、浏览器、邮件日历。'},
+      {t:'Function Calling',d:'模型输出 JSON 说明调谁传什么，由代码执行后喂回结果。'},
+      {t:'MCP',d:'Model Context Protocol，标准化 Agent 连接工具和数据源。'},
+      {t:'工具设计',d:'名称清晰、参数用 Schema、错误可读、权限最小、高风险审批。'}
+    ]},
+    {type:'sub',text:'④ 记忆 Memory'},
+    {type:'cards',items:[
+      {t:'短期记忆',d:'当前上下文窗口里的内容。'},
+      {t:'长期记忆',d:'向量库、数据库里持久化的内容。'},
+      {t:'情节记忆',d:'过去经历的具体事件。'},
+      {t:'语义记忆',d:'事实性知识。'},
+      {t:'程序记忆',d:'技能和流程。'},
+      {t:'记忆管理',d:'写入、检索、压缩、摘要、遗忘。'}
+    ]},
+    {type:'sub',text:'⑤ 环境与编排'},
+    {type:'cards',items:[
+      {t:'环境',d:'网页、文件系统、数据库、聊天窗口。'},
+      {t:'状态',d:'当前目标、已完成步骤、工具结果、用户反馈。'},
+      {t:'工作流',d:'步骤预定义，可控、好调试。'},
+      {t:'Agent 编排',d:'模型动态决定下一步。灵活但不可控。'},
+      {t:'LangGraph',d:'用图定义节点和边，支持循环、分支、持久化。'}
+    ]}
+  ]},
+  {id:'patterns',icon:'🎨',t:'常见 Agent 模式',s:'五种主流套路',blocks:[
+    {type:'tbl',head:['模式','说明','适用'],rows:[
+      ['ReAct','推理和行动交替','通用任务'],
+      ['Router','先判断用哪个工具','多工具调度'],
+      ['Plan-Execute','先计划再执行','长流程'],
+      ['Reflection','做完反思改进','有质量标准的任务'],
+      ['Multi-Agent','多个 Agent 分工','可拆分复杂项目']
+    ]}
+  ]},
+  {id:'multiagent',icon:'👥',t:'多智能体 & 人类在环',s:'一个人干不完就组队',blocks:[
+    {type:'cards',items:[
+      {t:'角色分工',d:'编排者 + 工作者；辩论者；评审者；搜索者 / 写作者 / 审核者。'},
+      {t:'优点',d:'分工、并行、互相检查。'},
+      {t:'缺点',d:'成本高、通信复杂、错误传播、调试难。'},
+      {t:'Human-in-the-loop',d:'高风险操作必须人类审批。'},
+      {t:'介入方式',d:'审批、纠正、接管、中断。'}
+    ]},
+    {type:'note',warn:1,title:'建议',text:'先把单 Agent 做扎实，再考虑多 Agent。多 Agent 是复杂度放大器，不是效果放大器。'}
+  ]},
+  {id:'safety',icon:'🛡️',t:'Agent 安全与对齐',s:'能做事就意味着能闯祸',blocks:[
+    {type:'cards',items:[
+      {t:'提示注入',d:'网页或文档里藏「忽略之前指令」这类内容。'},
+      {t:'越狱',d:'用话术绕过模型安全限制。'},
+      {t:'越权',d:'调用了不该调用的工具或数据。'},
+      {t:'数据泄露',d:'把敏感信息发给外部。'},
+      {t:'工具注入',d:'工具返回内容里藏恶意指令。'}
+    ]},
+    {type:'steps',items:[
+      '最小权限','沙箱执行','输入输出过滤','工具白名单',
+      '人类审批','审计日志','隔离系统指令与外部内容'
+    ]}
+  ]},
+  {id:'eval',icon:'📈',t:'评估与可观测性',s:'怎么知道它行不行',blocks:[
+    {type:'cards',items:[
+      {t:'任务完成率',d:'最终有没有把事办成。'},
+      {t:'步骤效率',d:'用了几步，有没有绕远路。'},
+      {t:'工具调用正确率',d:'选对工具了吗？参数传对了吗？'},
+      {t:'成本 / 延迟',d:'token 消耗、调用次数、耗时。'},
+      {t:'安全违规',d:'越权、泄露、被注入。'},
+      {t:'轨迹合理性',d:'推理和行动链路是否说得通。'},
+      {t:'常用工具',d:'LangSmith、LangFuse、OpenTelemetry。'},
+      {t:'常见基准',d:'AgentBench、SWE-bench、WebArena、GAIA。'}
+    ]}
+  ]},
+  {id:'frameworks',icon:'🛠️',t:'框架与协议',s:'别重复造轮子',blocks:[
+    {type:'cards',items:[
+      {t:'LangChain / LangGraph',d:'LLM 应用与 Agent 编排。'},
+      {t:'LlamaIndex',d:'RAG 和知识检索强。'},
+      {t:'AutoGen',d:'微软多 Agent 对话框架。'},
+      {t:'CrewAI',d:'角色化多 Agent 协作。'},
+      {t:'Semantic Kernel',d:'微软生态。'},
+      {t:'OpenAI Agents SDK',d:'OpenAI 官方 Agent 工具。'},
+      {t:'MCP',d:'连接工具和数据的开放协议。'},
+      {t:'A2A',d:'Agent 间通信协议。'}
+    ]}
+  ]},
+  {id:'roadmap',icon:'🚀',t:'小白学习路径',s:'按顺序走别跳步',blocks:[
+    {type:'steps',items:[
+      'Python 基础：函数、类、异步、API 调用',
+      'LLM API：OpenAI、Claude、DeepSeek 挑一个',
+      'Prompt 工程：系统消息、Few-shot、CoT',
+      'Token / Embedding / 上下文窗口',
+      'RAG：加载、切块、向量库、检索、重排',
+      'Function Calling：让模型调用工具',
+      '单 Agent ReAct：思考-行动-观察循环',
+      '记忆与规划：摘要、向量记忆、Plan-Execute',
+      'LangGraph：图编排、状态、分支、循环',
+      '评估与安全：黄金集、Tracing、权限、沙箱',
+      '多 Agent：最后再学',
+      '部署：API、队列、缓存、成本、监控'
+    ]}
+  ]}
+  ]
+},
+
+/* ============================================================
+   模块 1 · 内部原理
+   ============================================================ */
+{
+  id:'m1', icon:'🧠', title:'内部原理', sub:'Transformer 与 LLM 内部原理',
+  accent:'violet',
+  desc:'往下一层钻。注意力到底在算什么，位置信息怎么进去，KV Cache 为什么能省算力。',
+  sections:[
+  {id:'attn',icon:'🎯',t:'自注意力：数学直觉',s:'一切的核心是一次加权平均',blocks:[
+    {type:'lead',text:'自注意力的本质：<b>每个 token 都去问其他所有 token「你跟我有多相关」，然后按相关度把它们的值加权平均回来。</b>'},
+    {type:'formula',label:'缩放点积注意力',text:'Attention(Q, K, V) = softmax( Q·Kᵀ / √dₖ ) · V'},
+    {type:'cards',items:[
+      {t:'Q 和 K 的点积',d:'衡量「我想找的」和「我有的」匹配程度。'},
+      {t:'为什么除以 √dₖ',d:'维度越高点积方差越大，softmax 会被推向极端，梯度消失。除以 √dₖ 把方差拉回 1 附近。'},
+      {t:'softmax 做了什么',d:'把分数变成概率分布，总和为 1。它就是注意力权重。'},
+      {t:'乘 V 做了什么',d:'按权重把所有 token 的 Value 加权求和。'},
+      {t:'因果掩码',d:'把「未来位置」的分数设为负无穷，保证 token 只能看到自己和左边。'}
+    ]}
+  ]},
+  {id:'mha',icon:'🧬',t:'多头注意力与残差结构',s:'为什么要拆成多个头',blocks:[
+    {type:'cards',items:[
+      {t:'多头注意力 MHA',d:'把 d_model 切成 h 份，每份独立做注意力，最后拼接再投影。'},
+      {t:'为什么要多头',d:'单个 softmax 只能产生一个注意力分布，等于只能看一种关系。'},
+      {t:'MQA / GQA',d:'推理优化关键。MQA 让所有头共享 K/V；GQA 分组共享。'},
+      {t:'残差连接',d:'输出 = x + Sublayer(x)。让梯度直通底层。'},
+      {t:'LayerNorm',d:'对特征维度归一化，稳定训练。Pre-LN 更稳。'},
+      {t:'前馈层 FFN',d:'两层 MLP，中间维度通常 4×d_model。承担大部分知识存储。'}
+    ]},
+    {type:'note',title:'一个常被忽略的事实',text:'注意力负责「信息路由」，FFN 负责「信息加工」。模型的知识大量存在 FFN 权重里。'}
+  ]},
+  {id:'pos',icon:'📍',t:'位置编码的演化',s:'注意力本身是无序的',blocks:[
+    {type:'lead',text:'自注意力对输入顺序是<b>置换不变</b>的。打乱 token 顺序，结果不变。所以必须显式注入位置信息。'},
+    {type:'cards',items:[
+      {t:'正弦位置编码',d:'原始 Transformer 方案。外推能力一般。'},
+      {t:'可学习位置编码',d:'每个位置一个可训练向量。完全无法外推。'},
+      {t:'RoPE 旋转位置编码',d:'把 Q/K 按位置旋转一个角度。外推性好，当前主流。'},
+      {t:'ALiBi',d:'在注意力分数上加与距离成正比的惩罚。简单、外推强。'},
+      {t:'YaRN / NTK 插值',d:'调整 RoPE 频率缩放，把 4K 上下文拉到 128K。'}
+    ]}
+  ]},
+  {id:'arch',icon:'🏗️',t:'三种架构范式',s:'Encoder / Decoder / Enc-Dec',blocks:[
+    {type:'tbl',head:['架构','代表','注意力','擅长'],rows:[
+      ['Encoder-only','BERT','双向','理解类：分类、抽取、检索'],
+      ['Decoder-only','GPT、Llama','因果','生成类：对话、写作、代码'],
+      ['Encoder-Decoder','T5、BART','编码双向 + 解码单向','翻译、摘要']
+    ]},
+    {type:'note',title:'为什么 Decoder-only 赢了',text:'统一了理解和生成；自监督目标天然适配海量无标注文本；训练和推理栈最简洁，最容易 scale。'}
+  ]},
+  {id:'kvcache',icon:'⚡',t:'KV Cache 与推理优化',s:'为什么第二次回答快那么多',blocks:[
+    {type:'lead',text:'自回归生成时，每生成一个新 token 都要重算整个序列的 K 和 V。KV Cache 把已算过的 K/V 缓存下来，<b>每次只算新 token</b>。'},
+    {type:'cards',items:[
+      {t:'KV Cache 的代价',d:'省了计算，但吃显存。占用与层数、头数、序列长度成正比。'},
+      {t:'PagedAttention',d:'vLLM 核心创新。把 KV Cache 像操作系统分页一样管理。'},
+      {t:'Continuous Batching',d:'谁先完成谁先走，新请求立刻补位。吞吐提升数倍。'},
+      {t:'投机解码',d:'小模型快速草拟多个 token，大模型并行验证。'},
+      {t:'前缀缓存',d:'相同 system prompt 的 K/V 直接复用。'}
+    ]}
+  ]},
+  {id:'decode',icon:'🎲',t:'解码策略',s:'同样的模型不同的性格',blocks:[
+    {type:'cards',items:[
+      {t:'贪心 Greedy',d:'每步选概率最高的。确定但容易重复。'},
+      {t:'束搜索 Beam Search',d:'保留 k 条候选。适合翻译，不适合开放对话。'},
+      {t:'温度',d:'logits 除以 T 再 softmax。T<1 保守，T>1 发散。'},
+      {t:'Top-k',d:'只保留概率最高的 k 个候选。'},
+      {t:'Top-p',d:'保留累计概率达到 p 的最小集合。'},
+      {t:'重复惩罚',d:'对已出现 token 的 logits 做惩罚。'},
+      {t:'min_p',d:'以最高概率为基准设阈值，比 top-p 更稳健。'}
+    ]},
+    {type:'note',title:'实用建议',text:'代码 / 工具调用：T=0~0.2；创意写作：T=0.8~1.0；结构化抽取：T=0，并配合 JSON Schema 约束解码。'}
+  ]},
+  {id:'ctx',icon:'🪟',t:'上下文窗口与长文本',s:'注意力复杂度的天花板',blocks:[
+    {type:'cards',items:[
+      {t:'O(n²) 问题',d:'标准注意力对序列长度是平方复杂度。'},
+      {t:'FlashAttention',d:'不改变数学结果，分块 + 重计算，显存从 O(n²) 降到 O(n)。'},
+      {t:'滑动窗口注意力',d:'每个 token 只看附近 W 个。复杂度 O(n·W)。'},
+      {t:'稀疏注意力',d:'只计算部分位置对。Longformer、BigBird。'},
+      {t:'线性注意力',d:'用核函数近似 softmax，复杂度降到 O(n)。'},
+      {t:'迷失在中间',d:'窗口够大不代表用得好。中间信息利用明显差。'}
+    ]}
+  ]},
+  {id:'sum',icon:'🧩',t:'一张图串起来',s:'从 token 到输出',blocks:[
+    {type:'steps',items:[
+      '<b>分词</b>：文本 → token id 序列',
+      '<b>Embedding</b>：token id → d_model 维向量',
+      '<b>位置编码</b>：注入位置信息',
+      '<b>N 层堆叠</b>：LayerNorm → 多头注意力 → 残差 → LayerNorm → FFN → 残差',
+      '<b>输出投影</b>：最后一层隐状态 → 词表维度 logits',
+      '<b>采样</b>：温度 / top-p / top-k 得到下一个 token',
+      '<b>循环</b>：把新 token 拼回序列，重复到 EOS',
+      '<b>KV Cache</b>：整个过程只算新 token 的 K/V'
+    ]}
+  ]}
+  ]
+},
+
+/* ============================================================
+   模块 2 · 训练与对齐
+   ============================================================ */
+{
+  id:'m2', icon:'🎓', title:'训练与对齐', sub:'训练、微调与对齐全链路',
+  accent:'amber',
+  desc:'从一个随机初始化的网络，到能听懂指令、会说人话、还比较安全的助手，中间到底发生了什么。',
+  sections:[
+  {id:'pipeline',icon:'🏭',t:'全链路总览',s:'五个阶段，缺一不可',blocks:[
+    {type:'steps',items:[
+      '<b>预训练</b>：海量无标注文本上学预测下一个 token。产出基座模型。',
+      '<b>指令微调 SFT</b>：用指令-回答数据，教模型听懂人话。',
+      '<b>偏好对齐 RLHF / DPO</b>：用人类偏好数据，学会什么样的回答更好。',
+      '<b>推理增强 / 工具微调</b>：教它长思考、调函数、用外部世界。',
+      '<b>量化 / 蒸馏 / 部署优化</b>：让它在真实硬件上跑得动、跑得便宜。'
+    ]}
+  ]},
+  {id:'pretrain',icon:'📚',t:'预训练：知识的来源',s:'钱最多、最难、最不能省',blocks:[
+    {type:'cards',items:[
+      {t:'训练目标',d:'Next Token Prediction。给前 n 个 token，预测第 n+1 个。'},
+      {t:'数据构成',d:'网页、代码、书籍、论文、百科。代码数据能显著提升推理能力。'},
+      {t:'数据清洗',d:'去重、质量过滤、有害内容过滤、隐私脱敏。清洗质量决定上限。'},
+      {t:'数据配比',d:'中英比例、代码比例、数学比例，塑造不同的模型性格。'},
+      {t:'训练稳定性',d:'混合精度、梯度裁剪、warmup + cosine 衰减。'},
+      {t:'并行策略',d:'数据并行、张量并行、流水线并行、序列并行。'}
+    ]},
+    {type:'formula',label:'Scaling Laws 直觉',text:'Loss ∝ 数据量^(-α) + 参数量^(-β) + 计算量^(-γ)'},
+    {type:'note',title:'Chinchilla 的启示',text:'给定算力预算下，模型参数和数据量应大致同比例增长。现在数据严重不够用，合成数据成为刚需。'}
+  ]},
+  {id:'sft',icon:'🎓',t:'SFT 指令微调',s:'教模型听懂人话',blocks:[
+    {type:'cards',items:[
+      {t:'数据格式',d:'messages 数组，只对 assistant 部分算 loss。'},
+      {t:'数据质量 > 数量',d:'几千条高质量样本，往往胜过几十万条低质样本。'},
+      {t:'多样性',d:'任务类型、长度、语气、语言都要覆盖。'},
+      {t:'拒绝采样',d:'让模型自己生成多个回答，挑最好的留下。'},
+      {t:'灾难性遗忘',d:'SFT 太猛会把预训练知识冲掉。低学习率、LoRA 能缓解。'},
+      {t:'Loss Masking',d:'system 和 user 部分通常不参与 loss。'}
+    ]},
+    {type:'note',title:'实用建议',text:'SFT 学习率通常比预训练低 1~2 个数量级（1e-5 ~ 2e-5），epoch 数 2~3 就够，多了必然过拟合。'}
+  ]},
+  {id:'rlhf',icon:'🎯',t:'RLHF：对齐人类偏好',s:'让模型知道什么叫好',blocks:[
+    {type:'steps',items:[
+      '<b>收集偏好数据</b>：同一 prompt 多个回答，人类标注哪个更好。',
+      '<b>训练奖励模型 RM</b>：输入 prompt + 回答，输出分数。',
+      '<b>PPO 强化学习</b>：用 RM 当奖励，同时加 KL 惩罚。',
+      '<b>迭代</b>：用新模型继续生成、标注、训 RM。'
+    ]},
+    {type:'formula',label:'PPO 目标（简化）',text:'max E[ r(x,y) − β · KL( π(y|x) ‖ π_sft(y|x) ) ]'},
+    {type:'cards',items:[
+      {t:'KL 惩罚为什么重要',d:'不加约束，模型会找到奖励模型的漏洞，输出一堆高分但很怪的文本。这叫 reward hacking。'},
+      {t:'RM 的局限',d:'奖励模型只是人类偏好的近似。会过拟合、会被钻空子。'},
+      {t:'PPO 的痛点',d:'要同时加载 4 个模型，显存吃紧，调参困难。'}
+    ]}
+  ]},
+  {id:'dpo',icon:'⚖️',t:'DPO 及其家族',s:'把 RL 问题变成分类问题',blocks:[
+    {type:'formula',label:'DPO 核心思想',text:'直接优化策略，让好回答的概率相对坏回答更高，无需显式奖励模型'},
+    {type:'tbl',head:['方法','思路','优点','代价'],rows:[
+      ['DPO','用偏好对直接优化策略','简单、稳定','对数据质量敏感'],
+      ['IPO','加正则防止过拟合偏好','更稳健','效果提升有限'],
+      ['KTO','只需好/坏标签','数据采集成本低','信号略弱'],
+      ['ORPO','把 SFT 和偏好对齐合并','省一次训练','生态较新'],
+      ['SimPO','去掉参考模型，长度归一','更省显存','需要调参']
+    ]},
+    {type:'note',title:'实践建议',text:'大多数团队首选 DPO 或 SimPO，工程复杂度远低于 PPO。PPO 仍在大厂和极致效果场景使用。'}
+  ]},
+  {id:'peft',icon:'🔧',t:'参数高效微调 PEFT',s:'用 1% 参数撬动模型',blocks:[
+    {type:'cards',items:[
+      {t:'LoRA',d:'冻结原权重，旁路两个低秩矩阵 A、B。秩 r 通常 8~64。'},
+      {t:'QLoRA',d:'基座量化到 4-bit，再在上面加 LoRA。单卡 24G 可微调 7B~13B。'},
+      {t:'LoRA 加在哪',d:'注意力 Q/K/V/O + FFN 的 gate/up/down。全加效果最好。'},
+      {t:'秩 r 怎么选',d:'任务越复杂、数据越多，r 越大。'},
+      {t:'AdaLoRA / DoRA',d:'自适应分配秩 / 分解方向和幅度。'},
+      {t:'Prefix Tuning',d:'在输入前拼接可训练虚拟 token。'},
+      {t:'全参微调',d:'数据量足够大、算力足够时，全参仍是最优解。'}
+    ]},
+    {type:'note',title:'LoRA 的隐藏优势',text:'可以训练多个 LoRA 适配器，推理时动态切换或加权合并。一个基座 + N 个 LoRA = N 个专业模型。'}
+  ]},
+  {id:'quant',icon:'📦',t:'量化',s:'用精度换显存和速度',blocks:[
+    {type:'tbl',head:['格式','位宽','特点','场景'],rows:[
+      ['FP32','32','训练标配','训练'],
+      ['FP16 / BF16','16','BF16 动态范围更大','训练 / 推理'],
+      ['INT8','8','几乎无损','推理'],
+      ['INT4 GPTQ','4','训练后量化','单卡推理'],
+      ['INT4 AWQ','4','激活感知，效果更好','单卡推理'],
+      ['GGUF','2~8','llama.cpp 生态','本地部署']
+    ]},
+    {type:'cards',items:[
+      {t:'PTQ',d:'模型训完后直接量化。快，精度损失略大。'},
+      {t:'QAT',d:'训练时就模拟量化误差。效果最好，成本高。'},
+      {t:'离群值问题',d:'少数极大值会拉低整体精度。SmoothQuant、AWQ 都在处理这个。'}
+    ]}
+  ]},
+  {id:'eval',icon:'📊',t:'训练效果评估',s:'怎么知道训得好不好',blocks:[
+    {type:'cards',items:[
+      {t:'困惑度',d:'语言建模基础指标。越低越好，但不直接反映好不好用。'},
+      {t:'基准测试',d:'MMLU、GSM8K、HumanEval、MATH、BBH。'},
+      {t:'基准污染',d:'测试集混进训练数据，分数虚高。当前最大的评估陷阱。'},
+      {t:'LLM-as-Judge',d:'用强模型给弱模型打分。注意位置偏见、长度偏见。'},
+      {t:'人类评估',d:'金标准，但贵、慢、主观。通常用 pairwise 对比。'},
+      {t:'A/B 测试',d:'线上真实流量对比。最终极的评估。'}
+    ]},
+    {type:'note',title:'实战心法',text:'不要只看一个指标。建一个 50~200 条小而精的业务黄金测试集，比刷任何公开榜单都有用。'}
+  ]}
+  ]
+},
+
+/* ============================================================
+   模块 3 · RAG
+   ============================================================ */
+{
+  id:'m3', icon:'📚', title:'RAG 与知识', sub:'RAG 与知识系统',
+  accent:'lime',
+  desc:'「把文档丢进向量库检索一下就完事」是最大的误解。真实的 RAG 系统有十几个可调环节，每一环都决定成败。',
+  sections:[
+  {id:'pipeline',icon:'🔀',t:'RAG 完整管道',s:'从原始文档到最终回答',blocks:[
+    {type:'steps',items:[
+      '<b>文档加载</b>：PDF、Word、HTML、数据库、API。',
+      '<b>切块 Chunking</b>：把长文档切成语义完整的小块。策略比参数更重要。',
+      '<b>向量化 Embedding</b>：用模型把每个块变成向量。',
+      '<b>索引与存储</b>：向量库 + 元数据。',
+      '<b>检索 Retrieval</b>：向量检索 / 关键词 / 混合检索。',
+      '<b>重排 Rerank</b>：用交叉编码器精排。',
+      '<b>上下文组装</b>：把检索结果 + 问题 + 指令拼成 prompt。',
+      '<b>生成与引用</b>：模型基于上下文回答，并给出引用来源。',
+      '<b>评估与迭代</b>：用黄金集评估检索和回答质量。'
+    ]}
+  ]},
+  {id:'fail',icon:'⚠️',t:'朴素 RAG 的七种失败',s:'先知道怎么坏才知道怎么修',blocks:[
+    {type:'cards',items:[
+      {t:'① 切块切断语义',d:'一个完整答案被切成两半，检索只能命中一半。'},
+      {t:'② Embedding 不懂领域',d:'通用 embedding 对专业术语、缩写、代码无能为力。'},
+      {t:'③ 检索到但不相关',d:'向量相似不等于语义相关。'},
+      {t:'④ 相关但没被检索到',d:'召回率不足。关键词匹配能救回一部分。'},
+      {t:'⑤ 上下文塞太多',d:'无关内容稀释了关键信息。'},
+      {t:'⑥ 模型不忠于上下文',d:'给了资料，模型还是按自己记忆回答。'},
+      {t:'⑦ 多跳问题无解',d:'「A 的创始人的另一家公司做了什么」需要两步推理。'}
+    ]},
+    {type:'note',warn:1,title:'核心心法',text:'RAG 的瓶颈通常不在生成，而在检索。把 80% 的精力花在「怎么让正确的内容出现在上下文里」。'}
+  ]},
+  {id:'chunk',icon:'✂️',t:'切块策略',s:'最被低估的一环',blocks:[
+    {type:'tbl',head:['策略','做法','适用','缺点'],rows:[
+      ['固定长度','按 token 数硬切，带 overlap','通用基线','容易切断语义'],
+      ['递归切分','按段落到句子逐级切','结构化文档','仍可能断章'],
+      ['语义切分','按 embedding 相似度变化切','长文、报告','计算成本高'],
+      ['按结构切','按标题、章节、表格切','Markdown、HTML','依赖解析质量'],
+      ['父子块','小块检索，大块喂给模型','需要上下文的场景','实现复杂'],
+      ['句子窗口','命中句子，扩展前后 N 句','问答密集文档','窗口大小难定']
+    ]},
+    {type:'note',cyan:1,title:'一个实用技巧',text:'检索用小 chunk（精准），生成用大 chunk（上下文完整）。这是当前最有效的工程手段之一。'}
+  ]},
+  {id:'embed',icon:'🔢',t:'Embedding 与索引',s:'把语义变成可搜索的坐标',blocks:[
+    {type:'cards',items:[
+      {t:'模型选型',d:'看语言支持、领域适配、维度、最大长度、推理成本。中文场景看 BGE、M3E、GTE。'},
+      {t:'维度与成本',d:'768 维和 1536 维效果差距可能不大，但存储和检索成本差一倍。'},
+      {t:'非对称检索',d:'query 和 document 用不同编码方式。'},
+      {t:'归一化',d:'L2 归一化后，余弦相似度等价于点积。'},
+      {t:'HNSW',d:'分层可导航小世界图。查询快、召回高，当前主流。'},
+      {t:'IVF',d:'倒排文件索引。先聚类，查询时只搜最近的簇。'},
+      {t:'PQ 乘积量化',d:'把向量压缩存储，省内存但损失精度。'},
+      {t:'元数据过滤',d:'先按时间、来源、权限过滤，再做向量检索。'}
+    ]}
+  ]},
+  {id:'hybrid',icon:'🔀',t:'混合检索与重排',s:'向量不是万能的',blocks:[
+    {type:'lead',text:'向量检索擅长语义相似，但<b>对精确匹配（人名、型号、编号）很弱</b>。关键词检索正好相反。两者结合效果通常显著优于任一单独使用。'},
+    {type:'cards',items:[
+      {t:'BM25',d:'经典关键词检索算法。无需训练，效果稳健。'},
+      {t:'混合检索',d:'向量 + BM25 各召回一批，用 RRF 合并。'},
+      {t:'RRF 融合',d:'score = Σ 1/(k + rank)。不需要调权重。'},
+      {t:'Cross-Encoder Rerank',d:'query 和文档拼一起送进模型，输出相关性分数。精度远高于向量，但慢。'},
+      {t:'Rerank 模型',d:'BGE-Reranker、Cohere Rerank、Jina Reranker。'},
+      {t:'两阶段策略',d:'第一阶段召回 50~100 条，第二阶段精排取 Top 3~5 条。'}
+    ]},
+    {type:'formula',label:'典型参数',text:'召回 Top 50 → Rerank → 取 Top 5 → 组装上下文'}
+  ]},
+  {id:'query',icon:'❓',t:'Query 改写与增强',s:'用户问的和文档写的不一样',blocks:[
+    {type:'cards',items:[
+      {t:'Query 改写',d:'把口语化问题改写成更适合检索的形式。'},
+      {t:'HyDE',d:'让 LLM 先幻想一个答案，再用这个答案去检索。'},
+      {t:'多查询 Multi-Query',d:'把一个问题改写成多个角度，分别检索。'},
+      {t:'查询分解',d:'多跳问题拆成子问题，逐个检索。'},
+      {t:'指代消解',d:'多轮对话里，「它」「那个」需要结合历史补全。'},
+      {t:'路由 Routing',d:'先判断问题类型，决定查哪个库。'}
+    ]}
+  ]},
+  {id:'graph',icon:'🕸️',t:'GraphRAG 与高级形态',s:'当向量检索不够用时',blocks:[
+    {type:'cards',items:[
+      {t:'GraphRAG',d:'用 LLM 从文档抽取实体和关系，构建知识图谱。适合多跳和全局性问题。'},
+      {t:'社区摘要',d:'把图聚类成社区，为每个社区生成摘要。'},
+      {t:'Agentic RAG',d:'让 Agent 自己决定检索什么、检索几次。'},
+      {t:'Self-RAG',d:'模型自己判断需不需要检索、结果相关不相关。'},
+      {t:'Corrective RAG',d:'检索结果质量差时自动改写 query 重查。'},
+      {t:'多模态 RAG',d:'检索对象包括图片、表格、视频帧。'}
+    ]},
+    {type:'note',warn:1,title:'什么时候不该用 GraphRAG',text:'成本高、构建慢、更新麻烦。如果普通混合检索 + Rerank 能解决，就不要上图谱。'}
+  ]},
+  {id:'eval',icon:'📊',t:'RAG 评估',s:'分开评检索和生成',blocks:[
+    {type:'sub',text:'检索侧指标'},
+    {type:'cards',items:[
+      {t:'Recall@K',d:'前 K 条里包含正确文档的比例。检索最重要的指标。'},
+      {t:'Precision@K',d:'前 K 条里有多少是相关的。'},
+      {t:'MRR',d:'第一个正确结果的排名倒数。'},
+      {t:'NDCG',d:'考虑排序位置的加权指标。'}
+    ]},
+    {type:'sub',text:'生成侧指标'},
+    {type:'cards',items:[
+      {t:'Faithfulness',d:'回答是否完全基于检索上下文。'},
+      {t:'Answer Relevancy',d:'回答是否切题。'},
+      {t:'Context Precision',d:'上下文里相关内容的比例。'},
+      {t:'Context Recall',d:'标准答案所需信息在上下文里出现了多少。'},
+      {t:'RAGAS',d:'专门为 RAG 设计的评估框架。'},
+      {t:'黄金测试集',d:'50~200 条「问题 + 标准答案 + 正确文档」。'}
+    ]},
+    {type:'note',title:'调优顺序',text:'先修召回（Recall@K），再修排序（Rerank），最后修生成（prompt / 模型）。召回不行，后面全白搭。'}
+  ]}
+  ]
+},
+
+/* ============================================================
+   模块 4 · Agent 工程
+   ============================================================ */
+{
+  id:'m4', icon:'🤖', title:'Agent 工程', sub:'Agent 架构与工程化',
+  accent:'cyan',
+  desc:'知道 ReAct 是起点。真正难的是：状态怎么管、工具怎么设计、循环怎么终止、失败怎么恢复、成本怎么控制。',
+  sections:[
+  {id:'loop',icon:'🔁',t:'Agent 循环的工程实现',s:'不只是 while 循环',blocks:[
+    {type:'code',text:[
+      '<span class="c"># 一个生产级 Agent 循环的骨架</span>',
+      'state = {',
+      '    "goal": user_input,',
+      '    "messages": [],',
+      '    "steps": 0,',
+      '    "max_steps": 15,',
+      '    "consecutive_errors": 0,',
+      '}',
+      '',
+      'while state["steps"] < state["max_steps"]:',
+      '    ctx = build_context(state)',
+      '    resp = llm.invoke(ctx, tools=TOOLS)',
+      '',
+      '    if resp.is_final_answer:',
+      '        return resp.content',
+      '',
+      '    for call in resp.tool_calls:',
+      '        result = safe_execute(call)',
+      '        state["tool_calls"].append((call, result))',
+      '',
+      '    if last_call_failed:',
+      '        state["consecutive_errors"] += 1',
+      '        if state["consecutive_errors"] >= 3:',
+      '            return escalate_to_human(state)',
+      '',
+      '    state["steps"] += 1'
+    ].join('\n')},
+    {type:'cards',items:[
+      {t:'终止条件',d:'模型主动输出最终答案 / 达最大步数 / 连续错误超阈值 / 超时 / 成本超预算。多重兜底。'},
+      {t:'上下文膨胀',d:'每轮都往 messages 里追加，很快撑爆窗口。必须压缩、摘要、丢弃。'},
+      {t:'幂等性',d:'工具调用可能重试。发邮件、下单要有幂等键。'},
+      {t:'状态持久化',d:'长任务要能把 state 存下来，支持中断恢复。'}
+    ]}
+  ]},
+  {id:'patterns',icon:'🧭',t:'五种核心模式对比',s:'选对模式比调 prompt 更重要',blocks:[
+    {type:'tbl',head:['模式','控制流','优点','代价','适用'],rows:[
+      ['ReAct','推理-行动交替','灵活、通用','容易绕圈','探索型任务'],
+      ['Plan-Execute','先出计划再执行','步骤清晰、可审计','计划错了全错','流程明确的任务'],
+      ['Reflexion','执行后反思重试','能自我纠错','成本翻倍','有质量标准的任务'],
+      ['Router','先分类再分发','快、省、可控','只能处理已知类型','多意图客服'],
+      ['Workflow','固定流程图','最可控','不灵活','合规要求高的场景']
+    ]},
+    {type:'note',lime:1,title:'选型心法',text:'能确定流程的用 Workflow；需要判断分支的用 Router；真正开放探索的才上 ReAct。别为了「AI 感」牺牲可控性。'}
+  ]},
+  {id:'react',icon:'💭',t:'ReAct 深入',s:'为什么它会绕圈',blocks:[
+    {type:'lead',text:'ReAct = Reasoning + Acting。模型输出 Thought → Action → Observation 循环，直到得出答案。'},
+    {type:'code',text:[
+      'Thought: 我需要先查一下这家公司的营收',
+      'Action: search_company_revenue',
+      'Action Input: {"company": "某公司", "year": 2024}',
+      'Observation: 2024 年营收 120 亿元，同比增长 15%',
+      '',
+      'Thought: 还需要知道净利润才能算利润率',
+      'Action: search_company_profit',
+      'Action Input: {"company": "某公司", "year": 2024}',
+      'Observation: 净利润 18 亿元',
+      '',
+      'Thought: 利润率 = 18/120 = 15%。信息足够了',
+      'Final Answer: 2024 年营收 120 亿，净利润 18 亿，利润率约 15%'
+    ].join('\n')},
+    {type:'cards',items:[
+      {t:'绕圈的三个原因',d:'① 工具返回信息没读懂；② 缺少已完成什么的显式状态；③ 没有步数预算约束。'},
+      {t:'缓解手段',d:'显式列出已完成步骤、加最大步数、工具返回结构化数据、失败时给明确错误信息。'},
+      {t:'ReAct vs FC',d:'ReAct 是文本协议，Function Calling 是结构化协议。现在主流用 FC，更稳、更省 token。'}
+    ]}
+  ]},
+  {id:'plan',icon:'📋',t:'Plan-Execute 与 Reflexion',s:'先想清楚再动手',blocks:[
+    {type:'sub',text:'Plan-and-Execute'},
+    {type:'steps',items:[
+      '<b>Planner</b>：接收目标，输出步骤列表',
+      '<b>Executor</b>：逐个执行，每步可用工具',
+      '<b>Replanner</b>：评估进展，必要时修订计划',
+      '<b>终止</b>：所有步骤完成，或判定无法完成'
+    ]},
+    {type:'sub',text:'Reflexion'},
+    {type:'cards',items:[
+      {t:'核心思想',d:'执行 → 评估 → 反思 → 带着教训重试。'},
+      {t:'反思写什么',d:'不是「我错了」，而是「我在 X 情况下用了 Y 方法，导致 Z 问题，下次应该用 W」。'},
+      {t:'成本',d:'至少翻倍。只在首次成功率不高的任务上用。'},
+      {t:'记忆污染风险',d:'错误的反思会误导后续尝试。要经过验证再写入。'}
+    ]}
+  ]},
+  {id:'tools',icon:'🔧',t:'工具设计深入',s:'Agent 的能力上限由工具决定',blocks:[
+    {type:'cards',items:[
+      {t:'命名即文档',d:'search_order_by_id 比 query 好一百倍。'},
+      {t:'描述写什么',d:'用途、适用场景、不适用场景、参数含义、返回值格式、可能的错误。'},
+      {t:'参数用 JSON Schema',d:'类型、枚举、必填、默认值、描述。约束越明确出错越少。'},
+      {t:'返回结构化数据',d:'返回 JSON 而不是大段自然语言。'},
+      {t:'错误要可读',d:'「参数 year 必须是 4 位数字」比「Error 400」有用得多。'},
+      {t:'工具数量',d:'超过 15~20 个就要考虑分组或路由。'},
+      {t:'并行调用',d:'无依赖的工具调用应该并行，大幅降低延迟。'},
+      {t:'副作用标记',d:'明确哪些只读、哪些有副作用。有副作用的必须走审批。'}
+    ]},
+    {type:'code',text:[
+      '{',
+      '  "name": "search_flight",',
+      '  "description": "查询指定日期和航线的最低票价。仅支持未来 90 天内的国内航班。",',
+      '  "parameters": {',
+      '    "type": "object",',
+      '    "properties": {',
+      '      "from_city": {"type": "string", "description": "出发城市中文名"},',
+      '      "to_city":   {"type": "string", "description": "到达城市中文名"},',
+      '      "date":      {"type": "string", "format": "date"}',
+      '    },',
+      '    "required": ["from_city", "to_city", "date"]',
+      '  }',
+      '}'
+    ].join('\n')}
+  ]},
+  {id:'mcp',icon:'🔌',t:'MCP 协议',s:'AI 世界的 USB-C',blocks:[
+    {type:'lead',text:'MCP（Model Context Protocol）是 Anthropic 提出的开放协议，<b>标准化了 Agent 与外部工具、数据源的连接方式</b>。'},
+    {type:'cards',items:[
+      {t:'解决什么问题',d:'以前每接一个工具就要写一套适配。MCP 定义了统一接口。'},
+      {t:'三个核心原语',d:'Tools（可调用的函数）、Resources（可读取的数据）、Prompts（提示模板）。'},
+      {t:'传输方式',d:'stdio（本地进程）、HTTP + SSE（远程）。'},
+      {t:'典型架构',d:'Host（如 Claude Desktop）→ Client → Server。'},
+      {t:'生态现状',d:'官方和社区大量 Server：文件系统、GitHub、Slack、数据库、浏览器。'},
+      {t:'安全考量',d:'MCP Server 能访问什么，取决于你给它的权限。第三方 Server 要审计。'}
+    ]},
+    {type:'note',warn:1,title:'注意',text:'MCP 解决的是连接标准化，不解决工具怎么设计得好用。工具描述质量仍是 Agent 效果的关键。'}
+  ]},
+  {id:'memory',icon:'🧠',t:'记忆架构',s:'上下文窗口不是记忆',blocks:[
+    {type:'tbl',head:['层级','存储','生命周期','用途'],rows:[
+      ['工作记忆','上下文窗口','单次会话','当前任务即时信息'],
+      ['会话记忆','对话历史 + 摘要','整个会话','多轮连贯性'],
+      ['长期记忆','向量库 / 数据库','跨会话','用户偏好、历史事实'],
+      ['情节记忆','事件日志','长期','过去经历'],
+      ['语义记忆','知识图谱','长期','领域事实'],
+      ['程序记忆','技能库','长期','任务流程']
+    ]},
+    {type:'cards',items:[
+      {t:'写入策略',d:'不是所有对话都值得记。用规则或 LLM 判断未来有没有用。'},
+      {t:'检索策略',d:'按相关性 + 时效性 + 重要性加权排序。'},
+      {t:'压缩策略',d:'超出窗口时，把早期对话摘要成一段。保留决策和结论。'},
+      {t:'遗忘机制',d:'过期信息、矛盾信息要主动清理。'},
+      {t:'记忆冲突',d:'上次说喜欢 A，这次说喜欢 B。要有时间戳和冲突解决策略。'}
+    ]}
+  ]},
+  {id:'ctx',icon:'📐',t:'上下文工程',s:'Agent 最核心的工程技能',blocks:[
+    {type:'lead',text:'上下文工程指的是：<b>在有限的窗口里，决定放什么、放多少、按什么顺序放</b>。这比写 prompt 重要得多。'},
+    {type:'cards',items:[
+      {t:'信息优先级',d:'系统指令 > 当前目标 > 最近工具结果 > 历史摘要 > 长期记忆。'},
+      {t:'工具结果裁剪',d:'搜索结果只保留前几条摘要，长文档只取相关段落。'},
+      {t:'历史压缩',d:'超过 N 轮后把早期对话摘要成一段。保留决策、结论、偏好。'},
+      {t:'结构化优于自然语言',d:'用 JSON、列表、表格组织信息，比大段散文更容易被利用。'},
+      {t:'显式状态',d:'把「已完成什么、还剩什么」明确写出来，显著减少绕圈。'},
+      {t:'少即是多',d:'塞满窗口不等于效果好。无关内容会稀释注意力。'}
+    ]},
+    {type:'note',lime:1,title:'反直觉的结论',text:'把上下文从 20 条精简到 5 条高质量内容，效果通常比塞满 50 条更好。质量优于数量。'}
+  ]},
+  {id:'multi',icon:'👥',t:'多 Agent 拓扑',s:'什么时候值得组队',blocks:[
+    {type:'tbl',head:['拓扑','结构','优点','缺点'],rows:[
+      ['Orchestrator-Worker','主控 + 多个执行者','分工清晰、可并行','主控是瓶颈'],
+      ['Peer-to-Peer','平等对话','灵活','容易发散'],
+      ['Hierarchical','多层管理','适合复杂项目','通信开销大'],
+      ['Debate','多角色辩论','能发现盲点','成本高、结论难定'],
+      ['Pipeline','流水线传递','简单可控','错误会累积']
+    ]},
+    {type:'note',warn:1,title:'忠告',text:'先做一个能跑通单 Agent。多 Agent 是复杂度放大器，不是效果放大器。'}
+  ]},
+  {id:'prod',icon:'🚀',t:'生产化关键决策',s:'从 Demo 到线上',blocks:[
+    {type:'cards',items:[
+      {t:'超时与重试',d:'每个工具调用要有超时。重试要指数退避，只对幂等操作重试。'},
+      {t:'熔断降级',d:'连续失败要熔断，降级到简单模式或转人工。'},
+      {t:'成本预算',d:'给每个任务设 token / 金额上限。'},
+      {t:'并发控制',d:'限制同时运行的 Agent 数量。'},
+      {t:'缓存',d:'相同 query 的检索结果、相同工具的调用结果都能缓存。'},
+      {t:'灰度发布',d:'Agent 行为变化大，必须灰度，准备回滚。'},
+      {t:'人工兜底',d:'永远留一条转人工的路。'}
+    ]},
+    {type:'steps',items:[
+      '<b>阶段一</b>：单 Agent + 少量工具，内部试用',
+      '<b>阶段二</b>：加评估、加 tracing、加人工审批，小流量灰度',
+      '<b>阶段三</b>：优化上下文、加缓存、加熔断，逐步放量',
+      '<b>阶段四</b>：考虑多 Agent、自定义微调、成本优化'
+    ]}
+  ]}
+  ]
+},
+
+/* ============================================================
+   模块 5 · 评估与安全
+   ============================================================ */
+{
+  id:'m5', icon:'🛡️', title:'评估与安全', sub:'评估、安全与生产落地',
+  accent:'pink',
+  desc:'Demo 能跑通不代表能上线。怎么量化效果、怎么防住攻击、怎么控制成本、怎么在出问题时快速定位。',
+  sections:[
+  {id:'evaldim',icon:'📐',t:'评估维度全景',s:'一个数字概括不了 Agent',blocks:[
+    {type:'cards',items:[
+      {t:'任务完成率',d:'最终有没有把事办成。最重要的顶层指标。'},
+      {t:'步骤效率',d:'用了几步。同样完成，3 步和 30 步成本差 10 倍。'},
+      {t:'工具调用准确率',d:'选对工具了吗？参数填对了吗？'},
+      {t:'轨迹合理性',d:'推理链路说得通吗？有没有跳步、绕路。'},
+      {t:'忠实度',d:'回答是否基于检索上下文，有没有编造。'},
+      {t:'成本 / 延迟',d:'token 消耗、端到端耗时。P50 和 P95 都要看。'},
+      {t:'安全违规率',d:'越权、泄露、被注入的次数。'},
+      {t:'用户满意度',d:'点赞点踩、人工复核、NPS。'}
+    ]},
+    {type:'note',warn:1,title:'常见误区',text:'只看最终答案对不对，不看过程。Agent 可能「蒙对」了答案，但过程完全不可靠。'}
+  ]},
+  {id:'golden',icon:'⭐',t:'黄金测试集',s:'最有价值的评估资产',blocks:[
+    {type:'lead',text:'公开榜单会被污染，通用指标不反映你的业务。<b>自建 50~200 条业务黄金集，投入产出比最高。</b>'},
+    {type:'cards',items:[
+      {t:'怎么构建',d:'从真实用户请求采样，覆盖高频、边缘、对抗场景。'},
+      {t:'每条包含什么',d:'输入、期望输出、需要的工具、关键中间步骤、难度标签。'},
+      {t:'评分方式',d:'能用规则判定的用规则，不能的用 LLM-as-Judge 或人工。'},
+      {t:'版本管理',d:'黄金集要像代码一样版本化。迭代时跑回归。'},
+      {t:'持续扩充',d:'每发现一个失败案例就补进黄金集。'},
+      {t:'分层设计',d:'冒烟集（10 条）+ 完整集（200 条）+ 深度集（人工评）。'}
+    ]},
+    {type:'note',lime:1,title:'一个判断标准',text:'如果黄金集不能在一个月内帮你发现至少 3 个上线后会爆的 bug，说明它设计得不够好。'}
+  ]},
+  {id:'judge',icon:'⚖️',t:'LLM-as-Judge',s:'便宜好用但有陷阱',blocks:[
+    {type:'cards',items:[
+      {t:'基本用法',d:'把问题、参考答案、待评回答一起给强模型，让它打分。'},
+      {t:'Pointwise vs Pairwise',d:'绝对打分容易不一致；两两对比更稳定。'},
+      {t:'位置偏见',d:'模型倾向选第一个或第二个。要交换顺序跑两次。'},
+      {t:'长度偏见',d:'模型倾向给长回答高分。要在 prompt 里明确。'},
+      {t:'自我偏好',d:'模型倾向给自己生成的回答高分。用不同家族当裁判。'},
+      {t:'评分标准要具体',d:'不要问好不好，要给每档明确定义和例子。'},
+      {t:'人工校准',d:'定期抽样人工标注，和 Judge 结果对比一致性。'}
+    ]},
+    {type:'code',text:[
+      '<span class="c"># Judge prompt 结构</span>',
+      '你是一个严格但公正的评审员。',
+      '',
+      '【用户问题】{question}',
+      '【参考要点】{reference_points}',
+      '【待评回答】{answer}',
+      '',
+      '【评分标准】',
+      '5 分：完全满足所有要点，无事实错误',
+      '4 分：满足大部分要点，有微小瑕疵',
+      '3 分：满足部分要点，有明显遗漏',
+      '2 分：仅沾边',
+      '1 分：跑题或严重事实错误',
+      '',
+      '【重要】回答长度不代表质量。',
+      '输出格式：理由：... 分数：5'
+    ].join('\n')}
+  ]},
+  {id:'trace',icon:'🔍',t:'可观测性与 Tracing',s:'出问题时怎么定位',blocks:[
+    {type:'lead',text:'Agent 的失败往往是「第 3 步工具返回了奇怪结果，第 5 步模型基于它做了错误推理」。<b>没有 trace 你根本无从下手。</b>'},
+    {type:'cards',items:[
+      {t:'必须记录什么',d:'每步的输入、输出、模型、参数、token 数、耗时、工具调用、错误堆栈。'},
+      {t:'Trace 与 Span',d:'一次任务是一个 trace，每一步是一个 span。'},
+      {t:'会话回放',d:'能把一次完整任务从头到尾重放。'},
+      {t:'失败聚类',d:'自动按错误类型分组，找出系统性问题。'},
+      {t:'常用工具',d:'LangSmith、LangFuse、Phoenix、Helicone、OpenTelemetry。'},
+      {t:'告警',d:'成本突增、错误率上升、P95 延迟飙升，都要有告警。'}
+    ]},
+    {type:'note',cyan:1,title:'最小可用方案',text:'不想引入第三方的话，至少把每次 LLM 调用和工具调用的输入输出写进结构化日志（JSON Lines），配合 trace_id 串联。'}
+  ]},
+  {id:'evalpipe',icon:'🔧',t:'评估流水线与 CI',s:'把评估变成自动化的',blocks:[
+    {type:'steps',items:[
+      '<b>提交触发</b>：prompt / 工具定义 / 模型版本变更时自动触发评估',
+      '<b>冒烟测试</b>：10 条核心用例，30 秒内出结果，失败直接阻塞合并',
+      '<b>完整回归</b>：200 条黄金集，5~15 分钟，输出指标对比报告',
+      '<b>阈值判定</b>：任务完成率、成本、延迟任一不达标就红灯',
+      '<b>人工抽检</b>：随机抽 20 条 Judge 结果，人工核对一致性',
+      '<b>发布门禁</b>：所有指标通过后才允许进入灰度'
+    ]},
+    {type:'cards',items:[
+      {t:'基线对比',d:'每次都和上一个稳定版本对比。指标下滑就红灯。'},
+      {t:'成本追踪',d:'不只总成本，还要追踪单次任务成本。'},
+      {t:'回归污染',d:'黄金集不能当训练数据。否则指标虚高。'},
+      {t:'环境隔离',d:'评估用的工具要能 mock，不能真的发邮件、下单。'}
+    ]},
+    {type:'note',lime:1,title:'一个真实收益',text:'把评估接入 CI 后，大多数团队会发现「改 prompt 顺手改坏别的场景」的比例高得惊人。自动化回归能拦下 70% 以上的这类事故。'}
+  ]},
+  {id:'redteam',icon:'🥷',t:'红队与对抗测试',s:'主动去找自己的漏洞',blocks:[
+    {type:'lead',text:'红队指的是：<b>主动扮演攻击者，系统性地寻找 Agent 的弱点和失控场景</b>。'},
+    {type:'cards',items:[
+      {t:'越权行为',d:'能不能让它调用未授权的工具？'},
+      {t:'数据泄露',d:'能不能诱导它说出 system prompt、内部知识？'},
+      {t:'注入成功',d:'在文档、网页、工具返回里埋指令，能不能让它执行？'},
+      {t:'无限循环',d:'能不能构造输入让它陷入死循环、烧光预算？'},
+      {t:'有害输出',d:'能不能诱导它生成违法、歧视、危险的内容？'},
+      {t:'边界越界',d:'能不能让它超出既定职责范围？'}
+    ]},
+    {type:'steps',items:[
+      '<b>手工探索</b>：安全同学手工尝试各种攻击手法，最有效但最慢',
+      '<b>自动化 fuzzing</b>：用模板批量生成变体攻击',
+      '<b>LLM 红队</b>：用另一个模型专门生成攻击 prompt',
+      '<b>真实场景复现</b>：把已知攻击案例在自己的系统上试一遍',
+      '<b>持续红队</b>：每次大改后都跑一遍'
+    ]},
+    {type:'note',warn:1,title:'关键心态',text:'红队的目的不是「证明安全」，而是「证明不安全」。找到问题才是成功。'}
+  ]},
+  {id:'inject',icon:'💉',t:'提示注入攻击面',s:'Agent 越能读风险越大',blocks:[
+    {type:'lead',text:'提示注入的本质：<b>模型无法可靠区分「系统指令」和「数据内容」</b>。只要 Agent 读取外部内容，攻击面就存在。'},
+    {type:'risk',items:[
+      {t:'直接注入',d:'用户输入里直接写「忽略之前所有指令」。',e:'最常见，也最容易防'},
+      {t:'间接注入',d:'恶意内容藏在网页、PDF、邮件里。Agent 一读就中招。',e:'最危险'},
+      {t:'工具返回注入',d:'工具返回的 JSON 或文本里藏指令。',e:'容易被忽视'},
+      {t:'多轮诱导',d:'先建立信任，再一步步引导。',e:'需要会话级检测'},
+      {t:'编码绕过',d:'base64、Unicode 同形字、零宽字符绕过过滤。',e:'过滤器要能解码归一化'}
+    ]},
+    {type:'check',items:[
+      '<b>最小权限</b>：Agent 只用完成当前任务必需的权限',
+      '<b>沙箱执行</b>：代码、浏览器操作放隔离环境',
+      '<b>内容隔离</b>：外部内容用明确分隔符包裹，声明「分隔符内永远是数据」',
+      '<b>输入过滤</b>：检测常见注入模式，解码后再检测',
+      '<b>输出校验</b>：检查输出里是否包含敏感信息',
+      '<b>工具白名单</b>：只允许调用明确批准的工具',
+      '<b>人类审批</b>：高风险动作必须人工确认',
+      '<b>审计日志</b>：所有输入输出留痕'
+    ]},
+    {type:'note',warn:1,title:'残酷的事实',text:'目前没有 100% 防住提示注入的方法。所有防御都是「降低概率 + 限制影响范围」。架构上要假设「注入一定会成功」。'}
+  ]},
+  {id:'sandbox',icon:'📦',t:'沙箱与权限',s:'假设它一定会被攻破',blocks:[
+    {type:'cards',items:[
+      {t:'代码执行沙箱',d:'Docker / gVisor / Firecracker。限制 CPU、内存、磁盘、网络、时长。'},
+      {t:'网络白名单',d:'只允许访问明确的域名。默认拒绝，而非默认允许。'},
+      {t:'文件系统隔离',d:'只挂载必要的目录，只读优先。'},
+      {t:'凭证管理',d:'API key 不放在 prompt 里，也不放在 Agent 可读的文件里。'},
+      {t:'数据脱敏',d:'发给外部模型前，把手机号、身份证、银行卡脱敏。'},
+      {t:'资源配额',d:'token、调用次数、执行时长、磁盘写入都要有硬上限。'}
+    ]},
+    {type:'tbl',head:['操作类型','默认策略','审批要求'],rows:[
+      ['读取公开数据','允许','无'],
+      ['读取用户私有数据','允许（带脱敏）','无'],
+      ['写入 / 修改数据','需确认','单次审批'],
+      ['发送对外消息','需确认','单次审批'],
+      ['支付 / 转账','禁止自动','人工全程确认'],
+      ['删除 / 不可逆操作','禁止自动','人工全程确认']
+    ]},
+    {type:'note',lime:1,title:'设计原则',text:'把 Agent 当成「不可信的外部用户」来设计权限。它能做什么，取决于你显式给了它什么。'}
+  ]},
+  {id:'privacy',icon:'🔒',t:'隐私与合规',s:'数据不出事的底线',blocks:[
+    {type:'lead',text:'AI 应用处理的数据往往包含大量个人信息和商业机密。<b>合规不是法务的事，是架构的事。</b>'},
+    {type:'cards',items:[
+      {t:'数据最小化',d:'只收集完成任务必需的数据。'},
+      {t:'目的限定',d:'收集时说明用途，不能挪作他用。'},
+      {t:'存储期限',d:'对话日志、trace、向量库里的用户数据要有明确保留期限。'},
+      {t:'用户权利',d:'查询、更正、删除、导出。技术上要支持一键清除。'},
+      {t:'跨境传输',d:'调用海外模型 API 涉及数据出境。金融、医疗尤其敏感。'},
+      {t:'训练数据合规',d:'用用户数据微调必须获得明确授权，并有撤回机制。'},
+      {t:'第三方审计',d:'调用了哪些外部 API、传了什么数据，要有清单。'},
+      {t:'脱敏与假名化',d:'敏感字段替换成占位符，用映射表在本地还原。'}
+    ]},
+    {type:'note',warn:1,title:'一个常见坑',text:'把用户原始对话直接发给第三方模型 API，以为「API 提供方承诺不训练」就没事。数据出境和敏感信息泄露的责任仍然在你。'}
+  ]},
+  {id:'cost',icon:'💰',t:'成本控制',s:'Agent 是烧钱机器',blocks:[
+    {type:'cards',items:[
+      {t:'成本构成',d:'输入 token、输出 token、工具调用、向量检索、rerank。'},
+      {t:'为什么贵',d:'每轮循环都要把完整历史重新发一遍。10 轮对话可能发几万 token。'},
+      {t:'缓存',d:'Prompt Caching 能省 50%~90% 输入成本。'},
+      {t:'上下文压缩',d:'历史摘要、工具结果截断、只保留相关片段。'},
+      {t:'模型分级',d:'简单判断用小模型，复杂推理用大模型。'},
+      {t:'批处理',d:'非实时任务用 Batch API，通常 50% 折扣。'},
+      {t:'预算熔断',d:'每个任务设 token 上限，超了直接终止。'},
+      {t:'监控告警',d:'按天、按用户、按任务类型监控成本。'}
+    ]},
+    {type:'tbl',head:['优化手段','典型收益','实现难度'],rows:[
+      ['Prompt Caching','省 50%~90% 输入','低'],
+      ['上下文压缩','省 30%~70%','中'],
+      ['模型分级路由','省 40%~80%','中'],
+      ['工具结果裁剪','省 20%~50%','低'],
+      ['Batch API','省 50%','低'],
+      ['自建小模型','省 80% 以上','高']
+    ]}
+  ]},
+  {id:'incident',icon:'🚨',t:'事故响应',s:'出问题的时候怎么办',blocks:[
+    {type:'lead',text:'Agent 上线后一定会出事故。区别在于：<b>你有没有准备好快速发现、快速定位、快速止损的机制</b>。'},
+    {type:'tbl',head:['级别','定义','响应要求'],rows:[
+      ['P0','数据泄露、资金损失、大规模不可用','立即全员响应，15 分钟内止损'],
+      ['P1','核心功能不可用','1 小时内响应，当天修复'],
+      ['P2','部分功能异常','当天响应，本周修复'],
+      ['P3','体验问题','排期修复']
+    ]},
+    {type:'steps',items:[
+      '<b>熔断开关</b>：一键关闭 Agent，降级到人工或旧版本',
+      '<b>限流</b>：限制请求量，先保住核心功能',
+      '<b>回滚</b>：回到上一个稳定版本的配置',
+      '<b>隔离</b>：只关闭出问题的工具',
+      '<b>人工接管</b>：所有相关请求转到人工队列'
+    ]},
+    {type:'check',items:[
+      '<b>时间线</b>：从问题出现到发现、止损、修复的完整时间线',
+      '<b>根因分析</b>：用「5 Why」找到根本原因',
+      '<b>影响范围</b>：多少用户、多少数据、多少金额受影响',
+      '<b>改进项</b>：每一项都要有责任人和截止时间',
+      '<b>补充测试</b>：把这次事故变成黄金集里的一条用例',
+      '<b>更新预案</b>：这类事故的响应流程要不要改'
+    ]},
+    {type:'note',warn:1,title:'一个原则',text:'复盘对事不对人。如果团队因为报告事故被惩罚，下次就没人报告了，问题只会更严重。'}
+  ]},
+  {id:'version',icon:'🏷️',t:'版本管理',s:'什么变了谁能说清楚',blocks:[
+    {type:'lead',text:'Agent 的「版本」不只是代码。它是多个可变组件构成的系统，<b>任何一处变了行为都可能变</b>。'},
+    {type:'cards',items:[
+      {t:'需要版本化的东西',d:'Prompt、模型（含具体版本号）、工具定义、检索库、rerank 模型、代码、配置。'},
+      {t:'Prompt 版本化',d:'不能直接改线上 prompt。要「改 → 评估 → 灰度 → 全量」。'},
+      {t:'模型版本锁定',d:'API 模型会静默更新。要用带日期的快照版本。'},
+      {t:'检索库版本化',d:'知识库更新会直接影响回答。要能回滚到某个时间点。'},
+      {t:'配置与代码分离',d:'prompt、超时、阈值尽量放配置。'},
+      {t:'变更日志',d:'每次上线记录：改了什么、为什么、评估结果、谁审批。'},
+      {t:'A/B 能力',d:'支持同时跑两个版本，按流量比例分流。'}
+    ]},
+    {type:'note',cyan:1,title:'一个实用习惯',text:'每次上线前问自己：「如果上线后效果变差，我能在 5 分钟内回滚吗？」如果答案是不能，就别上。'}
+  ]},
+  {id:'checklist',icon:'✅',t:'上线检查清单',s:'发版前逐条过一遍',blocks:[
+    {type:'sub',text:'功能与质量'},
+    {type:'check',items:[
+      '<b>黄金集通过率</b>达到预设阈值',
+      '<b>边缘场景</b>已覆盖并测试',
+      '<b>失败兜底</b>路径已实现（转人工、降级、友好报错）',
+      '<b>多轮对话</b>上下文管理正确',
+      '<b>评估已接入 CI</b>，回归自动跑'
+    ]},
+    {type:'sub',text:'安全'},
+    {type:'check',items:[
+      '<b>权限最小化</b>：每个工具只给必需权限',
+      '<b>沙箱</b>已配置，网络白名单已生效',
+      '<b>提示注入</b>防护已部署并有测试用例',
+      '<b>红队测试</b>已完成',
+      '<b>敏感数据</b>脱敏已实现',
+      '<b>高风险操作</b>有人工审批',
+      '<b>审计日志</b>完整可追溯'
+    ]},
+    {type:'sub',text:'合规与隐私'},
+    {type:'check',items:[
+      '<b>数据收集</b>有明确告知和授权',
+      '<b>存储期限</b>已设置，有自动清理机制',
+      '<b>用户删除请求</b>有技术方案支持',
+      '<b>跨境传输</b>已评估合规性'
+    ]},
+    {type:'sub',text:'稳定性与成本'},
+    {type:'check',items:[
+      '<b>超时与重试</b>策略已配置',
+      '<b>熔断降级</b>已实现，有一键关闭开关',
+      '<b>成本预算</b>上限已设置并有告警',
+      '<b>Tracing</b>接入完成，能回放失败案例',
+      '<b>监控告警</b>覆盖错误率、延迟、成本',
+      '<b>灰度方案</b>和回滚预案已准备'
+    ]},
+    {type:'note',lime:1,title:'最后一句',text:'Agent 上线不是终点，是起点。真正的质量来自上线后的持续迭代。把评估和可观测性做扎实，迭代速度会快一个数量级。'}
+  ]}
+  ]
+}
+];
+
+/* =========================================================
+   工具
+   ========================================================= */
+function esc(s){
+  return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+}
+function escCode(s){
+  return String(s)
+    .replace(/<span class="c">/g, '\x01')
+    .replace(/<\/span>/g, '\x02')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\x01/g, '<span class="c">')
+    .replace(/\x02/g, '</span>');
+}
+
+/* 统计 */
+function moduleStats(mod){
+  let sections = mod.sections.length;
+  let cards = 0;
+  mod.sections.forEach(sec => {
+    sec.blocks.forEach(b => {
+      if (b.type === 'cards') cards += b.items.length;
+    });
+  });
+  return { sections, cards };
+}
+
+/* 卡片 */
+function cardHTML(i){
+  return '<div class="card">'
+    + '<div class="ct">' + i.t + (i.tag ? '<span class="tag">' + esc(i.tag) + '</span>' : '') + '</div>'
+    + '<p class="cd">' + i.d + '</p>'
+    + '</div>';
+}
+
+/* block 渲染 */
+function renderBlock(b){
+  switch(b.type){
+    case 'lead':
+      return '<p class="lead">' + b.text + '</p>';
+    case 'sub':
+      return '<h3 class="sub">' + b.text + '</h3>';
+    case 'cards':
+      return '<div class="cards">' + b.items.map(cardHTML).join('') + '</div>';
+    case 'code':
+      return '<pre class="code"><code>' + escCode(b.text) + '</code></pre>';
+    case 'steps':
+      return '<ul class="steps">' + b.items.map(i => '<li>' + i + '</li>').join('') + '</ul>';
+    case 'check':
+      return '<ul class="check">' + b.items.map(i => '<li>' + i + '</li>').join('') + '</ul>';
+    case 'note':
+      return '<div class="note ' + (b.warn ? 'warn' : b.lime ? 'lime' : b.cyan ? 'cyan' : '') + '">'
+        + (b.title ? '<b>' + b.title + '</b>' : '')
+        + b.text + '</div>';
+    case 'tbl':
+      return '<div class="tbl"><table>'
+        + '<thead><tr>' + b.head.map(h => '<th>' + h + '</th>').join('') + '</tr></thead>'
+        + '<tbody>' + b.rows.map(r =>
+            '<tr>' + r.map(c => '<td>' + c + '</td>').join('') + '</tr>'
+          ).join('') + '</tbody>'
+        + '</table></div>';
+    case 'formula':
+      return '<div class="formula">'
+        + (b.label ? '<div class="fl">' + b.label + '</div>' : '')
+        + '<div class="fb">' + b.text + '</div>'
+        + '</div>';
+    case 'risk':
+      return '<div class="risk">' + b.items.map(r =>
+        '<div class="risk-item"><b>' + r.t + '</b><p>' + r.d + ' <em>' + r.e + '</em></p></div>'
+      ).join('') + '</div>';
+    default:
+      return '';
+  }
+}
+
+/* =========================================================
+   DOM
+   ========================================================= */
+const tabsEl    = document.getElementById('tabs');
+const sidebarEl = document.getElementById('sidebar');
+const navEl     = document.getElementById('nav');
+const mainEl    = document.getElementById('main');
+const sideTitle = document.getElementById('sideTitle');
+const sideSub   = document.getElementById('sideSub');
+const progEl    = document.getElementById('prog');
+const toTopBtn  = document.getElementById('toTop');
+const qInput    = document.getElementById('q');
+
+/* 顶栏 Tabs */
+const homeTab = document.createElement('a');
+homeTab.className = 'tab';
+homeTab.href = '#/';
+homeTab.dataset.id = '__home';
+homeTab.innerHTML = '<em>🏠</em>总览';
+tabsEl.appendChild(homeTab);
+
+MODULES.forEach(m => {
+  const a = document.createElement('a');
+  a.className = 'tab';
+  a.href = '#/' + m.id;
+  a.dataset.id = m.id;
+  a.innerHTML = '<em>' + m.icon + '</em>' + m.title;
+  tabsEl.appendChild(a);
+});
+
+/* =========================================================
+   总览页
+   ========================================================= */
+function renderOverview(){
+  setAccent('cyan');
+  sideTitle.textContent = '总览';
+  sideSub.textContent = 'OVERVIEW';
+  navEl.innerHTML = '';
+
+  let totalSections = 0, totalCards = 0;
+  MODULES.forEach(m => {
+    const s = moduleStats(m);
+    totalSections += s.sections;
+    totalCards += s.cards;
+  });
+
+  let html = '<div class="overview-hero">'
+    + '<div class="badge">KNOWLEDGE MAP</div>'
+    + '<h1>AI &amp; Agent<br><span class="grad">知识图谱</span></h1>'
+    + '<p>六个模块，从最基础的概念到生产落地的评估与安全。每个模块可以独立阅读，也可以按顺序自上而下走一遍，建立完整的知识体系。</p>'
+    + '<div class="overview-stats">'
+    +   '<div class="stat"><span class="stat-num">' + MODULES.length + '</span><span class="stat-label">模块</span></div>'
+    +   '<div class="stat"><span class="stat-num">' + totalSections + '</span><span class="stat-label">章节</span></div>'
+    +   '<div class="stat"><span class="stat-num">' + totalCards + '</span><span class="stat-label">概念卡片</span></div>'
+    + '</div>'
+    + '</div>'
+    + '<div class="modules">';
+
+  MODULES.forEach(m => {
+    const acc = ACCENTS[m.accent] || ACCENTS.cyan;
+    const accRgb = hexToRgb(acc);
+    const s = moduleStats(m);
+    html += '<a class="mod" href="#/' + m.id + '" '
+      + 'style="--mc:' + acc + ';--mc-rgb:' + accRgb + '" '
+      + 'data-accent="' + m.accent + '">'
+      + '<div class="mod-icon">' + m.icon + '</div>'
+      + '<div class="mod-title">' + m.title + '</div>'
+      + '<div class="mod-sub">' + m.desc + '</div>'
+      + '<div class="mod-meta">'
+      +   '<span><b>' + s.sections + '</b> 章节</span>'
+      +   '<span><b>' + s.cards + '</b> 概念</span>'
+      + '</div>'
+      + '</a>';
+  });
+  html += '</div>';
+
+  mainEl.innerHTML = html;
+
+  /* 卡片光晕 */
+  mainEl.querySelectorAll('.mod').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const r = card.getBoundingClientRect();
+      card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+      card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+    });
+  });
+}
+
+/* =========================================================
+   模块页
+   ========================================================= */
+let currentObs = null;
+
+function renderModule(modId, sectionId){
+  const mod = MODULES.find(m => m.id === modId);
+  if (!mod){ renderOverview(); return; }
+
+  setAccent(mod.accent);
+  sideTitle.textContent = mod.title;
+  sideSub.textContent = mod.title.toUpperCase();
+  navEl.innerHTML = '';
+
+  /* 侧栏导航 */
+  mod.sections.forEach(sec => {
+    const a = document.createElement('a');
+    a.href = '#/' + mod.id + '/' + sec.id;
+    a.dataset.id = sec.id;
+    a.innerHTML = '<em>' + sec.icon + '</em><span>' + sec.t + '</span>';
+    if (sec.id === sectionId) a.classList.add('active');
+    navEl.appendChild(a);
+  });
+
+  /* 内容 */
+  const stats = moduleStats(mod);
+  let html = '<div class="mod-hero">'
+    + '<div class="badge">MODULE · ' + mod.title.toUpperCase() + '</div>'
+    + '<h1>' + mod.title + '</h1>'
+    + '<p>' + mod.desc + '</p>'
+    + '<div class="mod-meta-row">'
+    +   '<span><b>' + stats.sections + '</b> 章节</span>'
+    +   '<span><b>' + stats.cards + '</b> 概念卡片</span>'
+    + '</div>'
+    + '</div>';
+
+  mod.sections.forEach(sec => {
+    html += '<section class="sec" id="' + sec.id + '">'
+      + '<div class="sh">'
+      +   '<div class="si">' + sec.icon + '</div>'
+      +   '<div><h2 class="st">' + sec.t + '</h2><p class="ss">' + sec.s + '</p></div>'
+      + '</div>'
+      + '<div class="sb">' + sec.blocks.map(renderBlock).join('') + '</div>'
+      + '</section>';
+  });
+
+  mainEl.innerHTML = html;
+
+  /* 卡片光晕 */
+  mainEl.querySelectorAll('.card').forEach(c => {
+    /* 光晕交给全局 mousemove 处理 */
+  });
+
+  /* 滚动出现 */
+  if (currentObs) currentObs.disconnect();
+  currentObs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting){
+        e.target.classList.add('in');
+        currentObs.unobserve(e.target);
+      }
+    });
+  }, { rootMargin: '0px 0px -70px 0px' });
+  mainEl.querySelectorAll('.sec').forEach(s => currentObs.observe(s));
+
+  /* 滚动到指定 section */
+  if (sectionId){
+    const target = document.getElementById(sectionId);
+    if (target){
+      /* 等渲染完再滚动 */
+      requestAnimationFrame(() => {
+        const top = target.offsetTop - 80;
+        window.scrollTo({ top, behavior: 'auto' });
+      });
+    }
+  } else {
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+}
+
+/* =========================================================
+   搜索
+   ========================================================= */
+function renderSearch(keyword){
+  setAccent('cyan');
+  sideTitle.textContent = '搜索';
+  sideSub.textContent = 'SEARCH';
+  navEl.innerHTML = '';
+
+  const kw = keyword.toLowerCase();
+  const results = [];
+
+  MODULES.forEach(m => {
+    m.sections.forEach(sec => {
+      const secText = (sec.t + ' ' + sec.s + ' ' + sec.blocks.map(b => JSON.stringify(b)).join(' ')).toLowerCase();
+      const titleHit = sec.t.toLowerCase().includes(kw);
+      const textHit = secText.includes(kw);
+      if (titleHit || textHit){
+        results.push({
+          modId: m.id,
+          modTitle: m.title,
+          modIcon: m.icon,
+          secId: sec.id,
+          secTitle: sec.t,
+          secSub: sec.s,
+          excerpt: buildExcerpt(secText, kw),
+          titleHit
+        });
+      }
+    });
+  });
+
+  let html = '<div class="search-results">'
+    + '<h2>搜索结果</h2>'
+    + '<p class="hint">关键词「' + esc(keyword) + '」 · 命中 <b style="color:var(--ac)">' + results.length + '</b> 个章节</p>';
+
+  if (!results.length){
+    html += '<div class="empty-state"><strong>没有找到相关概念</strong>试试更短的关键词，比如「token」「记忆」「工具」「注入」</div>';
+  } else {
+    html += '<div class="sr-list">';
+    results.forEach(r => {
+      html += '<a class="sr-item" href="#/' + r.modId + '/' + r.secId + '">'
+        + '<div class="sr-icon">' + r.modIcon + '</div>'
+        + '<div class="sr-body">'
+        +   '<div class="sr-title">' + highlight(r.secTitle, kw) + '</div>'
+        +   '<div class="sr-path">' + r.modTitle + ' · ' + r.secSub + '</div>'
+        +   (r.excerpt ? '<div class="sr-excerpt">' + r.excerpt + '</div>' : '')
+        + '</div>'
+        + '</a>';
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+
+  mainEl.innerHTML = html;
+  window.scrollTo({ top: 0, behavior: 'auto' });
+}
+
+function buildExcerpt(text, kw){
+  const idx = text.toLowerCase().indexOf(kw);
+  if (idx < 0) return '';
+  const start = Math.max(0, idx - 40);
+  const end = Math.min(text.length, idx + 80);
+  let excerpt = (start > 0 ? '…' : '') + text.slice(start, end) + (end < text.length ? '…' : '');
+  /* 简单清理 JSON 符号 */
+  excerpt = excerpt.replace(/[{}\[\]"]/g, ' ').replace(/\s+/g, ' ');
+  return highlight(excerpt, kw);
+}
+function highlight(text, kw){
+  const safe = esc(text);
+  if (!kw) return safe;
+  const re = new RegExp('(' + kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+  return safe.replace(re, '<mark>$1</mark>');
+}
+
+/* =========================================================
+   路由
+   ========================================================= */
+function parseHash(){
+  const h = location.hash.replace(/^#\/?/, '');
+  if (!h) return { view:'overview' };
+  const parts = h.split('/');
+  if (parts[0] === 'search'){
+    return { view:'search', keyword: decodeURIComponent(parts.slice(1).join('/') || '') };
+  }
+  if (parts.length === 1) return { view:'module', modId:parts[0] };
+  return { view:'module', modId:parts[0], secId:parts[1] };
+}
+
+function applyRoute(){
+  const route = parseHash();
+
+  /* Tab 高亮 */
+  const activeId = route.view === 'module' ? route.modId : (route.view === 'search' ? null : '__home');
+  tabsEl.querySelectorAll('.tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.id === activeId);
+  });
+
+  if (route.view === 'overview'){
+    renderOverview();
+  } else if (route.view === 'search'){
+    renderSearch(route.keyword);
+  } else if (route.view === 'module'){
+    renderModule(route.modId, route.secId);
+  }
+  updateProgress();
+}
+
+window.addEventListener('hashchange', applyRoute);
+
+/* =========================================================
+   全局 mousemove（卡片光晕）
+   ========================================================= */
+document.addEventListener('mousemove', e => {
+  const c = e.target.closest ? e.target.closest('.card') : null;
+  if (c){
+    const r = c.getBoundingClientRect();
+    c.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+    c.style.setProperty('--my', (e.clientY - r.top) + 'px');
+  }
+}, { passive:true });
+
+/* =========================================================
+   滚动进度 / 回顶 / 侧栏高亮
+   ========================================================= */
+let tick = false;
+function updateProgress(){
+  const y = scrollY;
+  const h = document.documentElement.scrollHeight - innerHeight;
+  progEl.style.width = (h > 0 ? Math.min(y / h * 100, 100) : 0) + '%';
+  toTopBtn.classList.toggle('show', y > 600);
+}
+function updateSidebarActive(){
+  const route = parseHash();
+  if (route.view !== 'module') return;
+  const y = scrollY;
+  let cur = null;
+  mainEl.querySelectorAll('.sec').forEach(s => {
+    if (s.offsetTop <= y + 160) cur = s.id;
+  });
+  navEl.querySelectorAll('a').forEach(a => {
+    a.classList.toggle('active', a.dataset.id === cur);
+  });
+}
+function onScroll(){
+  updateProgress();
+  updateSidebarActive();
+  tick = false;
+}
+addEventListener('scroll', () => {
+  if (!tick){ tick = true; requestAnimationFrame(onScroll); }
+}, { passive:true });
+
+toTopBtn.onclick = () => scrollTo({ top:0, behavior:'smooth' });
+
+/* =========================================================
+   搜索输入
+   ========================================================= */
+let searchTimer = null;
+qInput.addEventListener('input', () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    const v = qInput.value.trim();
+    if (!v){
+      if (parseHash().view === 'search') location.hash = '#/';
+      return;
+    }
+    location.hash = '#/search/' + encodeURIComponent(v);
+  }, 220);
+});
+
+/* 快捷键 */
+document.addEventListener('keydown', e => {
+  if (e.key === '/' && document.activeElement !== qInput){
+    e.preventDefault();
+    qInput.focus();
+    qInput.select();
+  }
+  if (e.key === 'Escape' && document.activeElement === qInput){
+    qInput.value = '';
+    if (parseHash().view === 'search') location.hash = '#/';
+    qInput.blur();
+  }
+});
+
+/* =========================================================
+   启动
+   ========================================================= */
+if (!location.hash) location.hash = '#/';
+applyRoute();
+</script>
+</body>
+</html>
