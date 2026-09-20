@@ -3,901 +3,1022 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2026国庆·新疆10天环线行程（校验版）</title>
+<title>2026国庆 · 新疆10天环线行程</title>
 <style>
   :root {
-    --bg: #f5f3ef;
-    --card: #ffffff;
-    --ink: #1e1e1e;
-    --muted: #6b6b6b;
-    --line: #e2ddd5;
-    --accent: #c45a3c;
-    --accent-soft: #fdf0eb;
-    --green: #2d7a4f;
-    --green-soft: #e9f4ee;
-    --amber: #b07d2b;
-    --amber-soft: #fdf6e8;
-    --red: #b13e3e;
-    --red-soft: #fceeee;
-    --blue: #2f5f8a;
-    --blue-soft: #eef4fa;
-    --radius: 10px;
+    --bg: #f7f5f2; --card: #ffffff; --ink: #1a1a1a; --ink-2: #3d3733;
+    --muted: #8a817a; --line: #e8e2da; --line-2: #f0ebe4;
+    --gold: #d4a24c; --gold-dark: #b8862f; --gold-soft: #fdf6e8;
+    --teal: #3a7a7a; --teal-soft: #eaf3f3;
+    --coral: #c44d3c; --coral-soft: #fceeeb;
+    --forest: #2d7a4f; --forest-soft: #e9f4ee;
+    --navy: #1a2332; --navy-2: #2d3f52;
+    --shadow-sm: 0 1px 2px rgba(26,35,50,.04), 0 2px 8px rgba(26,35,50,.04);
+    --shadow-md: 0 2px 6px rgba(26,35,50,.06), 0 8px 24px rgba(26,35,50,.06);
+    --shadow-lg: 0 4px 12px rgba(26,35,50,.08), 0 16px 40px rgba(26,35,50,.08);
+    --radius: 14px; --radius-sm: 10px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
-    background: var(--bg);
-    color: var(--ink);
-    line-height: 1.65;
-    font-size: 15px;
-    padding: 0 0 60px;
-    -webkit-font-smoothing: antialiased;
+    background: var(--bg); color: var(--ink); line-height: 1.7; font-size: 15px;
+    -webkit-font-smoothing: antialiased; padding-bottom: 60px;
   }
-  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 18px; }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image: radial-gradient(circle at 20% 10%, rgba(212,162,76,.05) 0%, transparent 40%),
+                      radial-gradient(circle at 80% 80%, rgba(58,122,122,.04) 0%, transparent 40%);
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 1; }
+
+  /* ============ 子导航（fixed 顶栏） ============ */
+  .subnav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+    background: rgba(247,245,242,.94);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--line);
+    transform: translateY(-100%);
+    transition: transform .28s cubic-bezier(.4,.0,.2,1);
+    pointer-events: none;
+  }
+  .subnav.visible { transform: translateY(0); pointer-events: auto; }
+  .subnav-inner {
+    max-width: 1080px; margin: 0 auto; padding: 0 16px;
+    height: 56px; display: flex; align-items: center;
+    justify-content: space-between; gap: 10px;
+  }
+  .sn-back {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: transparent; border: 1px solid rgba(196,77,60,.25);
+    color: var(--coral); font-family: inherit;
+    font-size: 13px; font-weight: 700; padding: 7px 14px;
+    border-radius: 20px; cursor: pointer; transition: all .2s;
+    flex-shrink: 0;
+  }
+  .sn-back:hover { background: var(--coral-soft); }
+  .sn-back:active { transform: scale(.96); }
+
+  .sn-center {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    gap: 4px;
+  }
+  .sn-arrow {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--card); border: 1px solid var(--line);
+    color: var(--navy); font-size: 20px; font-weight: 400;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all .18s; font-family: inherit;
+    line-height: 1; padding-bottom: 3px; flex-shrink: 0;
+  }
+  .sn-arrow:hover:not(:disabled) {
+    background: var(--coral); color: #fff; border-color: var(--coral);
+    transform: scale(1.06);
+  }
+  .sn-arrow:active:not(:disabled) { transform: scale(.94); }
+  .sn-arrow:disabled { opacity: .22; cursor: not-allowed; }
+  .sn-indicator {
+    min-width: 88px; text-align: center;
+    display: flex; align-items: baseline; justify-content: center; gap: 3px;
+    padding: 0 6px;
+  }
+  .sn-day { font-size: 17px; font-weight: 800; color: var(--navy); letter-spacing: -.3px; }
+  .sn-sep { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .sn-total { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .sn-date {
+    font-size: 13px; font-weight: 700; color: var(--muted);
+    min-width: 48px; text-align: right; flex-shrink: 0; letter-spacing: .3px;
+  }
+  .sn-progress {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 2px; background: var(--line-2); overflow: hidden;
+  }
+  .sn-progress-bar {
+    height: 100%; width: 10%;
+    background: linear-gradient(90deg, var(--coral), var(--gold));
+    transition: width .35s cubic-bezier(.4,.0,.2,1);
+  }
+
+  /* 子页面激活时，给 body 留出顶栏空间 */
+  body.has-subnav { padding-top: 56px; }
 
   /* ============ HERO ============ */
   .hero {
-    background: linear-gradient(160deg, #1f2a37 0%, #2d3f52 60%, #3b5068 100%);
-    color: #fff;
-    padding: 44px 0 36px;
-    margin-bottom: 28px;
+    position: relative;
+    background: radial-gradient(ellipse at 15% 0%, rgba(212,162,76,.18) 0%, transparent 55%),
+                radial-gradient(ellipse at 85% 100%, rgba(58,122,122,.20) 0%, transparent 55%),
+                linear-gradient(150deg, #141c28 0%, #1e2d3d 40%, #2a4055 100%);
+    color: #fff; padding: 56px 0 48px; margin-bottom: 32px; overflow: hidden;
   }
-  .hero-tag {
-    display: inline-block;
-    font-size: 12px;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: #f0c78a;
-    border: 1px solid rgba(240,199,138,.45);
-    padding: 3px 12px;
-    border-radius: 20px;
-    margin-bottom: 14px;
+  .hero::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: radial-gradient(circle, rgba(255,255,255,.06) 1px, transparent 1px);
+    background-size: 24px 24px; opacity: .5; pointer-events: none;
+  }
+  .hero .wrap { position: relative; z-index: 2; }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px; font-size: 11.5px;
+    letter-spacing: 2.5px; text-transform: uppercase; color: var(--gold);
+    font-weight: 600; margin-bottom: 16px; padding: 5px 14px;
+    border: 1px solid rgba(212,162,76,.35); border-radius: 30px; background: rgba(212,162,76,.08);
+  }
+  .hero-eyebrow::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--gold); box-shadow: 0 0 8px var(--gold);
   }
   .hero h1 {
-    font-size: 30px;
-    font-weight: 700;
-    letter-spacing: .5px;
-    margin-bottom: 8px;
+    font-size: 36px; font-weight: 800; letter-spacing: -.8px; line-height: 1.2; margin-bottom: 12px;
+    background: linear-gradient(135deg, #ffffff 0%, #d6dfe8 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
   }
-  .hero .sub {
-    font-size: 14px;
-    color: #b8c4d0;
-    max-width: 720px;
+  .hero .sub { font-size: 15px; color: #a8b8c8; max-width: 660px; line-height: 1.75; }
+  .hero-stats { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+  .hero-stat {
+    flex: 1 1 auto; min-width: 120px; background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.08); border-radius: var(--radius-sm);
+    padding: 12px 16px; backdrop-filter: blur(8px);
   }
-  .hero .meta-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px 22px;
-    margin-top: 18px;
-    font-size: 13px;
-    color: #cfd8e0;
-  }
-  .hero .meta-row span::before {
-    content: "●";
-    font-size: 8px;
-    vertical-align: middle;
-    margin-right: 6px;
-    color: #f0c78a;
-  }
-  .verify-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(240,199,138,.15);
-    border: 1px solid rgba(240,199,138,.35);
-    color: #f0c78a;
-    font-size: 12px;
-    padding: 4px 12px;
-    border-radius: 20px;
-    margin-top: 16px;
-  }
+  .hero-stat .label { font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: #7d8fa3; font-weight: 600; margin-bottom: 3px; }
+  .hero-stat .value { font-size: 16px; font-weight: 700; color: #fff; }
+  .hero-stat .value.accent { color: var(--gold); }
 
-  /* ============ SECTION ============ */
-  .section { margin-bottom: 32px; }
-  .section-head {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 14px;
-    flex-wrap: wrap;
+  /* ============ 总览统计 ============ */
+  .overview-bar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 28px; }
+  .ov-item {
+    flex: 1 1 auto; min-width: 100px; background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--radius-sm); padding: 14px 16px; text-align: center; box-shadow: var(--shadow-sm);
   }
-  .section-head .num {
-    width: 28px; height: 28px;
-    border-radius: 8px;
-    background: var(--accent);
-    color: #fff;
-    font-size: 14px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .section-head h2 { font-size: 20px; font-weight: 700; }
-  .section-head .note {
-    font-size: 12px;
-    color: var(--muted);
-    margin-left: auto;
-  }
+  .ov-item .num { font-size: 22px; font-weight: 800; color: var(--coral); line-height: 1.2; }
+  .ov-item .lbl { font-size: 12px; color: var(--muted); font-weight: 600; margin-top: 2px; }
 
-  /* ============ CARD ============ */
-  .card {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 20px 22px;
-    margin-bottom: 14px;
+  /* ============ 行程卡片网格 ============ */
+  .day-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 40px; }
+  .day-card {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    overflow: hidden; box-shadow: var(--shadow-sm); cursor: pointer;
+    transition: box-shadow .25s, transform .25s, border-color .25s;
+    text-decoration: none; color: inherit; display: block;
   }
-  .card h3 {
-    font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
+  .day-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-3px); border-color: #d0c8be; }
+  .day-card-head { padding: 18px 20px 14px; display: flex; align-items: flex-start; gap: 12px; }
+  .day-num {
+    width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--navy-2), #3d5a6c);
+    color: #fff; font-size: 15px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 12px rgba(26,35,50,.18);
   }
-  .card h3 .dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
+  .day-card-head .info { flex: 1; min-width: 0; }
+  .day-card-head .date { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: .5px; margin-bottom: 2px; }
+  .day-card-head .title {
+    font-size: 15px; font-weight: 700; color: var(--navy); line-height: 1.4;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   }
-  .dot-red { background: var(--red); }
-  .dot-amber { background: var(--amber); }
-  .dot-green { background: var(--green); }
-  .dot-blue { background: var(--blue); }
+  .day-card-body { padding: 0 20px 16px; }
+  .day-card-meta { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: var(--muted); margin-bottom: 8px; }
+  .day-card-meta span { display: inline-flex; align-items: center; gap: 4px; }
+  .day-card-desc {
+    font-size: 13px; color: var(--ink-2); line-height: 1.65;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .day-card-foot {
+    padding: 12px 20px; border-top: 1px solid var(--line-2);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .day-card-foot .tags { display: flex; gap: 5px; flex-wrap: wrap; }
+  .day-card-foot .arrow { font-size: 16px; color: var(--muted); transition: transform .2s; }
+  .day-card:hover .arrow { transform: translateX(4px); color: var(--coral); }
 
-  .card p { font-size: 13.5px; }
-  .card p + p { margin-top: 8px; }
-
-  /* ============ TABLE ============ */
-  .table-wrap {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    margin-bottom: 14px;
-    border-radius: var(--radius);
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13.5px;
-    min-width: 820px;
-    background: #fff;
-  }
-  thead th {
-    background: #2d3f52;
-    color: #fff;
-    font-weight: 600;
-    font-size: 12.5px;
-    letter-spacing: .3px;
-    padding: 10px 10px;
-    text-align: left;
-    white-space: nowrap;
-  }
-  tbody td {
-    padding: 10px 10px;
-    border-bottom: 1px solid var(--line);
-    vertical-align: top;
-  }
-  tbody tr:last-child td { border-bottom: none; }
-  tbody tr:nth-child(even) { background: #faf9f7; }
-  .day-label {
-    font-weight: 700;
-    color: var(--accent);
-    white-space: nowrap;
-  }
-  .route-cell { font-weight: 600; }
-  .km-cell { white-space: nowrap; font-size: 13px; color: var(--muted); }
-  .stay-cell { font-size: 13px; }
-
-  /* ============ TAG ============ */
+  /* ============ 标签 ============ */
   .tag {
-    display: inline-block;
-    font-size: 11px;
-    font-weight: 600;
-    padding: 1px 7px;
-    border-radius: 4px;
-    white-space: nowrap;
-    line-height: 1.6;
-    vertical-align: middle;
+    display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 700;
+    padding: 2px 8px; border-radius: 5px; white-space: nowrap; line-height: 1.6;
   }
-  .tag-ok { background: var(--green-soft); color: var(--green); }
-  .tag-warn { background: var(--amber-soft); color: var(--amber); }
-  .tag-fix { background: var(--red-soft); color: var(--red); }
-  .tag-info { background: var(--blue-soft); color: var(--blue); }
+  .tag-ok { background: var(--forest-soft); color: var(--forest); }
+  .tag-warn { background: var(--gold-soft); color: var(--gold-dark); }
+  .tag-fix { background: var(--coral-soft); color: var(--coral); }
+  .tag-info { background: var(--teal-soft); color: var(--teal); }
 
-  /* ============ LISTS ============ */
-  ul.clean { list-style: none; padding: 0; }
-  ul.clean li {
-    padding: 6px 0 6px 20px;
-    position: relative;
-    font-size: 14px;
-  }
-  ul.clean li::before {
-    content: "";
-    position: absolute;
-    left: 2px; top: 14px;
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--accent);
-  }
-  ul.clean.check li::before {
-    content: "✓";
-    background: none;
-    color: var(--green);
-    font-weight: 700;
-    font-size: 13px;
-    top: 6px;
-    left: 0;
-    width: auto; height: auto;
-  }
+  /* ============ 通用 ============ */
+  .section-head { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+  .section-head h2 { font-size: 20px; font-weight: 800; letter-spacing: -.3px; color: var(--navy); }
+  .section-head .note { font-size: 12px; color: var(--muted); margin-left: auto; background: var(--line-2); padding: 3px 12px; border-radius: 20px; font-weight: 500; }
 
-  /* 无圆点清单（用于勾选式条目） */
-  ul.plain { list-style: none; padding: 0; margin: 0; }
-  ul.plain > li {
-    padding: 12px 0;
-    border-bottom: 1px dashed var(--line);
-    font-size: 13.5px;
+  .callout {
+    border-radius: var(--radius-sm); padding: 14px 18px; margin: 12px 0;
+    font-size: 13.5px; line-height: 1.75; display: flex; gap: 12px; align-items: flex-start;
   }
-  ul.plain > li:last-child { border-bottom: none; }
-  ul.plain > li > strong { font-size: 14px; }
-  ul.plain .sub {
+  .callout .ci {
+    flex-shrink: 0; width: 22px; height: 22px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800; color: #fff; margin-top: 1px;
+  }
+  .callout .cb { flex: 1; }
+  .callout.red { background: var(--coral-soft); border: 1px solid rgba(196,77,60,.15); color: #7a2e22; }
+  .callout.red .ci { background: var(--coral); }
+  .callout.red strong { color: var(--coral); }
+  .callout.amber { background: var(--gold-soft); border: 1px solid rgba(212,162,76,.2); color: #7a5a1e; }
+  .callout.amber .ci { background: var(--gold-dark); }
+  .callout.amber strong { color: var(--gold-dark); }
+  .callout.green { background: var(--forest-soft); border: 1px solid rgba(45,122,79,.15); color: #1e5235; }
+  .callout.green .ci { background: var(--forest); }
+  .callout.green strong { color: var(--forest); }
+
+  /* ============ 页面切换 ============ */
+  .page { display: none; }
+  .page.active {
     display: block;
-    margin-top: 5px;
-    color: var(--muted);
-    font-size: 13px;
-    line-height: 1.6;
+    animation: pageIn .32s cubic-bezier(.4,.0,.2,1);
+  }
+  @keyframes pageIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
   }
 
-  /* ============ CALLOUTS ============ */
-  .fix-box {
-    background: var(--red-soft);
-    border-left: 4px solid var(--red);
-    border-radius: 0 8px 8px 0;
-    padding: 14px 16px;
-    margin: 10px 0;
-    font-size: 13.5px;
-    line-height: 1.7;
+  /* 封面 —— 图片版 */
+  .sub-hero {
+    border-radius: var(--radius); overflow: hidden; margin-bottom: 22px;
+    box-shadow: var(--shadow-md); position: relative;
+    background: #d8d0c8;
   }
-  .fix-box strong { color: var(--red); }
-  .ok-box {
-    background: var(--green-soft);
-    border-left: 4px solid var(--green);
-    border-radius: 0 8px 8px 0;
-    padding: 14px 16px;
-    margin: 10px 0;
-    font-size: 13.5px;
-    line-height: 1.7;
+  .sub-hero img {
+    width: 100%; height: 280px; object-fit: cover;
+    object-position: center; display: block;
   }
-  .warn-box {
-    background: var(--amber-soft);
-    border-left: 4px solid var(--amber);
-    border-radius: 0 8px 8px 0;
-    padding: 14px 16px;
-    margin: 10px 0;
-    font-size: 13.5px;
-    line-height: 1.7;
+  .sub-hero .cover-label {
+    position: absolute; left: 20px; bottom: 16px;
+    color: #fff; font-size: 13px; font-weight: 700; letter-spacing: 1px;
+    text-shadow: 0 2px 8px rgba(0,0,0,.5);
+    display: flex; align-items: center; gap: 8px;
   }
-  .fix-box p, .ok-box p, .warn-box p { font-size: 13.5px; }
-
-  /* ============ GRID ============ */
-  .grid-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
+  .sub-hero .cover-label .day-badge {
+    background: rgba(255,255,255,.2); backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,.3); padding: 3px 12px; border-radius: 20px;
+    font-size: 12px; font-weight: 800;
+  }
+  .sub-hero::after {
+    content: "← 左右滑动切换日期";
+    position: absolute; right: 16px; bottom: 16px;
+    font-size: 11px; color: rgba(255,255,255,.75);
+    background: rgba(0,0,0,.3); backdrop-filter: blur(8px);
+    padding: 4px 10px; border-radius: 20px;
+    letter-spacing: .5px; pointer-events: none;
+    animation: hintFade 4s ease-out 2s forwards;
+  }
+  @keyframes hintFade {
+    0%, 70% { opacity: 1; }
+    100% { opacity: 0; }
   }
 
-  /* ============ FOOTER ============ */
-  .footer-note {
-    text-align: center;
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 40px;
-    padding-top: 20px;
+  .sub-header { margin-bottom: 22px; }
+  .sub-header .date-tag {
+    display: inline-block; font-size: 12px; font-weight: 700; color: var(--coral);
+    background: var(--coral-soft); padding: 3px 12px; border-radius: 20px; margin-bottom: 8px;
+  }
+  .sub-header h2 { font-size: 26px; font-weight: 800; color: var(--navy); letter-spacing: -.5px; line-height: 1.3; margin-bottom: 6px; }
+  .sub-header .route-sub { font-size: 14px; color: var(--muted); }
+
+  .info-strip {
+    display: flex; flex-wrap: wrap; gap: 0; background: var(--card);
+    border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+    margin-bottom: 20px; box-shadow: var(--shadow-sm);
+  }
+  .info-strip .is-item { flex: 1 1 0; min-width: 100px; padding: 14px 16px; text-align: center; border-right: 1px solid var(--line-2); }
+  .info-strip .is-item:last-child { border-right: none; }
+  .info-strip .is-item .lbl { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 3px; }
+  .info-strip .is-item .val { font-size: 15px; font-weight: 700; color: var(--navy); }
+  .info-strip .is-item .val.danger { color: var(--coral); }
+
+  .spot-card {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 20px 22px; margin-bottom: 14px; box-shadow: var(--shadow-sm);
+  }
+  .spot-card h3 { font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .spot-card .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .spot-card ul { list-style: none; padding: 0; }
+  .spot-card ul li { padding: 5px 0 5px 20px; position: relative; font-size: 13.5px; color: var(--ink-2); line-height: 1.7; }
+  .spot-card ul li::before { content: ""; position: absolute; left: 3px; top: 13px; width: 5px; height: 5px; border-radius: 50%; background: var(--coral); }
+  .spot-card ul li strong { color: var(--ink); }
+
+  .tl { position: relative; padding-left: 24px; margin-bottom: 20px; }
+  .tl::before { content: ""; position: absolute; left: 6px; top: 8px; bottom: 8px; width: 2px; background: linear-gradient(to bottom, var(--line), transparent); }
+  .tl-item { position: relative; padding: 0 0 16px 0; }
+  .tl-item:last-child { padding-bottom: 0; }
+  .tl-item::before { content: ""; position: absolute; left: -22px; top: 7px; width: 10px; height: 10px; border-radius: 50%; background: var(--coral); border: 2px solid #fff; box-shadow: 0 0 0 2px var(--coral-soft); }
+  .tl-item .tl-time { font-size: 12px; font-weight: 700; color: var(--coral); margin-bottom: 2px; letter-spacing: .3px; }
+  .tl-item .tl-text { font-size: 13.5px; color: var(--ink-2); line-height: 1.7; }
+
+  .book-list { list-style: none; padding: 0; }
+  .book-list li { padding: 12px 0; border-bottom: 1px dashed var(--line-2); display: flex; gap: 12px; align-items: flex-start; }
+  .book-list li:last-child { border-bottom: none; }
+  .book-list .bk-icon { width: 24px; height: 24px; border-radius: 6px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: #fff; margin-top: 1px; }
+  .bk-icon.must { background: var(--coral); }
+  .bk-icon.rec { background: var(--gold-dark); }
+  .bk-icon.free { background: var(--forest); }
+  .book-list .bk-body { flex: 1; }
+  .book-list .bk-body .bk-title { font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .book-list .bk-body .bk-desc { font-size: 13px; color: var(--muted); line-height: 1.65; }
+
+  .day-card.flag-fix { border-left: 4px solid var(--coral); }
+  .day-card.flag-warn { border-left: 4px solid var(--gold); }
+  .day-card.flag-ok { border-left: 4px solid var(--forest); }
+
+  /* ============ 底部翻页 ============ */
+  .day-footer-nav {
+    display: flex; gap: 12px; margin-top: 32px; padding-top: 24px;
     border-top: 1px solid var(--line);
-    line-height: 1.8;
   }
+  .dfn-btn {
+    flex: 1; display: flex; align-items: center; gap: 10px;
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 16px 18px;
+    cursor: pointer; font-family: inherit; text-align: left;
+    transition: all .22s; box-shadow: var(--shadow-sm);
+  }
+  .dfn-btn:hover:not(:disabled) {
+    border-color: var(--coral); box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+  .dfn-btn:disabled { opacity: .3; cursor: not-allowed; }
+  .dfn-btn .dfn-arrow {
+    font-size: 18px; color: var(--coral); flex-shrink: 0;
+    line-height: 1;
+  }
+  .dfn-btn .dfn-info { flex: 1; min-width: 0; }
+  .dfn-btn .dfn-label { font-size: 11px; color: var(--muted); font-weight: 600; letter-spacing: .5px; text-transform: uppercase; margin-bottom: 2px; }
+  .dfn-btn .dfn-title { font-size: 13px; font-weight: 700; color: var(--navy); line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dfn-btn.next { text-align: right; }
+  .dfn-btn.next .dfn-arrow { order: 2; }
 
-  /* ============ RESPONSIVE ============ */
-  @media (max-width: 680px) {
-    .grid-2 { grid-template-columns: 1fr; }
-    .hero h1 { font-size: 23px; }
-    .hero { padding: 30px 0 26px; }
-    .card { padding: 16px; }
-    .section-head h2 { font-size: 18px; }
-    .section-head .note { margin-left: 0; width: 100%; }
+  .footer-note { text-align: center; font-size: 12px; color: var(--muted); margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line); line-height: 1.9; }
+
+  @media (max-width: 720px) {
+    .day-grid { grid-template-columns: 1fr; }
+    .hero { padding: 40px 0 36px; }
+    .hero h1 { font-size: 26px; }
+    .sub-header h2 { font-size: 21px; }
+    .overview-bar { gap: 8px; }
+    .ov-item { min-width: 80px; padding: 10px 12px; }
+    .ov-item .num { font-size: 18px; }
+    .sub-hero img { height: 200px; }
+    .subnav-inner { padding: 0 10px; height: 52px; }
+    body.has-subnav { padding-top: 52px; }
+    .sn-back { padding: 6px 10px; font-size: 12px; }
+    .sn-back .sn-back-text { display: none; }
+    .sn-arrow { width: 32px; height: 32px; font-size: 18px; }
+    .sn-indicator { min-width: 70px; }
+    .sn-day { font-size: 15px; }
+    .sub-hero::after { display: none; }
+    .day-footer-nav { flex-direction: column; }
+    .dfn-btn.next .dfn-arrow { order: 0; }
+    .dfn-btn.next { flex-direction: row-reverse; text-align: left; }
+  }
+  @media (max-width: 480px) {
+    .wrap { padding: 0 14px; }
+    .hero h1 { font-size: 22px; }
+    .info-strip { flex-wrap: wrap; }
+    .info-strip .is-item { flex: 1 1 45%; border-bottom: 1px solid var(--line-2); }
+    .sub-hero img { height: 170px; }
   }
 </style>
 </head>
 <body>
 
-<!-- ==================== HERO ==================== -->
-<header class="hero">
-  <div class="wrap">
-    <div class="hero-tag">2026 国庆 · 北疆环线</div>
-    <h1>新疆 10 天自驾环线 · 校验版行程</h1>
-    <p class="sub">
-      乌市 → 独库北段 → 赛里木湖 → 布尔津 → 喀纳斯深度 → 折返乌市。
-      基于 2026 年官方预约政策与路况数据，对原计划逐项核实。
-    </p>
-    <div class="meta-row">
-      <span>9.29 乌鲁木齐抵达</span>
-      <span>10.8 16:00 乌市返程</span>
-      <span>自驾 · 北疆环线</span>
-      <span>喀纳斯连住 2 晚</span>
+<!-- ==================== 子导航（fixed） ==================== -->
+<div id="subnav" class="subnav">
+  <div class="subnav-inner">
+    <button class="sn-back" onclick="showOverview()">
+      <span>←</span>
+      <span class="sn-back-text">总览</span>
+    </button>
+    <div class="sn-center">
+      <button class="sn-arrow" id="snPrev" onclick="goDay(-1)" aria-label="前一天">‹</button>
+      <div class="sn-indicator">
+        <span class="sn-day" id="snDay">D1</span>
+        <span class="sn-sep">/</span>
+        <span class="sn-total">10</span>
+      </div>
+      <button class="sn-arrow" id="snNext" onclick="goDay(1)" aria-label="后一天">›</button>
     </div>
-    <div class="verify-badge">✓ 已对照 2026 年官方渠道核验</div>
+    <div class="sn-date" id="snDate">9.29</div>
   </div>
-</header>
-
-<div class="wrap">
-
-  <!-- ==================== 校验结论速览 ==================== -->
-  <section class="section">
-    <div class="section-head">
-      <div class="num">!</div>
-      <h2>校验结论速览</h2>
-    </div>
-
-    <div class="grid-2">
-      <div class="card" style="border-left:4px solid var(--green);">
-        <h3><span class="dot dot-green"></span>可用性判断</h3>
-        <ul class="clean check">
-          <li>整体路线逻辑成立，独库北段 → 赛湖 → 喀纳斯 → 折返乌市的大方向没有问题。</li>
-          <li>喀纳斯连住 2 晚的安排合理，是这条线的正确重心。</li>
-          <li>9.29 抵达、10.8 返程的时间窗口，在独库封路时间节点之前，有操作空间。</li>
-        </ul>
-      </div>
-      <div class="card" style="border-left:4px solid var(--red);">
-        <h3><span class="dot dot-red"></span>必须修正的硬伤</h3>
-        <ul class="clean">
-          <li><strong>独库北段已实行预约制</strong>（2026 年 6 月 25 日起），原计划未体现，无预约会被入口劝返。</li>
-          <li><strong>赛里木湖自驾名额</strong>通过“一部手机游赛湖”小程序提前 3–7 天抢，每日限量 2000–3000 辆，现场不售自驾票。</li>
-          <li><strong>喀纳斯已取消单独预约号</strong>，但旺季仍需提前 3–5 天线上购票，观鱼台 2026 年处于关闭状态。</li>
-          <li><strong>D3 里程 550km 偏乐观</strong>，赛里木湖 → 布尔津实际约 780km，当天还要赶五彩滩日落，几乎不可行。</li>
-          <li><strong>D1 住乔尔玛</strong>住宿选择极少，建议重新评估当晚落脚点。</li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <!-- ==================== 一、每日行程 ==================== -->
-  <section class="section">
-    <div class="section-head">
-      <div class="num">1</div>
-      <h2>每日行程（已校正）</h2>
-      <span class="note">红色 = 原计划需修正处</span>
-    </div>
-
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>天</th>
-            <th>日期</th>
-            <th>路线</th>
-            <th>里程 / 时长</th>
-            <th>核心安排</th>
-            <th>住宿</th>
-            <th>校验标记</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="day-label">D1</td>
-            <td>9.29</td>
-            <td class="route-cell">乌市 → 独库北段 → 乔尔玛</td>
-            <td class="km-cell">255km / 约 4.5h</td>
-            <td>独库北段风光、哈希勒根达坂。<strong>出发前必须完成“游新疆一码游”预约。</strong>通行时段 08:00–19:00。</td>
-            <td class="stay-cell">乔尔玛<br><span class="tag tag-warn">住宿选择少，建议备选那拉提镇</span></td>
-            <td><span class="tag tag-fix">需修正</span> 独库北段 2026 年起预约制，未预约会被劝返。</td>
-          </tr>
-          <tr>
-            <td class="day-label">D2</td>
-            <td>9.30</td>
-            <td class="route-cell">乔尔玛 → 果子沟大桥 → 赛里木湖</td>
-            <td class="km-cell">360km / 5.5–6h</td>
-            <td>果子沟大桥车观，赛里木湖环湖。自驾名额务必在 <strong>“一部手机游赛湖”小程序</strong> 提前抢。</td>
-            <td class="stay-cell">赛湖景区内 / 清水河镇</td>
-            <td><span class="tag tag-fix">需修正</span> 自驾每日限量 2000–3000 辆，现场无自驾票。</td>
-          </tr>
-          <tr>
-            <td class="day-label">D3</td>
-            <td>10.1</td>
-            <td class="route-cell">赛里木湖 → 布尔津</td>
-            <td class="km-cell"><strong style="color:var(--red);">约 780km / 8–9h</strong><br><span style="color:var(--red);font-size:12px;">原计划 550km 偏短</span></td>
-            <td>沿途戈壁，傍晚五彩滩日落。<strong>当天里程过长，建议放弃五彩滩日落，改为次日早晨。</strong></td>
-            <td class="stay-cell">布尔津</td>
-            <td><span class="tag tag-fix">严重偏差</span> 里程严重低估，安全风险高。</td>
-          </tr>
-          <tr>
-            <td class="day-label">D4</td>
-            <td>10.2</td>
-            <td class="route-cell">布尔津 → 喀纳斯</td>
-            <td class="km-cell">约 160km / 3.5–4h</td>
-            <td>下午进喀纳斯，贾登峪换乘区间车。<strong>喀纳斯已取消单独预约号，但需提前 3–5 天买票。</strong></td>
-            <td class="stay-cell">喀纳斯景区内（新村 / 老村）</td>
-            <td><span class="tag tag-ok">基本可用</span> 注意观鱼台关闭。</td>
-          </tr>
-          <tr>
-            <td class="day-label">D5</td>
-            <td>10.3</td>
-            <td class="route-cell">喀纳斯深度游</td>
-            <td class="km-cell">景区内无自驾</td>
-            <td>神仙湾晨雾、月亮湾、卧龙湾、湖边栈道。<strong>观鱼台 2026 年关闭，原计划中的观鱼台安排需删除。</strong></td>
-            <td class="stay-cell">喀纳斯村内</td>
-            <td><span class="tag tag-fix">需修正</span> 观鱼台关闭，替换为湖边栈道深度。</td>
-          </tr>
-          <tr>
-            <td class="day-label">D6</td>
-            <td>10.4</td>
-            <td class="route-cell">喀纳斯全天自由深度</td>
-            <td class="km-cell">景区内</td>
-            <td>白哈巴可选。<strong>电子边防证通过“移民局 12367”小程序提前办理，免费。</strong>白哈巴日限流 3500 人。</td>
-            <td class="stay-cell">喀纳斯村内</td>
-            <td><span class="tag tag-ok">基本可用</span> 边防证线上办，比原计划更方便。</td>
-          </tr>
-          <tr>
-            <td class="day-label">D7</td>
-            <td>10.5</td>
-            <td class="route-cell">喀纳斯 → 布尔津 → 克拉玛依</td>
-            <td class="km-cell">约 480km / 7–7.5h</td>
-            <td>乌尔禾魔鬼城傍晚游览。<strong>魔鬼城套票约 62 元（门票 42 + 小火车 20），线上提前买。</strong>18:00 后入园追日落。</td>
-            <td class="stay-cell">克拉玛依 / 乌尔禾</td>
-            <td><span class="tag tag-warn">里程微调</span> 原计划 540km，实际约 480km，更从容。</td>
-          </tr>
-          <tr>
-            <td class="day-label">D8</td>
-            <td>10.6</td>
-            <td class="route-cell">乌尔禾 → 奎屯</td>
-            <td class="km-cell">约 320km / 4h</td>
-            <td>百里油田，独山子大峡谷可选。门票 30 元，线上购票有优惠。</td>
-            <td class="stay-cell">奎屯</td>
-            <td><span class="tag tag-ok">可用</span></td>
-          </tr>
-          <tr>
-            <td class="day-label">D9</td>
-            <td>10.7</td>
-            <td class="route-cell">奎屯 → 乌市（天池可选）</td>
-            <td class="km-cell">约 240km / 3.5h</td>
-            <td>天山天池<strong>必须提前 1 天</strong>通过“寻梦天山做客天池”小程序实名预约，现场无人工窗口。不想挤可直接回乌市。</td>
-            <td class="stay-cell">乌鲁木齐</td>
-            <td><span class="tag tag-fix">需修正</span> 天池 2026 年 7 月起全面分时预约，无现场售票。</td>
-          </tr>
-          <tr>
-            <td class="day-label">D10</td>
-            <td>10.8</td>
-            <td class="route-cell">乌市市区 → 地窝堡机场</td>
-            <td class="km-cell">25km / 0.5–1h</td>
-            <td>还车预留 2 小时，16:00 航班。</td>
-            <td class="stay-cell">—</td>
-            <td><span class="tag tag-ok">可用</span></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="fix-box">
-      <strong>D3 是整条线最大的隐患。</strong>赛里木湖到布尔津的实际公路里程约 780km，不是 550km。国庆期间戈壁路段大车多，8–9 小时车程是保守估计。如果坚持当天赶到布尔津再去看五彩滩日落，司机疲劳 + 夜间行车风险极高。建议将五彩滩改到 D4 早晨，或者 D3 只开到克拉玛依 / 乌尔禾住一晚，D4 上午到布尔津。
-    </div>
-  </section>
-
-  <!-- ==================== 二、景点清单 ==================== -->
-  <section class="section">
-    <div class="section-head">
-      <div class="num">2</div>
-      <h2>环线核心景点清单</h2>
-    </div>
-
-    <div class="card">
-      <h3><span class="dot dot-blue"></span>独库公路北段</h3>
-      <ul class="clean">
-        <li><strong>2026 年状态：</strong>北段（乌苏驿 K587+100 — 那拉提入口 K773，约 185km）实行预约制通行，仅限 7 座及以下小型客车。</li>
-        <li><strong>预约：</strong>提前 1–7 天，通过“游新疆一码游”小程序免费预约，每车每日仅可约一个入口和一个时段。</li>
-        <li><strong>通行时段：</strong>08:00–19:00，五个时段可选（08–10、10–12、12–14、14–16、16–19）。</li>
-        <li><strong>核心点位：</strong>哈希勒根达坂、雪山垭口、乔尔玛。</li>
-        <li><strong>风险：</strong>9 月底山区随时降雪封路。2025 年 9 月 11 日，乔尔玛至那拉提零公里段就因降雪实行双向管制。出发前一天务必查“新疆路网”实时路况。</li>
-      </ul>
-    </div>
-
-    <div class="card">
-      <h3><span class="dot dot-blue"></span>赛里木湖</h3>
-      <ul class="clean">
-        <li><strong>自驾预约：</strong>唯一渠道是微信小程序“一部手机游赛湖”，每日限量 2000–3000 辆，每天 10:00 放票。国庆建议提前 3–7 天抢，现场不售自驾票。</li>
-        <li><strong>票价参考：</strong>24h 自驾套票约 145 元/人（含门票 + 自驾通行）；48h 自驾套票约 190 元/人，适合蹲日出日落。具体以官方小程序实时价格为准。</li>
-        <li><strong>环湖方向：</strong>东门进、南门出，顺时针环湖全程顺光，逆时针逆光严重。</li>
-        <li><strong>核心点位：</strong>克勒涌珠（湖水最蓝）、月亮湾（日出）、松树头（俯瞰全湖 + 果子沟大桥）、网红 S 湾。</li>
-        <li><strong>注意：</strong>进景区前加满油，环湖 90km 无加油站；限速 30–40km/h，仅观景台可停车。</li>
-      </ul>
-    </div>
-
-    <div class="card">
-      <h3><span class="dot dot-blue"></span>喀纳斯 + 禾木 + 白哈巴</h3>
-      <ul class="clean">
-        <li><strong>2026 年政策变化：</strong>喀纳斯已取消入园预约号，现场可购票入园。但旺季仍建议提前 3–5 天线上购票。购票渠道：“喀纳斯景区”公众号、“原行网”公众号。</li>
-        <li><strong>日承载量：</strong>喀纳斯 2.7 万人、禾木 2 万人、白哈巴 0.8 万人（日限流 3500 人）。国庆大概率接近上限，提前买票是底线。</li>
-        <li><strong>票种参考：</strong>喀纳斯一进 230 元（门票 160 + 区间车 70）；禾木单景区 75 元；全域通票约 375 元/3 天（喀纳斯 + 禾木 + 白哈巴）。</li>
-        <li><strong>观鱼台：</strong>自 2025 年 10 月 7 日起季节性关闭，2026 年仍未开放。原计划中的观鱼台安排需取消，替代重点放在神仙湾晨雾和湖边栈道。</li>
-        <li><strong>白哈巴：</strong>需办理电子边境管理区通行证，通过“移民局 12367”小程序在线申请，免费，截图留存即可。需另购门票 + 区间车。</li>
-        <li><strong>住宿：</strong>喀纳斯新村 / 老村木屋是国庆最稀缺资源，建议提前 15 天以上锁定付款。住贾登峪每天进出浪费 2–3 小时。</li>
-      </ul>
-    </div>
-
-    <div class="card">
-      <h3><span class="dot dot-blue"></span>乌尔禾魔鬼城 / 独山子大峡谷 / 天山天池</h3>
-      <ul class="clean">
-        <li><strong>魔鬼城：</strong>旺季套票约 62 元（门票 42 + 小火车 20），线上提前购票即可，不强制抢名额。18:00 后入园拍日落最佳。</li>
-        <li><strong>独山子大峡谷：</strong>门票 30 元，线上购票常有优惠。可选，时间紧张可跳过。</li>
-        <li><strong>天山天池：</strong>2026 年 7 月起全面分时预约，必须提前 1 天通过“寻梦天山做客天池”小程序预约，现场无人工售票窗口。旺季套票 155 元。国庆建议提前 3 天占位。</li>
-      </ul>
-    </div>
-  </section>
-
-  <!-- ==================== 三、预约购票红线 ==================== -->
-  <section class="section">
-    <div class="section-head">
-      <div class="num">3</div>
-      <h2>预约购票红线（国庆必抢清单）</h2>
-    </div>
-
-    <div class="card" style="border-left:4px solid var(--red);">
-      <h3><span class="dot dot-red"></span>第一优先级 · 必须抢</h3>
-
-      <p style="margin-bottom:8px;"><strong>① 独库公路北段通行预约</strong> <span class="tag tag-fix">原计划遗漏</span></p>
-      <ul class="clean" style="margin-bottom:14px;">
-        <li>渠道：“游新疆一码游”小程序，完全免费。付费代预约均为诈骗。</li>
-        <li>提前 1–7 天预约，每车每日仅限一个入口 + 一个时段。</li>
-        <li>未预约驶入，正式执行期罚款 200 元、记 1 分。</li>
-      </ul>
-
-      <p style="margin-bottom:8px;"><strong>② 赛里木湖自驾车名额</strong> <span class="tag tag-fix">原计划未强调</span></p>
-      <ul class="clean" style="margin-bottom:14px;">
-        <li>渠道：微信小程序“一部手机游赛湖”。</li>
-        <li>每日限量 2000–3000 辆，每天 10:00 放票，提前 3–7 天抢。</li>
-        <li>没有自驾名额只能坐区间车，小众点位不停，体验差距很大。</li>
-      </ul>
-
-      <p style="margin-bottom:8px;"><strong>③ 喀纳斯 + 禾木门票</strong></p>
-      <ul class="clean" style="margin-bottom:14px;">
-        <li>渠道：“喀纳斯景区”公众号、“原行网”公众号。</li>
-        <li>提前 3–5 天购票，日限流喀纳斯 2.7 万、禾木 2 万。</li>
-        <li>已取消单独预约号，但必须提前买好门票 + 区间车，否则到贾登峪大概率白跑。</li>
-      </ul>
-
-      <p style="margin-bottom:8px;"><strong>④ 喀纳斯 / 禾木村内住宿</strong> <span class="tag tag-fix">比门票更难</span></p>
-      <ul class="clean">
-        <li>国庆村内木屋极度稀缺，建议提前 15 天以上下单锁房。</li>
-        <li>一旦只能住贾登峪，每天进出景区浪费 2–3 小时，深度游节奏直接废掉。</li>
-      </ul>
-    </div>
-
-    <div class="card" style="border-left:4px solid var(--amber);">
-      <h3><span class="dot dot-amber"></span>第二优先级 · 建议提前买</h3>
-      <ul class="clean">
-        <li><strong>天山天池：</strong>提前 1 天通过“寻梦天山做客天池”小程序预约，国庆建议提前 3 天。现场无售票窗口。</li>
-        <li><strong>乌尔禾魔鬼城：</strong>线上 OTA 提前买套票，不用抢名额，但国庆现场排队久。</li>
-        <li><strong>白哈巴边防证：</strong>“移民局 12367”小程序在线办电子证，免费，截图保存。</li>
-      </ul>
-    </div>
-
-    <div class="card" style="border-left:4px solid var(--green);">
-      <h3><span class="dot dot-green"></span>免费 / 无需预约</h3>
-      <ul class="clean">
-        <li>果子沟大桥（车观）、S21 沙漠公路、独山子大峡谷（购票即可）、赛里木湖非自驾现场购票。</li>
-      </ul>
-    </div>
-  </section>
-
-  <!-- ==================== 四、关键风险 ==================== -->
-  <section class="section">
-    <div class="section-head">
-      <div class="num">4</div>
-      <h2>关键风险与行车提示</h2>
-    </div>
-
-    <div class="grid-2">
-      <div class="card" style="border-left:4px solid var(--red);">
-        <h3><span class="dot dot-red"></span>独库封路风险</h3>
-        <ul class="clean">
-          <li>9 月底山区随时降雪。2025 年 9 月 11 日，独库北段乔尔玛至那拉提零公里即因降雪实行双向交通管制。</li>
-          <li>2025 年 10 月 10 日 20 时，独库公路全线实施冬季封闭。你的行程在 9.29–10.8，处于封路窗口的边缘。</li>
-          <li>出发前每天查“新疆路网”“新疆交通警察”公众号实时路况，一旦封路立即改走 G30。</li>
-          <li>备好厚羽绒服、防滑链，车上保持油量过半。</li>
-        </ul>
-      </div>
-      <div class="card" style="border-left:4px solid var(--amber);">
-        <h3><span class="dot dot-amber"></span>长途驾驶风险</h3>
-        <ul class="clean">
-          <li>北疆戈壁路段加油站间距大，油箱过半就加满。</li>
-          <li>D3 赛湖 → 布尔津约 780km，是全程最长的一天，务必两人轮换驾驶。</li>
-          <li>尽量避免夜间走戈壁公路，野生动物和大型货车是主要隐患。</li>
-          <li>国庆期间乌市机场拥堵，还车预留 2 小时以上。</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="warn-box">
-      <strong>一句话记忆：</strong>住宿 &gt; 自驾名额 &gt; 景区门票。先锁喀纳斯 / 禾木村内住宿，再抢赛湖自驾名额和独库预约，最后买喀纳斯、禾木、魔鬼城门票。所有预约只走官方小程序，不找第三方代抢。
-    </div>
-  </section>
-
-  <!-- ==================== 五、修正汇总 ==================== -->
-  <section class="section">
-    <div class="section-head">
-      <div class="num">5</div>
-      <h2>原计划修正点汇总</h2>
-    </div>
-
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>原计划内容</th>
-            <th>实际情况（2026 年）</th>
-            <th>建议</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>独库公路无需门票，仅查路况</td>
-            <td>北段 2026 年 6 月 25 日起实行预约制，未预约劝返 / 罚款</td>
-            <td>出发前通过“游新疆一码游”完成预约</td>
-          </tr>
-          <tr>
-            <td>赛里木湖“必须提前线上购票预约”</td>
-            <td>门票可现场买，但<strong>自驾车名额</strong>必须线上抢，每日限量</td>
-            <td>重点放在抢“一部手机游赛湖”自驾名额</td>
-          </tr>
-          <tr>
-            <td>喀纳斯“必须提前预约”“贾登峪门票 + 区间车极难抢”</td>
-            <td>已取消单独预约号，但需提前 3–5 天买票；观鱼台关闭</td>
-            <td>提前买票即可，删除观鱼台安排</td>
-          </tr>
-          <tr>
-            <td>D3 赛里木湖 → 布尔津 550km</td>
-            <td>实际约 780km，8–9 小时</td>
-            <td>缩短当天目标，五彩滩改到次日早晨</td>
-          </tr>
-          <tr>
-            <td>D5 观鱼台 1068 级台阶</td>
-            <td>观鱼台自 2025 年 10 月 7 日起季节性关闭</td>
-            <td>用神仙湾晨雾 + 湖边栈道替代</td>
-          </tr>
-          <tr>
-            <td>白哈巴边防证“提前办好”（户籍地办理）</td>
-            <td>2026 年 4 月 15 日起全国启用电子边防证</td>
-            <td>“移民局 12367”小程序免费在线申请</td>
-          </tr>
-          <tr>
-            <td>天山天池“国庆预约爆满”</td>
-            <td>2026 年 7 月起分时预约，现场无售票窗口</td>
-            <td>提前 1 天小程序预约，国庆提前 3 天</td>
-          </tr>
-          <tr>
-            <td>乌尔禾魔鬼城门票（攻略常写 98 元）</td>
-            <td>旺季套票约 62 元（门票 42 + 小火车 20）</td>
-            <td>以官方 OTA 实时价格为准</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <!-- ==================== 六、出行准备总清单 ==================== -->
-  <section class="section">
-    <div class="section-head">
-      <div class="num">6</div>
-      <h2>出行准备总清单（校验版）</h2>
-      <span class="note">红色 = 原清单需修正处</span>
-    </div>
-
-    <div class="fix-box" style="margin-bottom:16px;">
-      <strong>校验说明：</strong>以下清单在原稿基础上，已根据 2026 年官方最新政策逐项核实。
-      共发现 <strong>5 处需要修正</strong>，主要涉及独库预约、观鱼台关闭、边防证电子化、五彩滩购票渠道及喀纳斯预约政策变化。
-    </div>
-
-    <!-- 1. 预约订票 -->
-    <div class="card" style="border-left:4px solid var(--red);">
-      <h3><span class="dot dot-red"></span>一、预约订票勾选清单（国庆必做）</h3>
-      <ul class="plain">
-        <li>
-          <strong>□ 1. 喀纳斯主景区门票 + 贾登峪区间车</strong>
-          <span class="tag tag-fix">需修正</span>
-          <span class="sub">
-            原写“提前 7–10 天抢票”。实际情况：2026 年 8 月 7 日起喀纳斯已<strong>取消预约入园环节</strong>，现场可购票入园。
-            一进票 230 元（门票 160 + 区间车 70）。但国庆客流极大，仍建议提前 3–5 天在“喀纳斯景区”或“原行网”公众号线上购票，避免窗口排队。
-          </span>
-        </li>
-        <li>
-          <strong>□ 2. 喀纳斯观鱼台额外区间车票</strong>
-          <span class="tag tag-fix">已关闭</span>
-          <span class="sub">
-            观鱼台自 2025 年 10 月 7 日起季节性关闭，截至 2026 年 9 月仍未开放。
-            <strong>此项应从清单中删除</strong>，替代安排为喀纳斯湖湖边栈道徒步。
-          </span>
-        </li>
-        <li>
-          <strong>□ 3. 白哈巴门票 + 区间车</strong>（可选）
-          <span class="sub">
-            白哈巴门票 30 元/人（旺季），喀纳斯往返区间车 45 元/人。日限流 3500 人，建议提前在“原行网”预约。
-          </span>
-        </li>
-        <li>
-          <strong>□ 4. 边防证（前往白哈巴）</strong>
-          <span class="tag tag-fix">方式已更新</span>
-          <span class="sub">
-            原写“户籍地办理”。2026 年 4 月 15 日起全国已启用<strong>电子边境管理区通行证</strong>，微信 / 支付宝搜索“移民局 12367”小程序在线申请，免费，3 个月内有效，截图留存即可，无需回户籍地。
-          </span>
-        </li>
-        <li>
-          <strong>□ 5. 赛里木湖门票 + 自驾环湖名额</strong>
-          <span class="tag tag-fix">补充细节</span>
-          <span class="sub">
-            自驾名额每日限量 <strong>2000–3000 辆</strong>，必须提前 3–7 天在微信小程序“一部手机游赛湖”预约。
-            现场不售自驾票。具体票价以官方小程序实时价格为准。
-          </span>
-        </li>
-        <li>
-          <strong>□ 6. 五彩滩门票</strong>
-          <span class="tag tag-fix">渠道需修正</span>
-          <span class="sub">
-            原写“日落场提前网购”。实际门票 45 元/人，建议提前一天在<strong>“阿勒泰智慧旅游平台”</strong>购票，避免现场排队。日落黄金时段为 19:30–20:00。
-          </span>
-        </li>
-        <li>
-          <strong>□ 7. 乌尔禾魔鬼城门票</strong>
-          <span class="tag tag-ok">价格更正</span>
-          <span class="sub">
-            旺季套票 <strong>约 62 元</strong>（门票 42 + 观光小火车 20），非原攻略常写的 98 元。线上提前购票即可，不强制抢名额。
-          </span>
-        </li>
-        <li>
-          <strong>□ 8. 独山子大峡谷 / 天山天池</strong>（备选）
-          <span class="sub">
-            天山天池须提前 1 天通过“寻梦天山做客天池”小程序实名分时预约，旺季套票 155 元（门票 95 + 区间车 60），<strong>现场不售票</strong>。
-            独山子大峡谷门票 30 元，线上购票即可。
-          </span>
-        </li>
-        <li>
-          <strong>□ 9. 全程酒店</strong>
-          <span class="sub">
-            喀纳斯村内住宿优先锁定，国庆一房难求，建议提前 15 天以上下单付款。
-          </span>
-        </li>
-        <li>
-          <strong>□ 10. 租车预订 + 还车时间</strong>
-          <span class="tag tag-warn">注意</span>
-          <span class="sub">
-            国庆租车务必选择正规平台，签书面合同，明确异地还车费用。还车预留 2 小时机场缓冲。
-            <strong>另：独库公路北段需单独预约通行资格</strong>，租车时确认车辆为 7 座及以下。
-          </span>
-        </li>
-      </ul>
-      <div class="warn-box" style="margin-top:14px;">
-        <strong>原清单遗漏项：独库公路北段通行预约。</strong>
-        2026 年 6 月 25 日起，G217 线独库公路北段（乌苏驿—那拉提入口，约 185km）实行预约制通行。
-        通过“游新疆一码游”小程序免费预约，提前 1–7 天，每车每日限约一个入口和一个时段。
-        未预约驶入罚款 200 元、记 1 分。通行时段 08:00–19:00。
-      </div>
-    </div>
-
-    <!-- 2. 证件资料 -->
-    <div class="card" style="border-left:4px solid var(--blue);">
-      <h3><span class="dot dot-blue"></span>二、证件资料（全程随身）</h3>
-      <ul class="clean check">
-        <li>身份证（原件，所有人）</li>
-        <li>驾驶证 + 行驶证 + 车辆保险单（自驾必备）</li>
-        <li>边防证（前往白哈巴）<span class="tag tag-ok">已电子化</span> — 通过“移民局 12367”小程序在线申请，截图留存</li>
-        <li>学生证 / 老年证（门票减免）</li>
-        <li>机票行程单、租车订单、酒店订单（存手机 + 打印纸质版）</li>
-      </ul>
-    </div>
-
-    <!-- 3. 衣物 -->
-    <div class="card" style="border-left:4px solid var(--blue);">
-      <h3><span class="dot dot-blue"></span>三、衣物（9.29–10.8 北疆山区夜间零下）</h3>
-      <ul class="clean check">
-        <li>速干内衣 2 套</li>
-        <li>抓绒 / 厚毛衣 2 件</li>
-        <li>长款加厚羽绒服（必备！达坂、喀纳斯清晨可能下雪）</li>
-        <li>防风冲锋衣（防雨防风）</li>
-        <li>加绒长裤 2 条 + 薄长裤</li>
-        <li>羊毛袜 5 双、保暖帽、手套、围巾</li>
-        <li>防滑登山鞋 + 薄运动鞋两双</li>
-        <li>暖宝宝（湖边、清晨拍晨雾用）</li>
-      </ul>
-      <div class="warn-box" style="margin-top:10px;">
-        <strong>天气参考：</strong>阿勒泰地区 9 月下旬至 10 月初气温约 0–18℃，昼夜温差极大。
-        布尔津 10 月初最低温可降至 -4℃。阿勒泰秋叶最佳观赏期约在 9 月 15 日至 10 月 5 日，国庆后树叶迅速掉落。
-      </div>
-    </div>
-
-    <!-- 4. 车辆装备 -->
-    <div class="card" style="border-left:4px solid var(--blue);">
-      <h3><span class="dot dot-blue"></span>四、自驾车辆装备（长途戈壁 + 山区冰雪）</h3>
-      <ul class="clean check">
-        <li>全车检修：轮胎、刹车、机油、电瓶、防冻液</li>
-        <li>备胎 + 千斤顶 + 充气泵 + 拖车绳 + 搭电线</li>
-        <li>防滑链（独库达坂随时下雪，必备）</li>
-        <li>离线地图（高德 + 百度北疆离线包，山区无信号）</li>
-        <li>车载充电器 + 大容量充电宝</li>
-        <li>玻璃水、应急工具</li>
-      </ul>
-      <div class="warn-box" style="margin-top:10px;">
-        <strong>加油策略：</strong>新疆加油站间距大，国道和高速约每 80–120km 有一个加油站，
-        但独库公路沿途加油站不到 10 个，部分季节性关闭。
-        <strong>油箱过半就加满</strong>是铁律。
-      </div>
-    </div>
-
-    <!-- 5. 护肤药品 -->
-    <div class="card" style="border-left:4px solid var(--blue);">
-      <h3><span class="dot dot-blue"></span>五、护肤 &amp; 药品（北疆极度干燥，温差大）</h3>
-      <p style="font-weight:600;margin:10px 0 4px;">防晒保湿</p>
-      <ul class="clean check">
-        <li>SPF50+ 防晒霜、防晒面罩、墨镜、宽檐帽</li>
-        <li>润唇膏、护手霜、高保湿面霜、面膜、鼻油（防干裂）</li>
-      </ul>
-      <p style="font-weight:600;margin:14px 0 4px;">常备药品</p>
-      <ul class="clean check">
-        <li>感冒药、布洛芬（头痛受凉）</li>
-        <li>肠胃药（肠炎宁、蒙脱石散，牛羊肉容易吃坏肚子）</li>
-        <li>晕车药（盘山公路多）</li>
-        <li>创可贴、碘伏、驱蚊液</li>
-        <li>保温杯（全程喝热水）</li>
-      </ul>
-    </div>
-
-    <!-- 6. 路途物资 -->
-    <div class="card" style="border-left:4px solid var(--blue);">
-      <h3><span class="dot dot-blue"></span>六、路途物资（单日车程最长 7–9 小时）</h3>
-      <ul class="clean check">
-        <li>牛肉干、巧克力、能量棒、面包等高热量零食</li>
-        <li>饮用水、水果</li>
-        <li>大容量双肩包（每日轻装进景区）</li>
-        <li>手机防水袋、相机三脚架（拍晨雾、日落）</li>
-        <li>少量现金（部分山区信号差，无法扫码）</li>
-      </ul>
-    </div>
-
-    <!-- 7. 每日行程提醒 -->
-    <div class="card" style="border-left:4px solid var(--green);">
-      <h3><span class="dot dot-green"></span>七、每日行程提醒（打印随身携带）</h3>
-      <ul class="clean" style="font-size:13.5px;">
-        <li><strong>D1：</strong>乌市 → 乔尔玛。出发前查独库北段实时路况，雨雪会临时封路。确认已完成“游新疆一码游”预约。</li>
-        <li><strong>D2：</strong>乔尔玛 → 赛里木湖。务必确认自驾环湖权限已预约，傍晚蹲日落。</li>
-        <li><strong>D3：</strong>赛里木湖 → 布尔津。<span class="tag tag-fix">里程修正</span> 实际约 780km，不是 550km。当天赶五彩滩日落风险极高，建议改到 D4 早晨。</li>
-        <li><strong>D4：</strong>布尔津 → 贾登峪。私家车停停车场，换乘景区区间车。喀纳斯取消预约，可现场购票，但国庆建议提前线上买好。</li>
-        <li><strong>D5：</strong>喀纳斯晨雾。6:30 前出门，三湾光线最佳。<span class="tag tag-fix">注意</span> 观鱼台已关闭，改走湖边栈道。</li>
-        <li><strong>D6：</strong>白哈巴一日游。随身携带电子边防证（“移民局 12367”小程序截图），边境不可越线。</li>
-        <li><strong>D7：</strong>喀纳斯 → 乌尔禾。傍晚进魔鬼城，落日光影最好。套票约 62 元。</li>
-        <li><strong>D8：</strong>乌尔禾 → 奎屯。顺路看百里油田。</li>
-        <li><strong>D9：</strong>奎屯 → 乌鲁木齐。休整采购伴手礼。不去天池可直接回市区。去天池必须提前 1 天预约。</li>
-        <li><strong>D10：</strong>机场还车。预留 2 小时，国庆机场大堵车，16 点航班务必提前抵达。</li>
-      </ul>
-    </div>
-
-    <!-- 8. 风险红线 -->
-    <div class="card" style="border-left:4px solid var(--red);">
-      <h3><span class="dot dot-red"></span>八、风险红线（逐条牢记）</h3>
-      <ul class="clean" style="font-size:13.5px;">
-        <li>独库公路北段 9 月底随时降雪封路。2025 年 9 月 11 日，乔尔玛至那拉提零公里段即因降雪实行双向管制；2025 年 10 月 10 日全线冬季封闭。你的行程处于封路窗口边缘，<strong>提前备好 G30 国道绕行方案</strong>。</li>
-        <li>喀纳斯景区私家车不能驶入核心区，只能停贾登峪。</li>
-        <li>全程不超速。新疆区间测速极多，戈壁路段限速严格。赛里木湖环湖限速 30–40km/h，仅观景台可停车，路边乱停罚款 200 元。</li>
-        <li>山区气温骤降，不要只带薄外套。喀纳斯清晨可达 0℃ 以下，不穿羽绒服容易冻感冒。</li>
-        <li>所有预约订单截图保存，景区刷身份证入园。</li>
-        <li><strong>独库公路北段未预约驶入：罚款 200 元、记 1 分。</strong> 每车每日仅可预约一个入口和一个时段，爽约超过 3 次取消当年预约资格。</li>
-        <li><strong>所有预约只走官方小程序，不找第三方代抢。</strong> 独库预约完全免费，付费代预约均为诈骗；赛里木湖官方小程序实名购票，人脸识别入园，黄牛票无法转让。</li>
-      </ul>
-    </div>
-  </section>
-
-  <!-- ==================== FOOTER ==================== -->
-  <div class="footer-note">
-    校验基于 2026 年 9 月前可查的官方公开信息<br>
-    出行前请再次确认“新疆路网”“喀纳斯景区”“赛里木湖旅游”等官方渠道的最新通告
-  </div>
-
+  <div class="sn-progress"><div class="sn-progress-bar" id="snProgress"></div></div>
 </div>
+
+<!-- ==================== 总览页 ==================== -->
+<div id="page-overview" class="page active">
+
+  <header class="hero">
+    <div class="wrap">
+      <div class="hero-eyebrow">2026 国庆 · 北疆环线</div>
+      <h1>新疆 10 天自驾环线</h1>
+      <p class="sub">乌市 → 独库北段 → 赛里木湖 → 布尔津 → 喀纳斯深度 → 折返乌市。基于 2026 年官方预约政策与路况数据校验，D1/D2 已按下午落地重新调整。</p>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="label">行程天数</div><div class="value">10 天</div></div>
+        <div class="hero-stat"><div class="label">起止日期</div><div class="value">9.29 – 10.8</div></div>
+        <div class="hero-stat"><div class="label">落地时间</div><div class="value accent">9.29 14:00</div></div>
+        <div class="hero-stat"><div class="label">核心停留</div><div class="value">喀纳斯 2 晚</div></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+
+    <div class="overview-bar">
+      <div class="ov-item"><div class="num">5</div><div class="lbl">需修正行程</div></div>
+      <div class="ov-item"><div class="num">1</div><div class="lbl">严重偏差</div></div>
+      <div class="ov-item"><div class="num">3</div><div class="lbl">必抢预约</div></div>
+      <div class="ov-item"><div class="num">1</div><div class="lbl">景区关闭</div></div>
+      <div class="ov-item"><div class="num">780km</div><div class="lbl">最长单日</div></div>
+    </div>
+
+    <div class="section-head">
+      <h2>每日行程</h2>
+      <span class="note">点击卡片查看当天详情</span>
+    </div>
+
+    <div class="day-grid" id="dayGrid"></div>
+
+    <div class="callout red">
+      <div class="ci">!</div>
+      <div class="cb"><strong>D1/D2 已按下午落地重新调整。</strong>14:00 落地当天绝不可能进独库（入口 19:00 关闭），改为住独山子/奎屯；D2 早上 7:00 前出发，8:00 进独库北段，中午到乔尔玛，下午到赛里木湖。D3 里程 780km 仍是最大隐患，建议五彩滩改到 D4 早晨。</div>
+    </div>
+
+    <div class="footer-note">
+      校验基于 2026 年 9 月前可查的官方公开信息<br>
+      出行前请再次确认“新疆路网”“喀纳斯景区”“赛里木湖旅游”等官方渠道最新通告
+    </div>
+
+  </div>
+</div>
+
+<!-- ==================== 子页面占位（由JS填充） ==================== -->
+<div id="subPages"></div>
+
+<script>
+/* ============================================================
+   行程数据
+============================================================ */
+const TRIPS = {
+  1: {
+    date: '9.29', title: '乌市 → 独山子 / 奎屯',
+    routeSub: '14:00 落地取车 · G30 高速 · 为独库北段做准备',
+    cover: 'images/day1-dushanzi.jpg', coverAlt: '独山子 / 奎屯',
+    coverLabel: '乌市 → 独山子 / 奎屯',
+    flag: 'flag-fix',
+    info: [
+      { lbl: '里程', val: '约 250km' },
+      { lbl: '时长', val: '约 3h' },
+      { lbl: '住宿', val: '独山子 / 奎屯' },
+      { lbl: '落地', val: '14:00' }
+    ],
+    calloutsTop: [{ type: 'red', icon: '!', html: '<strong>当天绝不可能进独库。</strong>14:00 落地，取车后 15:00 出发，到独山子已 18:00 左右。独库北段入口 19:00 关闭，硬赶只会疲劳驾驶 + 夜间走盘山路。改为住独山子/奎屯是最优解。' }],
+    timeline: [
+      { t: '14:00–15:00', d: '乌鲁木齐地窝堡机场落地。取车、验车、装行李，预留 1 小时。' },
+      { t: '15:00–18:00', d: '走 G30 连霍高速，乌市 → 独山子/奎屯，约 250km / 3h。' },
+      { t: '18:00–19:00', d: '抵达独山子/奎屯，入住。晚餐，采购路上物资。' },
+      { t: '19:00–20:00', d: '加满油。检查独库北段次日路况。早休息。' }
+    ],
+    spots: [
+      { title: '为什么住独山子/奎屯', items: [
+        '<strong>独山子：</strong>独库公路零公里起点，次日进独库最方便。住宿选择比乔尔玛多。',
+        '<strong>奎屯：</strong>距离独山子约 30km，酒店更多，价格更实惠。',
+        '<strong>乔尔玛：</strong>住宿选择极少，国庆一房难求，且当天赶不到。'
+      ]},
+      { title: '今晚必做', items: [
+        '加满油。独库沿途加油站稀少，独山子进山前是最后一个可靠加油点。',
+        '查“新疆路网”确认独库北段次日是否通行。9 月底随时降雪封路。',
+        '备好厚羽绒服、防滑链。次日达坂气温可能接近 0℃。',
+        '早休息。次日 7:00 前出发，睡眠充足是安全底线。'
+      ]}
+    ],
+    bookings: []
+  },
+  2: {
+    date: '9.30', title: '独山子 → 独库北段 → 赛里木湖',
+    routeSub: '独库北段 · 哈希勒根达坂 · 果子沟大桥 · 赛湖日落',
+    cover: 'images/day2-sayram.jpg', coverAlt: '赛里木湖',
+    coverLabel: '独库北段 · 赛里木湖',
+    flag: 'flag-fix',
+    info: [
+      { lbl: '里程', val: '约 505km' },
+      { lbl: '时长', val: '8–9h' },
+      { lbl: '住宿', val: '赛湖 / 清水河' },
+      { lbl: '进独库', val: '8:00' }
+    ],
+    calloutsTop: [{ type: 'red', icon: '!', html: '<strong>今天的关键是早出发。</strong>7:00 前从独山子/奎屯出发，8:00 独库入口开放后第一批进山。晚 1 小时出发，独库车流就会明显增加，乔尔玛到赛湖的时间会被压缩。' }],
+    timeline: [
+      { t: '7:00', d: '独山子/奎屯出发，前往独库北段入口。' },
+      { t: '8:00–12:00', d: '独库北段：哈希勒根达坂、雪山峡谷。沿途停车拍照，注意落石和弯道。' },
+      { t: '12:00–13:00', d: '抵达乔尔玛，午餐休整。乔尔玛是独库北段重要驿站。' },
+      { t: '13:00–17:00', d: '乔尔玛 → 果子沟大桥 → 赛里木湖。果子沟大桥车观即可。' },
+      { t: '17:00–20:00', d: '赛里木湖环湖。东门进、南门出，顺时针。克勒涌珠或月亮湾蹲日落。9 月底赛湖日落约 20:00。' }
+    ],
+    spots: [
+      { title: '核心景点', items: [
+        '<strong>独库北段：</strong>中国最美公路之一，一日四季。哈希勒根达坂是核心打卡点。',
+        '<strong>果子沟大桥：</strong>新疆地标，峡谷大桥，车观即可，不用停车久留。',
+        '<strong>赛里木湖：</strong>克勒涌珠（湖水最蓝）、月亮湾（日落）、松树头（俯瞰全湖 + 果子沟大桥）。'
+      ]}
+    ],
+    bookings: [
+      { icon: 'must', label: '必', title: '赛里木湖自驾车名额', tag: { cls: 'tag-fix', text: '限量' }, desc: '“一部手机游赛湖”小程序。每日限量 2000–3000 辆，每天 10:00 放票，提前 3–7 天抢。现场不售自驾票。' },
+      { icon: 'free', label: '免', title: '独库北段通行', tag: null, desc: '2026 年 9 月 1 日起已取消预约制，免费通行。但通行时段仍为 8:00–19:00，19:00 后入口关闭。' }
+    ],
+    calloutsBottom: [
+      { type: 'amber', icon: '!', html: '<strong>加油提醒：</strong>独山子进山前加满油。独库沿途加油站不到 10 个，部分季节性关闭。赛里木湖环湖 90km 无加油站，进景区前确认油量充足。' },
+      { type: 'amber', icon: '!', html: '<strong>限速提醒：</strong>赛里木湖环湖限速 30–40km/h，仅观景台可停车，路边乱停罚款 200 元。' }
+    ]
+  },
+  3: {
+    date: '10.1', title: '赛里木湖 → 布尔津',
+    routeSub: '沿途戈壁风光 · 五彩滩日落（建议改次日）',
+    cover: 'images/day3-buerjin.jpg', coverAlt: '布尔津 / 五彩滩',
+    coverLabel: '戈壁长途 · 布尔津',
+    flag: 'flag-fix',
+    info: [
+      { lbl: '里程', val: '约 780km', danger: true },
+      { lbl: '时长', val: '8–9h', danger: true },
+      { lbl: '住宿', val: '布尔津' }
+    ],
+    calloutsTop: [{ type: 'red', icon: '!', html: '<strong>D3 是整条线最大的隐患。</strong>实际里程约 780km，不是原计划的 550km。国庆戈壁路段大车多，8–9 小时是保守估计。如果坚持当天赶到布尔津再去看五彩滩日落，司机疲劳 + 夜间行车风险极高。' }],
+    timeline: [],
+    spots: [
+      { title: '建议调整方案', items: [
+        '<strong>方案 A：</strong>D3 只开到克拉玛依/乌尔禾住一晚，D4 上午到布尔津，五彩滩改 D4 早晨。',
+        '<strong>方案 B：</strong>D3 坚持到布尔津，但放弃五彩滩日落，改 D4 早晨去。',
+        '<strong>五彩滩：</strong>门票 45 元/人，建议提前一天在“阿勒泰智慧旅游平台”购票。日落黄金时段 19:30–20:00。'
+      ]},
+      { title: '核心景点', items: [
+        '<strong>五彩滩：</strong>雅丹地貌 + 额尔齐斯河，日落时分色彩最丰富。建议改到次日早晨。',
+        '<strong>沿途戈壁：</strong>S21 沙漠公路沿线，只做中途休整，不安排景点停留。'
+      ]}
+    ],
+    bookings: [],
+    calloutsBottom: [{ type: 'amber', icon: '!', html: '<strong>长途驾驶提醒：</strong>全程最长的一天，务必两人轮换驾驶。尽量避免夜间走戈壁公路，野生动物和大型货车是主要隐患。' }]
+  },
+  4: {
+    date: '10.2', title: '布尔津 → 喀纳斯',
+    routeSub: '沿途草原河谷 · 贾登峪换乘 · 喀纳斯景区内',
+    cover: 'images/day4-kanas.jpg', coverAlt: '喀纳斯',
+    coverLabel: '喀纳斯 · 贾登峪',
+    flag: 'flag-ok',
+    info: [
+      { lbl: '里程', val: '约 160km' },
+      { lbl: '时长', val: '3.5–4h' },
+      { lbl: '住宿', val: '喀纳斯景区内' },
+      { lbl: '门票', val: '一进 230 元' }
+    ],
+    timeline: [
+      { t: '上午', d: '布尔津出发，沿途草原河谷风光。五彩滩可顺路停留（如 D3 未去）。' },
+      { t: '中午', d: '抵达贾登峪。私家车停停车场，换乘景区区间车进入喀纳斯。' },
+      { t: '下午', d: '入住喀纳斯村内。轻装逛湖边栈道，适应环境。' }
+    ],
+    spots: [
+      { title: '核心景点', items: [
+        '<strong>贾登峪：</strong>喀纳斯景区换乘中心，私家车止步于此。',
+        '<strong>喀纳斯湖湖边栈道：</strong>欣赏湖水渐变蓝绿色。',
+        '<strong>沿途草原河谷：</strong>布尔津到贾登峪的公路风光。'
+      ]}
+    ],
+    calloutsTop: [{ type: 'green', icon: '✓', html: '<strong>喀纳斯已取消单独预约号。</strong>2026 年 8 月 7 日起现场可购票入园。但国庆客流极大，仍建议提前 3–5 天在“喀纳斯景区”或“原行网”公众号线上购票，避免窗口排队。' }],
+    bookings: [
+      { icon: 'rec', label: '建', title: '喀纳斯门票 + 区间车', tag: { cls: 'tag-warn', text: '建议提前买' }, desc: '“喀纳斯景区”或“原行网”公众号。一进 230 元（门票 160 + 区间车 70）。提前 3–5 天购票。' },
+      { icon: 'must', label: '必', title: '喀纳斯村内住宿', tag: { cls: 'tag-fix', text: '比门票更难' }, desc: '国庆村内木屋极度稀缺，建议提前 15 天以上下单锁房。住贾登峪每天进出浪费 2–3 小时。' }
+    ],
+    calloutsBottom: [{ type: 'amber', icon: '!', html: '<strong>注意：</strong>喀纳斯景区私家车不能驶入核心区，只能停贾登峪，统一坐区间车。日限流喀纳斯 2.7 万人。' }]
+  },
+  5: {
+    date: '10.3', title: '喀纳斯深度游',
+    routeSub: '神仙湾晨雾 · 月亮湾 · 卧龙湾 · 湖边栈道',
+    cover: 'images/day5-sanwan.jpg', coverAlt: '喀纳斯三湾晨雾',
+    coverLabel: '喀纳斯三湾 · 晨雾',
+    flag: 'flag-fix',
+    info: [
+      { lbl: '交通', val: '景区内无自驾' },
+      { lbl: '住宿', val: '喀纳斯村内' },
+      { lbl: '晨雾', val: '6:30 前出门' }
+    ],
+    timeline: [
+      { t: '6:00–7:00', d: '神仙湾晨雾。这是喀纳斯摄影第一机位，务必早出发。晨雾一般在日出前后出现。' },
+      { t: '上午', d: '月亮湾（S 形河道，喀纳斯标志性画面）→ 卧龙湾（森林倒影）。' },
+      { t: '下午', d: '喀纳斯湖湖边栈道徒步，欣赏湖水渐变蓝绿色。观鱼台 2026 年关闭，改走栈道。' }
+    ],
+    spots: [
+      { title: '核心景点', items: [
+        '<strong>神仙湾：</strong>清晨晨雾，重中之重，摄影第一机位。建议 6:30 前出门。',
+        '<strong>月亮湾：</strong>S 形河道，喀纳斯标志性画面。',
+        '<strong>卧龙湾：</strong>森林倒影。',
+        '<strong>喀纳斯湖湖边栈道：</strong>湖水渐变蓝绿色，替代观鱼台的深度体验。'
+      ]}
+    ],
+    calloutsTop: [{ type: 'red', icon: '!', html: '<strong>观鱼台 2026 年关闭。</strong>自 2025 年 10 月 7 日起季节性关闭，截至 2026 年 9 月仍未开放。原计划中的观鱼台安排需删除，替代为湖边栈道深度徒步。' }],
+    calloutsBottom: [{ type: 'green', icon: '✓', html: '<strong>晨雾建议：</strong>6:30 前出门，三湾光线最佳。神仙湾晨雾一般在日出前后出现，建议提前到达占位。' }]
+  },
+  6: {
+    date: '10.4', title: '喀纳斯全天自由深度',
+    routeSub: '白哈巴村（可选） · 慢逛村落 · 白桦林',
+    cover: 'images/day6-baihaba.jpg', coverAlt: '白哈巴',
+    coverLabel: '白哈巴 · 西北第一村',
+    flag: 'flag-ok',
+    info: [
+      { lbl: '交通', val: '景区内' },
+      { lbl: '住宿', val: '喀纳斯村内' },
+      { lbl: '白哈巴限流', val: '3500 人/日' }
+    ],
+    timeline: [
+      { t: '方案 A', d: '白哈巴村一日游。西北第一村，边境村落，慢逛木屋、白桦林。需电子边防证。' },
+      { t: '方案 B', d: '留在喀纳斯继续深度。补拍三湾不同光线，慢逛村落。' }
+    ],
+    spots: [
+      { title: '核心景点', items: [
+        '<strong>白哈巴村：</strong>被称为西北第一村和西北第一哨，位于中国与哈萨克斯坦接壤的边境线上，距哈萨克斯坦东锡勒克仅 1.5 公里。被誉为中国最美的八个小镇之一。',
+        '<strong>白桦林：</strong>秋季金黄，适合慢逛。',
+        '<strong>图瓦木屋：</strong>村落内的传统建筑。'
+      ]}
+    ],
+    calloutsTop: [{ type: 'green', icon: '✓', html: '<strong>边防证已电子化。</strong>2026 年 4 月 15 日起全国已启用电子边境管理区通行证，微信/支付宝搜索“移民局 12367”小程序在线申请，免费，3 个月内有效，截图留存即可，无需回户籍地。' }],
+    bookings: [
+      { icon: 'must', label: '必', title: '电子边防证', tag: { cls: 'tag-fix', text: '方式已更新' }, desc: '“移民局 12367”小程序在线申请，免费，截图保存。' },
+      { icon: 'rec', label: '建', title: '白哈巴门票 + 区间车', tag: null, desc: '白哈巴门票 30 元/人（旺季），喀纳斯往返区间车 45 元/人。日限流 3500 人，建议提前在“原行网”预约。' }
+    ],
+    calloutsBottom: [{ type: 'amber', icon: '!', html: '<strong>边境提醒：</strong>白哈巴为边境村落，携带电子边防证，边境不可越线。临时不接待游客时有发生，出发前确认。' }]
+  },
+  7: {
+    date: '10.5', title: '喀纳斯 → 布尔津 → 克拉玛依',
+    routeSub: '乌尔禾魔鬼城 · 雅丹地貌 · 日落',
+    cover: 'images/day7-mogui.jpg', coverAlt: '乌尔禾魔鬼城',
+    coverLabel: '乌尔禾魔鬼城 · 雅丹日落',
+    flag: 'flag-warn',
+    info: [
+      { lbl: '里程', val: '约 480km' },
+      { lbl: '时长', val: '7–7.5h' },
+      { lbl: '住宿', val: '克拉玛依/乌尔禾' },
+      { lbl: '门票', val: '约 62 元' }
+    ],
+    timeline: [
+      { t: '上午', d: '喀纳斯出发，经布尔津前往克拉玛依。' },
+      { t: '下午', d: '抵达乌尔禾。18:00 后入园魔鬼城，追日落。观光小火车 + 徒步结合。' },
+      { t: '傍晚', d: '魔鬼城落日光影最佳，雅丹地貌在夕阳下呈现红褐色。' }
+    ],
+    spots: [
+      { title: '核心景点', items: [
+        '<strong>乌尔禾世界魔鬼城：</strong>典型的雅丹地貌，景区位于新疆克拉玛依市乌尔禾区，属于典型的雅丹地貌。18:00 后入园拍日落最佳。'
+      ]}
+    ],
+    bookings: [
+      { icon: 'rec', label: '建', title: '乌尔禾魔鬼城套票', tag: { cls: 'tag-ok', text: '价格更正' }, desc: '旺季套票约 62 元（门票 42 + 观光小火车 20），非原攻略常写的 98 元。线上提前购票即可，不强制抢名额。' }
+    ],
+    calloutsBottom: [{ type: 'green', icon: '✓', html: '<strong>里程微调：</strong>原计划 540km，实际约 480km，比原计划更从容。' }]
+  },
+  8: {
+    date: '10.6', title: '乌尔禾 → 奎屯',
+    routeSub: '百里油田 · 独山子大峡谷（可选）',
+    cover: 'images/day8-kuitun.jpg', coverAlt: '百里油田 / 奎屯',
+    coverLabel: '百里油田 · 奎屯',
+    flag: 'flag-ok',
+    info: [
+      { lbl: '里程', val: '约 320km' },
+      { lbl: '时长', val: '4h' },
+      { lbl: '住宿', val: '奎屯' }
+    ],
+    spots: [
+      { title: '核心景点', items: [
+        '<strong>百里油田：</strong>沿途可见抽油机，克拉玛依油田标志性景观。',
+        '<strong>独山子大峡谷：</strong>可选。门票 30 元，线上购票常有优惠。时间紧张可跳过。'
+      ]}
+    ],
+    calloutsBottom: [{ type: 'green', icon: '✓', html: '<strong>今日行程轻松。</strong>320km / 4h，是全程较短的一天。可在奎屯休整，为次日回乌市做准备。' }]
+  },
+  9: {
+    date: '10.7', title: '奎屯 → 乌市（天池可选）',
+    routeSub: '天山天池（可选） · 乌鲁木齐休整',
+    cover: 'images/day9-tianchi.jpg', coverAlt: '天山天池',
+    coverLabel: '天山天池 · 返程乌市',
+    flag: 'flag-fix',
+    info: [
+      { lbl: '里程', val: '约 240km' },
+      { lbl: '时长', val: '3.5h' },
+      { lbl: '住宿', val: '乌鲁木齐' },
+      { lbl: '天池套票', val: '155 元' }
+    ],
+    timeline: [
+      { t: '方案 A', d: '去天山天池。必须提前 1 天通过“寻梦天山做客天池”小程序实名预约，现场无人工窗口。' },
+      { t: '方案 B', d: '直接回乌鲁木齐休整，采购伴手礼。国庆天池人流量极大，不想挤可以跳过。' }
+    ],
+    spots: [
+      { title: '核心景点', items: [
+        '<strong>天山天池：</strong>2026 年 7 月起全面分时预约，必须提前 1 天通过“寻梦天山做客天池”小程序预约，现场无人工售票窗口。旺季套票 155 元（门票 95 + 区间车 60）。'
+      ]}
+    ],
+    calloutsBottom: [{ type: 'red', icon: '!', html: '<strong>天池预约政策已更新。</strong>2026 年 7 月起全面分时预约，现场无人工售票窗口。国庆建议提前 3 天占位。不去可直接回市区躺平休整。' }]
+  },
+  10: {
+    date: '10.8', title: '乌市市区 → 地窝堡机场',
+    routeSub: '还车 · 16:00 航班飞回上海',
+    cover: 'images/day10-airport.jpg', coverAlt: '乌鲁木齐机场',
+    coverLabel: '返程 · 乌鲁木齐机场',
+    flag: 'flag-ok',
+    info: [
+      { lbl: '里程', val: '25km' },
+      { lbl: '时长', val: '0.5–1h' },
+      { lbl: '航班', val: '16:00' },
+      { lbl: '还车缓冲', val: '2 小时' }
+    ],
+    calloutsTop: [{ type: 'amber', icon: '!', html: '<strong>还车预留 2 小时！</strong>国庆期间乌市机场拥堵，还车 + 安检 + 登机需要充足时间。16:00 航班建议 13:00 前到达机场。' }],
+    spots: [
+      { title: '返程清单', items: [
+        '确认还车时间，预留 2 小时机场缓冲。',
+        '检查车辆油量、外观，拍照留存。',
+        '清点随身物品，特别是证件、充电器、备用药品。',
+        '伴手礼可在市区提前采购，机场选择少且贵。'
+      ]}
+    ]
+  }
+};
+
+const DAY_TAGS = {
+  1: [{ cls: 'tag-fix', text: '已调整' }, { cls: 'tag-warn', text: '不进独库' }],
+  2: [{ cls: 'tag-fix', text: '已调整' }, { cls: 'tag-warn', text: '早出发' }],
+  3: [{ cls: 'tag-fix', text: '严重偏差' }],
+  4: [{ cls: 'tag-ok', text: '基本可用' }, { cls: 'tag-warn', text: '观鱼台关闭' }],
+  5: [{ cls: 'tag-fix', text: '需修正' }, { cls: 'tag-info', text: '栈道替代' }],
+  6: [{ cls: 'tag-ok', text: '基本可用' }, { cls: 'tag-info', text: '边防证线上办' }],
+  7: [{ cls: 'tag-warn', text: '里程微调' }],
+  8: [{ cls: 'tag-ok', text: '可用' }],
+  9: [{ cls: 'tag-fix', text: '需修正' }],
+  10: [{ cls: 'tag-ok', text: '可用' }]
+};
+
+/* ============================================================
+   渲染总览卡片
+============================================================ */
+(function renderDayGrid() {
+  const grid = document.getElementById('dayGrid');
+  let html = '';
+  for (let i = 1; i <= 10; i++) {
+    const t = TRIPS[i];
+    const tags = (DAY_TAGS[i] || []).map(tg => `<span class="tag ${tg.cls}">${tg.text}</span>`).join('');
+    const metaItems = t.info.slice(0, 3).map(m => {
+      const danger = m.danger ? ' style="color:var(--coral);font-weight:700;"' : '';
+      return `<span${danger}>${m.lbl}：${m.val}</span>`;
+    }).join('');
+    const desc = t.routeSub;
+    html += `
+      <a class="day-card ${t.flag}" href="#day${i}" data-day="${i}">
+        <div class="day-card-head">
+          <div class="day-num">D${i}</div>
+          <div class="info">
+            <div class="date">${t.date}</div>
+            <div class="title">${t.title}</div>
+          </div>
+        </div>
+        <div class="day-card-body">
+          <div class="day-card-meta">${metaItems}</div>
+          <div class="day-card-desc">${desc}</div>
+        </div>
+        <div class="day-card-foot">
+          <div class="tags">${tags}</div>
+          <span class="arrow">→</span>
+        </div>
+      </a>`;
+  }
+  grid.innerHTML = html;
+})();
+
+/* ============================================================
+   渲染子页面
+============================================================ */
+(function renderSubPages() {
+  const container = document.getElementById('subPages');
+  let html = '';
+  for (let i = 1; i <= 10; i++) {
+    const t = TRIPS[i];
+    const infoItems = t.info.map(m => {
+      const danger = m.danger ? ' danger' : '';
+      return `<div class="is-item"><div class="lbl">${m.lbl}</div><div class="val${danger}">${m.val}</div></div>`;
+    }).join('');
+
+    const calloutsTop = (t.calloutsTop || []).map(c =>
+      `<div class="callout ${c.type}"><div class="ci">${c.icon}</div><div class="cb">${c.html}</div></div>`
+    ).join('');
+
+    const timelineHtml = t.timeline && t.timeline.length ? `
+      <div class="spot-card">
+        <h3><span class="dot" style="background:var(--teal);"></span>今日行程时间线</h3>
+        <div class="tl">
+          ${t.timeline.map(item => `
+            <div class="tl-item">
+              <div class="tl-time">${item.t}</div>
+              <div class="tl-text">${item.d}</div>
+            </div>`).join('')}
+        </div>
+      </div>` : '';
+
+    const spotsHtml = (t.spots || []).map(s => `
+      <div class="spot-card">
+        <h3><span class="dot" style="background:var(--gold);"></span>${s.title}</h3>
+        <ul>${s.items.map(it => `<li>${it}</li>`).join('')}</ul>
+      </div>`).join('');
+
+    const bookingsHtml = (t.bookings && t.bookings.length) ? `
+      <div class="spot-card">
+        <h3><span class="dot" style="background:var(--coral);"></span>预约与门票</h3>
+        <ul class="book-list">
+          ${t.bookings.map(b => `
+            <li>
+              <span class="bk-icon ${b.icon}">${b.label}</span>
+              <div class="bk-body">
+                <div class="bk-title">${b.title}${b.tag ? ` <span class="tag ${b.tag.cls}">${b.tag.text}</span>` : ''}</div>
+                <div class="bk-desc">${b.desc}</div>
+              </div>
+            </li>`).join('')}
+        </ul>
+      </div>` : '';
+
+    const calloutsBottom = (t.calloutsBottom || []).map(c =>
+      `<div class="callout ${c.type}"><div class="ci">${c.icon}</div><div class="cb">${c.html}</div></div>`
+    ).join('');
+
+    // 底部翻页
+    const prevDisabled = i === 1 ? 'disabled' : '';
+    const nextDisabled = i === 10 ? 'disabled' : '';
+    const prevTitle = i > 1 ? TRIPS[i-1].title : '已是第一天';
+    const nextTitle = i < 10 ? TRIPS[i+1].title : '已是最后一天';
+
+    html += `
+      <div id="page-day${i}" class="page">
+        <div class="wrap">
+          <div class="sub-hero">
+            <img src="${t.cover}" alt="${t.coverAlt}">
+            <div class="cover-label"><span class="day-badge">D${i}</span> ${t.coverLabel}</div>
+          </div>
+          <div class="sub-header">
+            <div class="date-tag">${t.date}</div>
+            <h2>${t.title}</h2>
+            <div class="route-sub">${t.routeSub}</div>
+          </div>
+          <div class="info-strip">${infoItems}</div>
+          ${calloutsTop}
+          ${timelineHtml}
+          ${spotsHtml}
+          ${bookingsHtml}
+          ${calloutsBottom}
+          <div class="day-footer-nav">
+            <button class="dfn-btn" ${prevDisabled} onclick="goDay(-1)">
+              <span class="dfn-arrow">←</span>
+              <div class="dfn-info">
+                <div class="dfn-label">前一天</div>
+                <div class="dfn-title">${prevTitle}</div>
+              </div>
+            </button>
+            <button class="dfn-btn next" ${nextDisabled} onclick="goDay(1)">
+              <span class="dfn-arrow">→</span>
+              <div class="dfn-info">
+                <div class="dfn-label">后一天</div>
+                <div class="dfn-title">${nextTitle}</div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>`;
+  }
+  container.innerHTML = html;
+})();
+
+/* ============================================================
+   页面切换核心逻辑
+============================================================ */
+let currentDay = 0;
+
+function showDay(n, skipHistory) {
+  if (n < 1 || n > 10) return;
+  currentDay = n;
+
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-day' + n).classList.add('active');
+
+  const nav = document.getElementById('subnav');
+  nav.classList.add('visible');
+  document.body.classList.add('has-subnav');
+
+  updateSubnav(n);
+
+  window.scrollTo({ top: 0, behavior: 'instant' in window ? 'auto' : 'auto' });
+
+  if (!skipHistory) {
+    history.pushState({ day: n }, '', '#day' + n);
+  }
+}
+
+function showOverview(skipHistory) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-overview').classList.add('active');
+  document.getElementById('subnav').classList.remove('visible');
+  document.body.classList.remove('has-subnav');
+  currentDay = 0;
+  window.scrollTo({ top: 0, behavior: 'auto' });
+
+  if (!skipHistory) {
+    history.pushState({ day: 0 }, '', '#overview');
+  }
+}
+
+function goDay(delta) {
+  const next = currentDay + delta;
+  if (next < 1 || next > 10) return;
+  showDay(next);
+}
+
+function updateSubnav(n) {
+  document.getElementById('snDay').textContent = 'D' + n;
+  document.getElementById('snDate').textContent = TRIPS[n].date;
+  document.getElementById('snPrev').disabled = (n <= 1);
+  document.getElementById('snNext').disabled = (n >= 10);
+  document.getElementById('snProgress').style.width = (n / 10 * 100) + '%';
+}
+
+/* ============================================================
+   总览卡片点击 → 打开子页面
+============================================================ */
+document.getElementById('dayGrid').addEventListener('click', function(e) {
+  const card = e.target.closest('.day-card');
+  if (!card) return;
+  e.preventDefault();
+  const day = parseInt(card.dataset.day);
+  showDay(day);
+});
+
+/* ============================================================
+   浏览器前进/后退
+============================================================ */
+window.addEventListener('popstate', function(e) {
+  if (e.state && e.state.day) {
+    showDay(e.state.day, true);
+  } else {
+    showOverview(true);
+  }
+});
+
+/* ============================================================
+   触摸滑动切换
+============================================================ */
+let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
+
+document.addEventListener('touchstart', function(e) {
+  if (!document.getElementById('subnav').classList.contains('visible')) return;
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+  touchStartTime = Date.now();
+}, { passive: true });
+
+document.addEventListener('touchend', function(e) {
+  if (!document.getElementById('subnav').classList.contains('visible')) return;
+  if (!touchStartX) return;
+
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  const dt = Date.now() - touchStartTime;
+
+  // 水平位移 > 60px，水平 > 垂直的 1.5 倍，且用时 < 800ms
+  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5 && dt < 800) {
+    if (dx < 0) goDay(1);   // 左滑 → 下一天
+    else goDay(-1);          // 右滑 → 前一天
+  }
+
+  touchStartX = 0;
+  touchStartY = 0;
+}, { passive: true });
+
+/* ============================================================
+   键盘方向键 / Esc
+============================================================ */
+document.addEventListener('keydown', function(e) {
+  if (!document.getElementById('subnav').classList.contains('visible')) return;
+  // 忽略输入框内的按键
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+  if (e.key === 'ArrowLeft') { e.preventDefault(); goDay(-1); }
+  if (e.key === 'ArrowRight') { e.preventDefault(); goDay(1); }
+  if (e.key === 'Escape') { e.preventDefault(); showOverview(); }
+});
+
+/* ============================================================
+   初始化：根据 hash 打开对应页面
+============================================================ */
+(function init() {
+  const hash = location.hash.replace('#', '');
+  if (hash && hash.startsWith('day')) {
+    const n = parseInt(hash.replace('day', ''));
+    if (n >= 1 && n <= 10) {
+      history.replaceState({ day: n }, '', '#day' + n);
+      showDay(n, true);
+    }
+  } else {
+    history.replaceState({ day: 0 }, '', '#overview');
+  }
+})();
+</script>
+
 </body>
 </html>
