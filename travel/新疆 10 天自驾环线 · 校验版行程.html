@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2026国庆 · 新疆10天环线行程</title>
+<title>2026国庆 · 新疆10天环线行程（观鱼台开放版）</title>
 <style>
   :root {
     --bg: #f7f5f2; --card: #ffffff; --ink: #1a1a1a; --ink-2: #3d3733;
@@ -209,7 +209,7 @@
     to { opacity: 1; transform: translateX(0); }
   }
 
-  /* 封面 —— SVG 版 */
+  /* 封面 */
   .sub-hero {
     border-radius: var(--radius); overflow: hidden; margin-bottom: 22px;
     box-shadow: var(--shadow-md); position: relative;
@@ -271,6 +271,7 @@
   .info-strip .is-item .lbl { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 3px; }
   .info-strip .is-item .val { font-size: 15px; font-weight: 700; color: var(--navy); }
   .info-strip .is-item .val.danger { color: var(--coral); }
+  .info-strip .is-item .val.ok { color: var(--forest); }
 
   .spot-card {
     background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
@@ -387,23 +388,23 @@
     <div class="wrap">
       <div class="hero-eyebrow">2026 国庆 · 北疆环线</div>
       <h1>新疆 10 天自驾环线</h1>
-      <p class="sub">乌市 → 独库北段 → 赛里木湖 → 布尔津 → 喀纳斯深度 → 折返乌市。基于 2026 年官方预约政策与路况数据校验，D1/D2 已按下午落地重新调整。</p>
+      <p class="sub">乌市 → 独库北段 → 赛里木湖 → 克拉玛依 → 贾登峪 → 喀纳斯深度 → 禾木 → 折返乌市。观鱼台已确认开放，限流 8000 人/日，D5 安排登顶。</p>
       <div class="hero-stats">
         <div class="hero-stat"><div class="label">行程天数</div><div class="value">10 天</div></div>
         <div class="hero-stat"><div class="label">起止日期</div><div class="value">9.29 – 10.8</div></div>
         <div class="hero-stat"><div class="label">落地时间</div><div class="value accent">9.29 14:00</div></div>
-        <div class="hero-stat"><div class="label">核心停留</div><div class="value">喀纳斯 2 晚</div></div>
+        <div class="hero-stat"><div class="label">喀纳斯+禾木</div><div class="value">3 晚深度</div></div>
       </div>
     </div>
   </header>
 
   <div class="wrap">
     <div class="overview-bar">
-      <div class="ov-item"><div class="num">5</div><div class="lbl">需修正行程</div></div>
-      <div class="ov-item"><div class="num">1</div><div class="lbl">严重偏差</div></div>
-      <div class="ov-item"><div class="num">3</div><div class="lbl">必抢预约</div></div>
-      <div class="ov-item"><div class="num">1</div><div class="lbl">景区关闭</div></div>
-      <div class="ov-item"><div class="num">780km</div><div class="lbl">最长单日</div></div>
+      <div class="ov-item"><div class="num">0</div><div class="lbl">严重偏差</div></div>
+      <div class="ov-item"><div class="num">5</div><div class="lbl">必抢预约</div></div>
+      <div class="ov-item"><div class="num">8000</div><div class="lbl">观鱼台限流/日</div></div>
+      <div class="ov-item"><div class="num">420km</div><div class="lbl">最长单日</div></div>
+      <div class="ov-item"><div class="num">3</div><div class="lbl">新增住宿</div></div>
     </div>
 
     <div class="section-head">
@@ -413,9 +414,14 @@
 
     <div class="day-grid" id="dayGrid"></div>
 
-    <div class="callout red">
+    <div class="callout green">
+      <div class="ci">✓</div>
+      <div class="cb"><strong>观鱼台已确认开放。</strong>每日限流 8000 人，开放时间 09:00–18:00，分时预约制。D5 上午安排乘专线车登顶，俯瞰喀纳斯湖全景。D6 保留三湾补拍和湖边栈道。</div>
+    </div>
+
+    <div class="callout amber">
       <div class="ci">!</div>
-      <div class="cb"><strong>D1/D2 已按下午落地重新调整。</strong>14:00 落地当天绝不可能进独库（入口 19:00 关闭），改为住独山子/奎屯；D2 早上 7:00 前出发，8:00 进独库北段，中午到乔尔玛，下午到赛里木湖。D3 里程 780km 仍是最大隐患，建议五彩滩改到 D4 早晨。</div>
+      <div class="cb"><strong>行程调整要点：</strong>D3 只到克拉玛依/乌尔禾（420km），D4 到贾登峪（360km），里程已合理分担；喀纳斯改住贾登峪，深度玩 2 天；新增禾木村内住宿一晚。</div>
     </div>
 
     <div class="footer-note">
@@ -430,7 +436,7 @@
 
 <script>
 /* ============================================================
-   SVG 插画（每天一张，手绘风格）
+   SVG 封面
 ============================================================ */
 const COVERS = {
   1: `<svg viewBox="0 0 800 540" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
@@ -499,98 +505,94 @@ const COVERS = {
   3: `<svg viewBox="0 0 800 540" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
     <defs>
       <linearGradient id="d3-sky" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#4a2a5a"/><stop offset="40%" stop-color="#a04a5a"/>
-        <stop offset="75%" stop-color="#e08a4a"/><stop offset="100%" stop-color="#f0c060"/>
+        <stop offset="0%" stop-color="#3a2a5a"/><stop offset="35%" stop-color="#a04a4a"/>
+        <stop offset="70%" stop-color="#e08a3a"/><stop offset="100%" stop-color="#f0c050"/>
       </linearGradient>
-      <linearGradient id="d3-river" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#a04a3a"/><stop offset="100%" stop-color="#6a3a5a"/>
+      <linearGradient id="d3-ground" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#8a4a3a"/><stop offset="100%" stop-color="#4a2a2a"/>
       </linearGradient>
+      <radialGradient id="d3-sun" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0%" stop-color="#ffe8a0"/><stop offset="100%" stop-color="#f0c050" stop-opacity="0"/>
+      </radialGradient>
     </defs>
     <rect width="800" height="540" fill="url(#d3-sky)"/>
-    <circle cx="400" cy="360" r="50" fill="#ffe8a0" opacity="0.85"/>
-    <circle cx="400" cy="360" r="80" fill="#f0c060" opacity="0.3"/>
-    <path d="M0 340 L150 300 L300 330 L450 300 L600 335 L750 305 L800 330 L800 380 L0 380Z" fill="#5a3a4a" opacity="0.7"/>
-    <path d="M0 380 L100 360 L200 375 L300 350 L400 370 L500 345 L600 370 L700 355 L800 375 L800 460 L0 460Z" fill="#8a4a3a" opacity="0.85"/>
-    <path d="M0 420 L120 405 L240 420 L360 400 L480 418 L600 405 L720 420 L800 410 L800 470 L0 470Z" fill="#a0604a" opacity="0.8"/>
-    <path d="M0 450 L100 440 L200 452 L300 438 L400 450 L500 438 L600 452 L700 440 L800 450 L800 490 L0 490Z" fill="#b87858" opacity="0.75"/>
-    <path d="M0 470 Q200 465 400 475 Q600 485 800 475 L800 540 L0 540Z" fill="url(#d3-river)"/>
-    <path d="M100 490 Q200 485 300 492" stroke="#ffe8a0" stroke-width="1.5" fill="none" opacity="0.4"/>
-    <path d="M400 500 Q500 495 600 502" stroke="#ffe8a0" stroke-width="1.5" fill="none" opacity="0.35"/>
-    <path d="M200 520 Q300 515 400 522" stroke="#ffe8a0" stroke-width="1" fill="none" opacity="0.25"/>
-    <path d="M50 470 L80 460 L100 470 L80 478Z" fill="#6a3a2a"/>
-    <path d="M650 468 L690 458 L720 470 L690 478Z" fill="#6a3a2a"/>
+    <circle cx="400" cy="340" r="70" fill="url(#d3-sun)" opacity="0.9"/>
+    <circle cx="400" cy="340" r="40" fill="#fff8d0" opacity="0.9"/>
+    <rect x="0" y="380" width="800" height="160" fill="url(#d3-ground)"/>
+    <g fill="#3a1a2a">
+      <path d="M50 380 L80 280 L100 290 L130 260 L160 300 L180 380Z"/>
+      <path d="M200 380 L220 300 L250 310 L280 270 L310 320 L330 380Z"/>
+      <path d="M500 380 L520 290 L560 305 L590 270 L620 310 L640 380Z"/>
+      <path d="M680 380 L710 300 L740 320 L770 285 L800 340 L800 380Z"/>
+    </g>
+    <path d="M0 420 L80 400 L160 415 L240 395 L320 410 L400 395 L480 412 L560 398 L640 415 L720 400 L800 415 L800 540 L0 540Z" fill="#6a3a2a" opacity="0.9"/>
+    <path d="M0 470 L100 458 L200 470 L300 455 L400 468 L500 455 L600 470 L700 458 L800 468 L800 540 L0 540Z" fill="#5a2a1a" opacity="0.9"/>
+    <path d="M100 500 Q200 495 300 502 Q400 508 500 500 Q600 492 700 500" stroke="#8a5a4a" stroke-width="1" fill="none" opacity="0.4"/>
   </svg>`,
 
   4: `<svg viewBox="0 0 800 540" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
     <defs>
       <linearGradient id="d4-sky" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#3a7aaa"/><stop offset="100%" stop-color="#b8d8e0"/>
+        <stop offset="0%" stop-color="#3a6a9a"/><stop offset="60%" stop-color="#8ab0d0"/><stop offset="100%" stop-color="#d8e0e0"/>
       </linearGradient>
-      <linearGradient id="d4-lake" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#2a8aa0"/><stop offset="55%" stop-color="#3aaab0"/><stop offset="100%" stop-color="#5acac0"/>
+      <linearGradient id="d4-ground" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#6a8a5a"/><stop offset="100%" stop-color="#3a5a3a"/>
       </linearGradient>
     </defs>
     <rect width="800" height="540" fill="url(#d4-sky)"/>
     <ellipse cx="150" cy="80" rx="70" ry="18" fill="#fff" opacity="0.5"/>
     <ellipse cx="650" cy="100" rx="90" ry="20" fill="#fff" opacity="0.4"/>
-    <path d="M0 300 L80 260 L160 285 L240 250 L320 280 L400 245 L480 275 L560 250 L640 280 L720 255 L800 285 L800 340 L0 340Z" fill="#2a4a3a" opacity="0.8"/>
-    <path d="M0 330 L100 305 L200 325 L300 300 L400 322 L500 300 L600 325 L700 305 L800 325 L800 360 L0 360Z" fill="#1a3a2a"/>
-    <rect x="0" y="340" width="800" height="200" fill="url(#d4-lake)"/>
-    <path d="M100 340 L120 320 L140 340Z M150 340 L170 315 L190 340Z M220 340 L240 322 L260 340Z" fill="#1a3a2a" opacity="0.4"/>
-    <path d="M50 380 Q150 375 250 382 Q350 388 450 380 Q550 372 650 380 Q750 388 800 380" stroke="#a8e8e0" stroke-width="1.2" fill="none" opacity="0.5"/>
-    <path d="M0 420 Q100 415 200 422 Q300 428 400 420 Q500 412 600 420 Q700 428 800 420" stroke="#a8e8e0" stroke-width="1" fill="none" opacity="0.4"/>
-    <path d="M50 470 Q150 465 250 472 Q350 478 450 470 Q550 462 650 470 Q750 478 800 470" stroke="#a8e8e0" stroke-width="1" fill="none" opacity="0.3"/>
-    <line x1="720" y1="380" x2="720" y2="460" stroke="#e8e0d0" stroke-width="4"/>
-    <ellipse cx="720" cy="370" rx="35" ry="45" fill="#e8c060" opacity="0.85"/>
-    <line x1="760" y1="400" x2="760" y2="470" stroke="#e8e0d0" stroke-width="3"/>
-    <ellipse cx="760" cy="390" rx="30" ry="40" fill="#d8b050" opacity="0.8"/>
-    <rect x="40" y="450" width="60" height="35" fill="#5a3a2a"/>
-    <polygon points="35,450 70,420 105,450" fill="#3a2a1a"/>
-    <rect x="60" y="465" width="15" height="20" fill="#2a1a10"/>
+    <path d="M0 260 L120 220 L240 250 L360 210 L480 245 L600 215 L720 250 L800 230 L800 320 L0 320Z" fill="#4a6a4a" opacity="0.7"/>
+    <path d="M280 215 L320 195 L360 240 L320 245 L280 245Z" fill="#fff" opacity="0.8"/>
+    <path d="M520 218 L560 200 L600 245 L560 250 L520 250Z" fill="#fff" opacity="0.8"/>
+    <rect x="0" y="320" width="800" height="220" fill="url(#d4-ground)"/>
+    <rect x="280" y="360" width="240" height="120" fill="#5a4a3a" opacity="0.8"/>
+    <rect x="300" y="380" width="40" height="60" fill="#8a7a5a"/>
+    <rect x="360" y="380" width="40" height="60" fill="#8a7a5a"/>
+    <rect x="420" y="380" width="40" height="60" fill="#8a7a5a"/>
+    <rect x="480" y="380" width="40" height="60" fill="#8a7a5a"/>
+    <polygon points="270,360 400,320 530,360" fill="#4a3a2a"/>
+    <rect x="340" y="430" width="120" height="50" fill="#3a2a1a" opacity="0.7"/>
+    <rect x="100" y="400" width="80" height="60" fill="#6a5a4a"/>
+    <polygon points="90,400 140,370 190,400" fill="#4a3a2a"/>
+    <rect x="620" y="390" width="70" height="70" fill="#6a5a4a"/>
+    <polygon points="610,390 655,360 700,390" fill="#4a3a2a"/>
+    <path d="M0 480 Q200 470 400 478 Q600 486 800 478 L800 540 L0 540Z" fill="#5a7a4a" opacity="0.6"/>
+    <path d="M0 510 Q200 505 400 512 Q600 518 800 510 L800 540 L0 540Z" fill="#4a6a3a" opacity="0.7"/>
   </svg>`,
 
   5: `<svg viewBox="0 0 800 540" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
     <defs>
       <linearGradient id="d5-sky" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#5a7a9a"/><stop offset="60%" stop-color="#a8c0d0"/><stop offset="100%" stop-color="#e0e8e8"/>
+        <stop offset="0%" stop-color="#2a5a9a"/><stop offset="55%" stop-color="#6aa0d0"/><stop offset="100%" stop-color="#c8e0e8"/>
       </linearGradient>
-      <linearGradient id="d5-mist" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#ffffff" stop-opacity="0"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0.7"/>
+      <linearGradient id="d5-lake" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#2a7a8a"/><stop offset="50%" stop-color="#3aa0a8"/><stop offset="100%" stop-color="#5ac0b8"/>
       </linearGradient>
     </defs>
     <rect width="800" height="540" fill="url(#d5-sky)"/>
-    <path d="M0 280 L100 240 L200 265 L300 235 L400 260 L500 235 L600 265 L700 245 L800 270 L800 320 L0 320Z" fill="#5a7a8a" opacity="0.5"/>
-    <rect x="0" y="290" width="800" height="80" fill="url(#d5-mist)"/>
-    <rect x="0" y="340" width="800" height="60" fill="#ffffff" opacity="0.35"/>
-    <g opacity="0.7">
-      <line x1="120" y1="300" x2="120" y2="380" stroke="#a89878" stroke-width="2"/>
-      <ellipse cx="120" cy="295" rx="18" ry="25" fill="#d8b860"/>
-      <line x1="180" y1="310" x2="180" y2="385" stroke="#a89878" stroke-width="2"/>
-      <ellipse cx="180" cy="305" rx="20" ry="28" fill="#c8a850"/>
-      <line x1="620" y1="305" x2="620" y2="380" stroke="#a89878" stroke-width="2"/>
-      <ellipse cx="620" cy="300" rx="20" ry="27" fill="#d8b860"/>
-      <line x1="680" y1="300" x2="680" y2="378" stroke="#a89878" stroke-width="2"/>
-      <ellipse cx="680" cy="295" rx="18" ry="25" fill="#c8a850"/>
+    <ellipse cx="150" cy="80" rx="80" ry="20" fill="#fff" opacity="0.45"/>
+    <ellipse cx="650" cy="110" rx="70" ry="18" fill="#fff" opacity="0.4"/>
+    <path d="M0 280 L100 240 L200 265 L300 235 L400 260 L500 235 L600 265 L700 245 L800 270 L800 340 L0 340Z" fill="#3a5a4a" opacity="0.7"/>
+    <path d="M250 245 L290 220 L330 250 L290 255 L250 255Z" fill="#fff" opacity="0.8"/>
+    <path d="M480 240 L520 218 L560 248 L520 253 L480 253Z" fill="#fff" opacity="0.8"/>
+    <path d="M0 320 L80 300 L160 315 L240 295 L320 312 L400 295 L480 315 L560 298 L640 315 L720 300 L800 315 L800 360 L0 360Z" fill="#1a3a2a"/>
+    <rect x="0" y="340" width="800" height="200" fill="url(#d5-lake)"/>
+    <path d="M100 380 Q200 375 300 382 Q400 388 500 380 Q600 372 700 380" stroke="#a8e8e0" stroke-width="1.5" fill="none" opacity="0.4"/>
+    <path d="M80 420 Q180 415 280 422 Q380 428 480 420 Q580 412 680 420" stroke="#a8e8e0" stroke-width="1.2" fill="none" opacity="0.35"/>
+    <path d="M120 460 Q220 455 320 462 Q420 468 520 460 Q620 452 720 460" stroke="#a8e8e0" stroke-width="1" fill="none" opacity="0.3"/>
+    <g transform="translate(400,140)">
+      <rect x="-80" y="60" width="160" height="14" fill="#6a4a3a"/>
+      <rect x="-60" y="40" width="120" height="14" fill="#6a4a3a"/>
+      <polygon points="-70,40 -40,10 0,10 40,10 60,40" fill="#8a5a4a"/>
+      <polygon points="-70,40 -40,10 -20,10 -40,40" fill="#a06a5a"/>
+      <rect x="-8" y="-20" width="16" height="30" fill="#5a3a2a"/>
+      <polygon points="-16,-20 0,-40 16,-20" fill="#3a2a1a"/>
+      <rect x="-3" y="-35" width="6" height="8" fill="#8a8a8a"/>
+      <rect x="-30" y="60" width="10" height="40" fill="#5a3a2a"/>
+      <rect x="20" y="60" width="10" height="40" fill="#5a3a2a"/>
     </g>
-    <g opacity="0.85">
-      <line x1="80" y1="340" x2="80" y2="440" stroke="#e8e0d0" stroke-width="3"/>
-      <ellipse cx="80" cy="330" rx="25" ry="32" fill="#e8c060"/>
-      <line x1="160" y1="345" x2="160" y2="440" stroke="#e8e0d0" stroke-width="3"/>
-      <ellipse cx="160" cy="335" rx="28" ry="35" fill="#d8b050"/>
-      <line x1="240" y1="340" x2="240" y2="438" stroke="#e8e0d0" stroke-width="3"/>
-      <ellipse cx="240" cy="330" rx="26" ry="33" fill="#e8c060"/>
-      <line x1="560" y1="342" x2="560" y2="440" stroke="#e8e0d0" stroke-width="3"/>
-      <ellipse cx="560" cy="332" rx="26" ry="33" fill="#d8b050"/>
-      <line x1="640" y1="345" x2="640" y2="440" stroke="#e8e0d0" stroke-width="3"/>
-      <ellipse cx="640" cy="335" rx="28" ry="35" fill="#e8c060"/>
-      <line x1="720" y1="340" x2="720" y2="438" stroke="#e8e0d0" stroke-width="3"/>
-      <ellipse cx="720" cy="330" rx="25" ry="32" fill="#d8b050"/>
-    </g>
-    <path d="M0 480 Q150 460 300 470 Q450 480 600 465 Q700 458 800 468 L800 540 L0 540Z" fill="#5a7a8a" opacity="0.7"/>
-    <path d="M0 500 Q200 490 400 498 Q600 506 800 495" stroke="#ffffff" stroke-width="1.5" fill="none" opacity="0.5"/>
-    <ellipse cx="400" cy="490" rx="300" ry="15" fill="#ffffff" opacity="0.35"/>
-    <ellipse cx="200" cy="500" rx="200" ry="12" fill="#ffffff" opacity="0.3"/>
-    <path d="M0 520 Q200 515 400 522 Q600 528 800 520 L800 540 L0 540Z" fill="#5a6a4a"/>
+    <ellipse cx="400" cy="200" rx="120" ry="20" fill="#fff" opacity="0.15"/>
   </svg>`,
 
   6: `<svg viewBox="0 0 800 540" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
@@ -639,30 +641,47 @@ const COVERS = {
   7: `<svg viewBox="0 0 800 540" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
     <defs>
       <linearGradient id="d7-sky" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#3a2a5a"/><stop offset="35%" stop-color="#a04a4a"/>
-        <stop offset="70%" stop-color="#e08a3a"/><stop offset="100%" stop-color="#f0c050"/>
+        <stop offset="0%" stop-color="#2a3a6a"/><stop offset="40%" stop-color="#6a7aaa"/><stop offset="100%" stop-color="#d8b890"/>
       </linearGradient>
-      <linearGradient id="d7-ground" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#8a4a3a"/><stop offset="100%" stop-color="#4a2a2a"/>
+      <linearGradient id="d7-mist" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#ffffff" stop-opacity="0"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0.85"/>
       </linearGradient>
       <radialGradient id="d7-sun" cx="0.5" cy="0.5" r="0.5">
-        <stop offset="0%" stop-color="#ffe8a0"/><stop offset="100%" stop-color="#f0c050" stop-opacity="0"/>
+        <stop offset="0%" stop-color="#ffe8a0"/><stop offset="100%" stop-color="#f0a860" stop-opacity="0"/>
       </radialGradient>
     </defs>
     <rect width="800" height="540" fill="url(#d7-sky)"/>
-    <circle cx="400" cy="340" r="70" fill="url(#d7-sun)" opacity="0.9"/>
-    <circle cx="400" cy="340" r="40" fill="#fff8d0" opacity="0.9"/>
-    <rect x="0" y="380" width="800" height="160" fill="url(#d7-ground)"/>
-    <g fill="#3a1a2a">
-      <path d="M50 380 L80 280 L100 290 L130 260 L160 300 L180 380Z"/>
-      <path d="M200 380 L220 300 L250 310 L280 270 L310 320 L330 380Z"/>
-      <path d="M500 380 L520 290 L560 305 L590 270 L620 310 L640 380Z"/>
-      <path d="M680 380 L710 300 L740 320 L770 285 L800 340 L800 380Z"/>
+    <circle cx="600" cy="180" r="120" fill="url(#d7-sun)" opacity="0.6"/>
+    <circle cx="600" cy="180" r="35" fill="#fff0c0" opacity="0.8"/>
+    <path d="M0 300 L120 260 L240 290 L360 250 L480 285 L600 255 L720 290 L800 270 L800 340 L0 340Z" fill="#3a4a5a" opacity="0.5"/>
+    <rect x="0" y="320" width="800" height="80" fill="url(#d7-mist)"/>
+    <rect x="0" y="360" width="800" height="60" fill="#ffffff" opacity="0.4"/>
+    <g opacity="0.9">
+      <rect x="200" y="380" width="50" height="35" fill="#6a4a3a"/>
+      <polygon points="195,380 225,355 255,380" fill="#4a2a1a"/>
+      <rect x="220" y="395" width="12" height="20" fill="#2a1a10"/>
+      <rect x="280" y="375" width="60" height="40" fill="#7a5a4a"/>
+      <polygon points="274,375 310,345 346,375" fill="#5a3a2a"/>
+      <rect x="305" y="392" width="14" height="23" fill="#2a1a10"/>
+      <rect x="370" y="385" width="55" height="30" fill="#6a4a3a"/>
+      <polygon points="364,385 397,358 430,385" fill="#4a2a1a"/>
+      <rect x="390" y="398" width="12" height="17" fill="#2a1a10"/>
+      <rect x="460" y="378" width="65" height="37" fill="#7a5a4a"/>
+      <polygon points="453,378 492,348 531,378" fill="#5a3a2a"/>
+      <rect x="485" y="395" width="14" height="20" fill="#2a1a10"/>
     </g>
-    <path d="M0 420 L80 400 L160 415 L240 395 L320 410 L400 395 L480 412 L560 398 L640 415 L720 400 L800 415 L800 540 L0 540Z" fill="#6a3a2a" opacity="0.9"/>
-    <path d="M0 470 L100 458 L200 470 L300 455 L400 468 L500 455 L600 470 L700 458 L800 468 L800 540 L0 540Z" fill="#5a2a1a" opacity="0.9"/>
-    <path d="M100 500 Q200 495 300 502 Q400 508 500 500 Q600 492 700 500" stroke="#8a5a4a" stroke-width="1" fill="none" opacity="0.4"/>
-    <path d="M0 520 Q150 515 300 522 Q450 528 600 520 Q700 515 800 522" stroke="#8a5a4a" stroke-width="1" fill="none" opacity="0.3"/>
+    <path d="M0 420 Q150 410 300 420 Q450 430 600 415 Q700 408 800 418 L800 540 L0 540Z" fill="#5a6a4a" opacity="0.8"/>
+    <path d="M0 460 Q150 450 300 460 Q450 470 600 455 Q700 448 800 458 L800 540 L0 540Z" fill="#4a5a3a"/>
+    <path d="M0 500 Q150 490 300 500 Q450 510 600 495 Q700 488 800 498 L800 540 L0 540Z" fill="#3a4a2a"/>
+    <ellipse cx="150" cy="440" rx="20" ry="10" fill="#fff" opacity="0.15"/>
+    <ellipse cx="400" cy="450" rx="30" ry="12" fill="#fff" opacity="0.15"/>
+    <ellipse cx="650" cy="445" rx="25" ry="11" fill="#fff" opacity="0.15"/>
+    <g opacity="0.6">
+      <line x1="120" y1="430" x2="120" y2="460" stroke="#3a2a1a" stroke-width="3"/>
+      <ellipse cx="120" cy="425" rx="15" ry="20" fill="#d8b860"/>
+      <line x1="680" y1="435" x2="680" y2="465" stroke="#3a2a1a" stroke-width="3"/>
+      <ellipse cx="680" cy="430" rx="15" ry="20" fill="#d8b860"/>
+    </g>
   </svg>`,
 
   8: `<svg viewBox="0 0 800 540" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
@@ -708,12 +727,6 @@ const COVERS = {
     </g>
     <path d="M0 480 L200 470 L400 478 L600 468 L800 476" stroke="#8a6a3a" stroke-width="6" fill="none" opacity="0.7"/>
     <path d="M0 480 L200 470 L400 478 L600 468 L800 476" stroke="#a8804a" stroke-width="3" fill="none" opacity="0.8"/>
-    <g fill="#6a6a4a">
-      <ellipse cx="80" cy="400" rx="8" ry="5"/>
-      <ellipse cx="240" cy="395" rx="10" ry="5"/>
-      <ellipse cx="520" cy="398" rx="9" ry="5"/>
-      <ellipse cx="720" cy="395" rx="8" ry="5"/>
-    </g>
   </svg>`,
 
   9: `<svg viewBox="0 0 800 540" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
@@ -749,7 +762,6 @@ const COVERS = {
     <path d="M360 380 L400 405 L440 425 L410 420 L380 422 L360 408Z" fill="#fff" opacity="0.15"/>
     <path d="M80 420 Q180 415 280 422 Q380 428 480 420 Q580 412 680 420" stroke="#a8d8e8" stroke-width="1.2" fill="none" opacity="0.4"/>
     <path d="M100 460 Q200 455 300 462 Q400 468 500 460 Q600 452 700 460" stroke="#a8d8e8" stroke-width="1" fill="none" opacity="0.35"/>
-    <path d="M120 500 Q220 495 320 502 Q420 508 520 500 Q620 492 720 500" stroke="#a8d8e8" stroke-width="1" fill="none" opacity="0.3"/>
     <g transform="translate(620,420)">
       <rect x="-15" y="0" width="30" height="20" fill="#8a5a3a"/>
       <polygon points="-20,0 0,-15 20,0" fill="#a03020"/>
@@ -782,8 +794,6 @@ const COVERS = {
     <circle cx="435" cy="420" r="3" fill="#ffe8a0"/>
     <circle cx="355" cy="470" r="3" fill="#ffe8a0"/>
     <circle cx="445" cy="470" r="3" fill="#ffe8a0"/>
-    <circle cx="345" cy="520" r="3" fill="#ffe8a0"/>
-    <circle cx="455" cy="520" r="3" fill="#ffe8a0"/>
     <path d="M0 380 L0 320 L150 320 L200 290 L600 290 L650 320 L800 320 L800 380Z" fill="#2a3a5a" opacity="0.85"/>
     <rect x="0" y="320" width="800" height="8" fill="#4a5a7a"/>
     <g fill="#ffe8a0" opacity="0.8">
@@ -892,140 +902,157 @@ const TRIPS = {
     ]
   },
   3: {
-    date: '10.1', title: '赛里木湖 → 布尔津',
-    routeSub: '沿途戈壁风光 · 五彩滩日落（建议改次日）',
-    coverLabel: '戈壁长途 · 布尔津',
-    flag: 'flag-fix',
+    date: '10.1', title: '赛里木湖 → 克拉玛依 / 乌尔禾',
+    routeSub: '沿途戈壁风光 · 乌尔禾魔鬼城日落',
+    coverLabel: '戈壁长途 · 魔鬼城日落',
+    flag: 'flag-warn',
     info: [
-      { lbl: '里程', val: '约 780km', danger: true },
-      { lbl: '时长', val: '8–9h', danger: true },
-      { lbl: '住宿', val: '布尔津' }
+      { lbl: '里程', val: '约 420km' },
+      { lbl: '时长', val: '5–6h' },
+      { lbl: '住宿', val: '克拉玛依/乌尔禾' },
+      { lbl: '魔鬼城', val: '约 62 元' }
     ],
-    calloutsTop: [{ type: 'red', icon: '!', html: '<strong>D3 是整条线最大的隐患。</strong>实际里程约 780km，不是原计划的 550km。国庆戈壁路段大车多，8–9 小时是保守估计。如果坚持当天赶到布尔津再去看五彩滩日落，司机疲劳 + 夜间行车风险极高。' }],
-    timeline: [],
+    calloutsTop: [{ type: 'green', icon: '✓', html: '<strong>里程已重新分配。</strong>原D3赛里木湖→布尔津约780km，现在拆为两天：D3只到克拉玛依/乌尔禾（420km），D4从乌尔禾到贾登峪（360km）。两天都不疲劳。' }],
+    timeline: [
+      { t: '上午', d: '赛里木湖出发，走G30高速前往克拉玛依/乌尔禾。沿途戈壁风光，中途在服务区休整。' },
+      { t: '下午', d: '抵达乌尔禾，办理入住。休整后准备进魔鬼城。' },
+      { t: '18:00–21:00', d: '进乌尔禾魔鬼城追日落。观光小火车+徒步结合，雅丹地貌在夕阳下呈现红褐色。' }
+    ],
     spots: [
-      { title: '建议调整方案', items: [
-        '<strong>方案 A：</strong>D3 只开到克拉玛依/乌尔禾住一晚，D4 上午到布尔津，五彩滩改 D4 早晨。',
-        '<strong>方案 B：</strong>D3 坚持到布尔津，但放弃五彩滩日落，改 D4 早晨去。',
-        '<strong>五彩滩：</strong>门票 45 元/人，建议提前一天在“阿勒泰智慧旅游平台”购票。日落黄金时段 19:30–20:00。'
-      ]},
       { title: '核心景点', items: [
-        '<strong>五彩滩：</strong>雅丹地貌 + 额尔齐斯河，日落时分色彩最丰富。建议改到次日早晨。',
-        '<strong>沿途戈壁：</strong>S21 沙漠公路沿线，只做中途休整，不安排景点停留。'
+        '<strong>乌尔禾世界魔鬼城：</strong>典型的雅丹地貌，18:00后入园拍日落最佳。观光小火车+徒步结合。',
+        '<strong>沿途戈壁：</strong>G30高速沿线，中途服务区休整即可，不安排景点停留。'
+      ]}
+    ],
+    bookings: [
+      { icon: 'rec', label: '建', title: '乌尔禾魔鬼城套票', tag: { cls: 'tag-ok', text: '价格更正' }, desc: '旺季套票约62元（门票42+观光小火车20）。线上提前购票即可，不强制抢名额。' }
+    ],
+    calloutsBottom: [{ type: 'green', icon: '✓', html: '<strong>今日行程轻松。</strong>420km / 5–6h，比原计划轻松很多。下午到乌尔禾后有时间休整，傍晚进魔鬼城刚好赶上日落。' }]
+  },
+  4: {
+    date: '10.2', title: '乌尔禾 → 布尔津 → 贾登峪',
+    routeSub: '五彩滩 · 沿途草原河谷 · 贾登峪入住',
+    coverLabel: '五彩滩 · 贾登峪',
+    flag: 'flag-ok',
+    info: [
+      { lbl: '里程', val: '约 360km' },
+      { lbl: '时长', val: '5–6h' },
+      { lbl: '住宿', val: '贾登峪' },
+      { lbl: '五彩滩', val: '45 元' }
+    ],
+    timeline: [
+      { t: '上午', d: '乌尔禾出发，前往布尔津。沿途戈壁逐渐变为草原河谷。' },
+      { t: '中午', d: '抵达布尔津，午餐。布尔津到五彩滩仅25km，顺路前往五彩滩。' },
+      { t: '下午', d: '游览五彩滩（雅丹地貌+额尔齐斯河）。之后继续前往贾登峪，约120km / 2.5–3h。' },
+      { t: '傍晚', d: '抵达贾登峪，办理入住。贾登峪是喀纳斯景区换乘中心，私家车停停车场。' }
+    ],
+    spots: [
+      { title: '核心景点', items: [
+        '<strong>五彩滩：</strong>雅丹地貌+额尔齐斯河，日落时分色彩最丰富。门票45元/人，建议提前一天在“阿勒泰智慧旅游平台”购票。',
+        '<strong>贾登峪：</strong>喀纳斯景区换乘中心。私家车止步于此，统一坐区间车进景区。'
+      ]}
+    ],
+    bookings: [
+      { icon: 'must', label: '必', title: '贾登峪住宿', tag: { cls: 'tag-fix', text: '国庆紧张' }, desc: '国庆贾登峪住宿同样紧张，建议提前15天以上下单。虽然不如村内方便，但比抢不到房强。' },
+      { icon: 'rec', label: '建', title: '五彩滩门票', tag: null, desc: '45元/人，“阿勒泰智慧旅游平台”提前购票。日落黄金时段19:30–20:00。' }
+    ],
+    calloutsBottom: [{ type: 'amber', icon: '!', html: '<strong>贾登峪住宿说明：</strong>住贾登峪意味着每天进出景区需要坐区间车（约30分钟）。喀纳斯区间车运营时间08:00–20:00，返程末班车20:00，旺季应急车可延长至22:30，时间上完全来得及。' }]
+  },
+  5: {
+    date: '10.3', title: '喀纳斯深度游 Day1 · 观鱼台',
+    routeSub: '观鱼台登顶 · 三湾徒步 · 湖边栈道',
+    coverLabel: '喀纳斯 · 观鱼台登顶',
+    flag: 'flag-ok',
+    info: [
+      { lbl: '交通', val: '区间车往返' },
+      { lbl: '住宿', val: '贾登峪' },
+      { lbl: '观鱼台', val: '限流 8000/日', ok: true },
+      { lbl: '开放', val: '09:00–18:00' }
+    ],
+    calloutsTop: [
+      { type: 'green', icon: '✓', html: '<strong>观鱼台已确认开放。</strong>2026 年国庆期间正常运营，每日限流 8000 人，开放时间 09:00–18:00，分时预约制（每 30 分钟一个时段，每时段 300 人）。恶劣天气可能临时关闭，出发前查“喀纳斯景区”公众号确认。' },
+      { type: 'amber', icon: '!', html: '<strong>区间车专线：</strong>从换乘中心 2 号口乘车，往返 20 元/人。上山末班车 18:00，下山末班车 20:00。下车后需攀登 <strong>1068 级台阶</strong>登顶，约 40–90 分钟，建议最晚 16:00 前上山。' }
+    ],
+    timeline: [
+      { t: '8:00', d: '贾登峪坐首班区间车进景区，约30分钟到换乘中心。' },
+      { t: '9:00–12:00', d: '换乘中心 2 号口乘观鱼台专线车，登 1068 级台阶，俯瞰喀纳斯湖全景。' },
+      { t: '12:00–13:00', d: '下山，在换乘中心或喀纳斯村午餐。' },
+      { t: '13:00–17:00', d: '三湾徒步：神仙湾→月亮湾→卧龙湾。沿栈道慢走，拍照。' },
+      { t: '17:00–18:30', d: '喀纳斯湖湖边栈道，欣赏湖水渐变蓝绿色。坐区间车返回贾登峪。注意末班车20:00。' }
+    ],
+    spots: [
+      { title: '核心景点', items: [
+        '<strong>观鱼台：</strong>喀纳斯最佳俯瞰点，1068 级台阶登顶后可俯瞰整片喀纳斯湖全景。2026 年国庆期间正常开放，限流 8000 人/日，务必提前预约时段。',
+        '<strong>神仙湾：</strong>清晨晨雾是喀纳斯标志性景观，但住贾登峪赶不上首班车前到达。下午光线也不错。',
+        '<strong>月亮湾：</strong>S形河道，喀纳斯标志性画面。',
+        '<strong>卧龙湾：</strong>森林倒影，沿栈道可串联游览。',
+        '<strong>喀纳斯湖湖边栈道：</strong>湖水渐变蓝绿色，与观鱼台形成上下两种视角。'
+      ]}
+    ],
+    bookings: [
+      { icon: 'must', label: '必', title: '观鱼台分时预约', tag: { cls: 'tag-fix', text: '限流8000/日' }, desc: '“喀纳斯景区”或“原行网”公众号预约，每30分钟一个时段，每时段300人。旺季建议提前3天预约，当天基本抢不到。' },
+      { icon: 'rec', label: '建', title: '观鱼台专线车票', tag: null, desc: '换乘中心2号口乘车，往返20元/人。上山末班车18:00，下山末班车20:00。' }
+    ],
+    calloutsBottom: [
+      { type: 'amber', icon: '!', html: '<strong>晨雾的现实取舍：</strong>住贾登峪无法拍到神仙湾清晨晨雾（区间车8:00才发车，晨雾最佳窗口约5:30–8:00）。如果对晨雾有执念，需要重新考虑村内住宿。否则就接受这个遗憾，把重点放在观鱼台和三湾上。' },
+      { type: 'green', icon: '✓', html: '<strong>天气提醒：</strong>观鱼台遇恶劣天气（大风、降雪）会临时关闭。出发前一天查“喀纳斯景区”公众号确认开放状态。' }
+    ]
+  },
+  6: {
+    date: '10.4', title: '喀纳斯深度游 Day2 → 禾木',
+    routeSub: '补拍三湾 · 转场禾木 · 禾木村入住',
+    coverLabel: '喀纳斯 → 禾木',
+    flag: 'flag-ok',
+    info: [
+      { lbl: '交通', val: '景区内+65km' },
+      { lbl: '住宿', val: '禾木村内' },
+      { lbl: '禾木门票', val: '102 元' },
+      { lbl: '车程', val: '1–2h' }
+    ],
+    timeline: [
+      { t: '8:00', d: '贾登峪坐区间车进景区，补拍三湾不同光线（如果前一天没拍够）。如D5未上观鱼台，今天上午可补上。' },
+      { t: '中午', d: '出景区，回贾登峪取车。午餐后出发前往禾木。' },
+      { t: '14:00–16:00', d: '贾登峪 → 禾木，约65km / 1–2h。车停禾木游客换乘中心，坐区间车进村。' },
+      { t: '下午–傍晚', d: '入住禾木村内木屋。逛禾木桥、白桦林、老村图瓦木屋。傍晚拍村落日落。' }
+    ],
+    spots: [
+      { title: '核心景点', items: [
+        '<strong>禾木桥：</strong>百年木桥，禾木标志性打卡点。',
+        '<strong>白桦林：</strong>秋季金黄，适合慢逛拍照。',
+        '<strong>老村图瓦木屋：</strong>图瓦人传统建筑，傍晚炊烟升起时最有氛围。'
+      ]}
+    ],
+    bookings: [
+      { icon: 'must', label: '必', title: '禾木村内住宿', tag: { cls: 'tag-fix', text: '比门票更难' }, desc: '国庆禾木村内木屋极度稀缺，建议提前15天以上下单锁房。' },
+      { icon: 'rec', label: '建', title: '禾木门票+区间车', tag: null, desc: '102元/人，建议提前在“原行网”预约。自驾车停禾木游客换乘中心。' }
+    ],
+    calloutsBottom: [{ type: 'green', icon: '✓', html: '<strong>从贾登峪到禾木有景区大巴，</strong>上午10点、下午4点各一趟，在贾登峪停车场坐车。自驾更灵活，约65km / 1–2h。' }]
+  },
+  7: {
+    date: '10.5', title: '禾木晨雾 → 克拉玛依',
+    routeSub: '哈登观景台日出 · 禾木慢逛 · 返回乌尔禾',
+    coverLabel: '禾木晨雾 · 克拉玛依',
+    flag: 'flag-warn',
+    info: [
+      { lbl: '里程', val: '约 420km' },
+      { lbl: '时长', val: '5–6h' },
+      { lbl: '住宿', val: '克拉玛依/乌尔禾' },
+      { lbl: '晨雾', val: '日出前出发' }
+    ],
+    timeline: [
+      { t: '日出前', d: '哈登观景台看日出+晨雾+村落炊烟。这是禾木顶级摄影机位，务必早起。' },
+      { t: '上午', d: '看完日出返回住处吃早餐，慢逛村落。约10:00–11:00出发。' },
+      { t: '11:00–17:00', d: '禾木 → 克拉玛依/乌尔禾，约420km / 5–6h。' },
+      { t: '傍晚', d: '抵达克拉玛依/乌尔禾。如果D3没来得及去魔鬼城，今天傍晚可以补上。' }
+    ],
+    spots: [
+      { title: '核心景点', items: [
+        '<strong>哈登观景台：</strong>日出+晨雾+村落炊烟，禾木全年顶级摄影点。',
+        '<strong>禾木晨雾：</strong>秋季清晨河谷起雾，配合炊烟和白桦林，是禾木最经典的画面。'
       ]}
     ],
     bookings: [],
-    calloutsBottom: [{ type: 'amber', icon: '!', html: '<strong>长途驾驶提醒：</strong>全程最长的一天，务必两人轮换驾驶。尽量避免夜间走戈壁公路，野生动物和大型货车是主要隐患。' }]
-  },
-  4: {
-    date: '10.2', title: '布尔津 → 喀纳斯',
-    routeSub: '沿途草原河谷 · 贾登峪换乘 · 喀纳斯景区内',
-    coverLabel: '喀纳斯 · 贾登峪',
-    flag: 'flag-ok',
-    info: [
-      { lbl: '里程', val: '约 160km' },
-      { lbl: '时长', val: '3.5–4h' },
-      { lbl: '住宿', val: '喀纳斯景区内' },
-      { lbl: '门票', val: '一进 230 元' }
-    ],
-    timeline: [
-      { t: '上午', d: '布尔津出发，沿途草原河谷风光。五彩滩可顺路停留（如 D3 未去）。' },
-      { t: '中午', d: '抵达贾登峪。私家车停停车场，换乘景区区间车进入喀纳斯。' },
-      { t: '下午', d: '入住喀纳斯村内。轻装逛湖边栈道，适应环境。' }
-    ],
-    spots: [
-      { title: '核心景点', items: [
-        '<strong>贾登峪：</strong>喀纳斯景区换乘中心，私家车止步于此。',
-        '<strong>喀纳斯湖湖边栈道：</strong>欣赏湖水渐变蓝绿色。',
-        '<strong>沿途草原河谷：</strong>布尔津到贾登峪的公路风光。'
-      ]}
-    ],
-    calloutsTop: [{ type: 'green', icon: '✓', html: '<strong>喀纳斯已取消单独预约号。</strong>2026 年 8 月 7 日起现场可购票入园。但国庆客流极大，仍建议提前 3–5 天在“喀纳斯景区”或“原行网”公众号线上购票，避免窗口排队。' }],
-    bookings: [
-      { icon: 'rec', label: '建', title: '喀纳斯门票 + 区间车', tag: { cls: 'tag-warn', text: '建议提前买' }, desc: '“喀纳斯景区”或“原行网”公众号。一进 230 元（门票 160 + 区间车 70）。提前 3–5 天购票。' },
-      { icon: 'must', label: '必', title: '喀纳斯村内住宿', tag: { cls: 'tag-fix', text: '比门票更难' }, desc: '国庆村内木屋极度稀缺，建议提前 15 天以上下单锁房。住贾登峪每天进出浪费 2–3 小时。' }
-    ],
-    calloutsBottom: [{ type: 'amber', icon: '!', html: '<strong>注意：</strong>喀纳斯景区私家车不能驶入核心区，只能停贾登峪，统一坐区间车。日限流喀纳斯 2.7 万人。' }]
-  },
-  5: {
-    date: '10.3', title: '喀纳斯深度游',
-    routeSub: '神仙湾晨雾 · 月亮湾 · 卧龙湾 · 湖边栈道',
-    coverLabel: '喀纳斯三湾 · 晨雾',
-    flag: 'flag-fix',
-    info: [
-      { lbl: '交通', val: '景区内无自驾' },
-      { lbl: '住宿', val: '喀纳斯村内' },
-      { lbl: '晨雾', val: '6:30 前出门' }
-    ],
-    timeline: [
-      { t: '6:00–7:00', d: '神仙湾晨雾。这是喀纳斯摄影第一机位，务必早出发。晨雾一般在日出前后出现。' },
-      { t: '上午', d: '月亮湾（S 形河道，喀纳斯标志性画面）→ 卧龙湾（森林倒影）。' },
-      { t: '下午', d: '喀纳斯湖湖边栈道徒步，欣赏湖水渐变蓝绿色。观鱼台 2026 年关闭，改走栈道。' }
-    ],
-    spots: [
-      { title: '核心景点', items: [
-        '<strong>神仙湾：</strong>清晨晨雾，重中之重，摄影第一机位。建议 6:30 前出门。',
-        '<strong>月亮湾：</strong>S 形河道，喀纳斯标志性画面。',
-        '<strong>卧龙湾：</strong>森林倒影。',
-        '<strong>喀纳斯湖湖边栈道：</strong>湖水渐变蓝绿色，替代观鱼台的深度体验。'
-      ]}
-    ],
-    calloutsTop: [{ type: 'red', icon: '!', html: '<strong>观鱼台 2026 年关闭。</strong>自 2025 年 10 月 7 日起季节性关闭，截至 2026 年 9 月仍未开放。原计划中的观鱼台安排需删除，替代为湖边栈道深度徒步。' }],
-    calloutsBottom: [{ type: 'green', icon: '✓', html: '<strong>晨雾建议：</strong>6:30 前出门，三湾光线最佳。神仙湾晨雾一般在日出前后出现，建议提前到达占位。' }]
-  },
-  6: {
-    date: '10.4', title: '喀纳斯全天自由深度',
-    routeSub: '白哈巴村（可选） · 慢逛村落 · 白桦林',
-    coverLabel: '白哈巴 · 西北第一村',
-    flag: 'flag-ok',
-    info: [
-      { lbl: '交通', val: '景区内' },
-      { lbl: '住宿', val: '喀纳斯村内' },
-      { lbl: '白哈巴限流', val: '3500 人/日' }
-    ],
-    timeline: [
-      { t: '方案 A', d: '白哈巴村一日游。西北第一村，边境村落，慢逛木屋、白桦林。需电子边防证。' },
-      { t: '方案 B', d: '留在喀纳斯继续深度。补拍三湾不同光线，慢逛村落。' }
-    ],
-    spots: [
-      { title: '核心景点', items: [
-        '<strong>白哈巴村：</strong>被称为西北第一村和西北第一哨，位于中国与哈萨克斯坦接壤的边境线上，距哈萨克斯坦东锡勒克仅 1.5 公里。被誉为中国最美的八个小镇之一。',
-        '<strong>白桦林：</strong>秋季金黄，适合慢逛。',
-        '<strong>图瓦木屋：</strong>村落内的传统建筑。'
-      ]}
-    ],
-    calloutsTop: [{ type: 'green', icon: '✓', html: '<strong>边防证已电子化。</strong>2026 年 4 月 15 日起全国已启用电子边境管理区通行证，微信/支付宝搜索“移民局 12367”小程序在线申请，免费，3 个月内有效，截图留存即可，无需回户籍地。' }],
-    bookings: [
-      { icon: 'must', label: '必', title: '电子边防证', tag: { cls: 'tag-fix', text: '方式已更新' }, desc: '“移民局 12367”小程序在线申请，免费，截图保存。' },
-      { icon: 'rec', label: '建', title: '白哈巴门票 + 区间车', tag: null, desc: '白哈巴门票 30 元/人（旺季），喀纳斯往返区间车 45 元/人。日限流 3500 人，建议提前在“原行网”预约。' }
-    ],
-    calloutsBottom: [{ type: 'amber', icon: '!', html: '<strong>边境提醒：</strong>白哈巴为边境村落，携带电子边防证，边境不可越线。临时不接待游客时有发生，出发前确认。' }]
-  },
-  7: {
-    date: '10.5', title: '喀纳斯 → 布尔津 → 克拉玛依',
-    routeSub: '乌尔禾魔鬼城 · 雅丹地貌 · 日落',
-    coverLabel: '乌尔禾魔鬼城 · 雅丹日落',
-    flag: 'flag-warn',
-    info: [
-      { lbl: '里程', val: '约 480km' },
-      { lbl: '时长', val: '7–7.5h' },
-      { lbl: '住宿', val: '克拉玛依/乌尔禾' },
-      { lbl: '门票', val: '约 62 元' }
-    ],
-    timeline: [
-      { t: '上午', d: '喀纳斯出发，经布尔津前往克拉玛依。' },
-      { t: '下午', d: '抵达乌尔禾。18:00 后入园魔鬼城，追日落。观光小火车 + 徒步结合。' },
-      { t: '傍晚', d: '魔鬼城落日光影最佳，雅丹地貌在夕阳下呈现红褐色。' }
-    ],
-    spots: [
-      { title: '核心景点', items: [
-        '<strong>乌尔禾世界魔鬼城：</strong>典型的雅丹地貌，景区位于新疆克拉玛依市乌尔禾区，属于典型的雅丹地貌。18:00 后入园拍日落最佳。'
-      ]}
-    ],
-    bookings: [
-      { icon: 'rec', label: '建', title: '乌尔禾魔鬼城套票', tag: { cls: 'tag-ok', text: '价格更正' }, desc: '旺季套票约 62 元（门票 42 + 观光小火车 20），非原攻略常写的 98 元。线上提前购票即可，不强制抢名额。' }
-    ],
-    calloutsBottom: [{ type: 'green', icon: '✓', html: '<strong>里程微调：</strong>原计划 540km，实际约 480km，比原计划更从容。' }]
+    calloutsBottom: [{ type: 'amber', icon: '!', html: '<strong>早起提醒：</strong>哈登观景台需要爬台阶，建议日出前1小时出发。10月初禾木清晨气温接近0℃，穿厚羽绒服。' }]
   },
   8: {
     date: '10.6', title: '乌尔禾 → 奎屯',
@@ -1093,14 +1120,14 @@ const TRIPS = {
 const DAY_TAGS = {
   1: [{ cls: 'tag-fix', text: '已调整' }, { cls: 'tag-warn', text: '不进独库' }],
   2: [{ cls: 'tag-fix', text: '已调整' }, { cls: 'tag-warn', text: '早出发' }],
-  3: [{ cls: 'tag-fix', text: '严重偏差' }],
-  4: [{ cls: 'tag-ok', text: '基本可用' }, { cls: 'tag-warn', text: '观鱼台关闭' }],
-  5: [{ cls: 'tag-fix', text: '需修正' }, { cls: 'tag-info', text: '栈道替代' }],
-  6: [{ cls: 'tag-ok', text: '基本可用' }, { cls: 'tag-info', text: '边防证线上办' }],
-  7: [{ cls: 'tag-warn', text: '里程微调' }],
-  8: [{ cls: 'tag-ok', text: '可用' }],
-  9: [{ cls: 'tag-fix', text: '需修正' }],
-  10: [{ cls: 'tag-ok', text: '可用' }]
+  3: [{ cls: 'tag-warn', text: '里程合理' }, { cls: 'tag-ok', text: '魔鬼城日落' }],
+  4: [{ cls: 'tag-ok', text: '贾登峪入住' }, { cls: 'tag-info', text: '途经五彩滩' }],
+  5: [{ cls: 'tag-ok', text: '观鱼台开放' }, { cls: 'tag-warn', text: '限流8000/日' }],
+  6: [{ cls: 'tag-ok', text: '转场禾木' }, { cls: 'tag-warn', text: '村内住宿紧张' }],
+  7: [{ cls: 'tag-warn', text: '早起看晨雾' }, { cls: 'tag-ok', text: '哈登观景台' }],
+  8: [{ cls: 'tag-ok', text: '轻松日' }],
+  9: [{ cls: 'tag-fix', text: '天池需预约' }],
+  10: [{ cls: 'tag-ok', text: '返程' }]
 };
 
 /* ============================================================
@@ -1114,7 +1141,8 @@ const DAY_TAGS = {
     const tags = (DAY_TAGS[i] || []).map(tg => `<span class="tag ${tg.cls}">${tg.text}</span>`).join('');
     const metaItems = t.info.slice(0, 3).map(m => {
       const danger = m.danger ? ' style="color:var(--coral);font-weight:700;"' : '';
-      return `<span${danger}>${m.lbl}：${m.val}</span>`;
+      const ok = m.ok ? ' style="color:var(--forest);font-weight:700;"' : '';
+      return `<span${danger}${ok}>${m.lbl}：${m.val}</span>`;
     }).join('');
     html += `
       <a class="day-card ${t.flag}" href="#day${i}" data-day="${i}">
@@ -1148,7 +1176,8 @@ const DAY_TAGS = {
     const t = TRIPS[i];
     const infoItems = t.info.map(m => {
       const danger = m.danger ? ' danger' : '';
-      return `<div class="is-item"><div class="lbl">${m.lbl}</div><div class="val${danger}">${m.val}</div></div>`;
+      const ok = m.ok ? ' ok' : '';
+      return `<div class="is-item"><div class="lbl">${m.lbl}</div><div class="val${danger}${ok}">${m.val}</div></div>`;
     }).join('');
 
     const calloutsTop = (t.calloutsTop || []).map(c =>
