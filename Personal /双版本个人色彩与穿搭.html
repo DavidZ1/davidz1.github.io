@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>个人色彩与穿搭 · 双版本深度分析</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#F6F3EE;
+    --card:#FFFFFF;
+    --ink:#22201D;
+    --ink2:#5C564E;
+    --ink3:#8B8378;
+    --line:#E5DED3;
+    --warm:#B5763A;
+    --warm-deep:#9E4B2E;
+    --cool:#24344D;
+    --green:#2E4034;
+    --r:16px;
+  }
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.75;
+    -webkit-font-smoothing:antialiased;
+    padding:0 18px 90px;
+  }
+  .wrap{max-width:1100px;margin:0 auto}
+
+  /* ---------- HERO ---------- */
+  .hero{padding:60px 0 36px;text-align:center;position:relative}
+  .hero .eyebrow{
+    display:inline-block;font-size:12px;letter-spacing:.22em;
+    color:var(--ink3);text-transform:uppercase;margin-bottom:18px;
+    border:1px solid var(--line);border-radius:99px;padding:5px 16px;background:#fff;
+  }
+  .hero h1{
+    font-size:clamp(26px,4.2vw,42px);line-height:1.25;letter-spacing:.01em;font-weight:800;
+  }
+  .hero h1 em{
+    font-style:normal;
+    background:linear-gradient(100deg,var(--warm-deep),var(--warm) 45%,var(--cool));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .hero p{margin-top:16px;color:var(--ink2);font-size:15px}
+  .hero .rule{
+    width:64px;height:3px;margin:26px auto 0;border-radius:2px;
+    background:linear-gradient(90deg,var(--warm),var(--green),var(--cool));
+  }
+
+  /* ---------- SECTION ---------- */
+  section{margin-top:64px}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:8px;flex-wrap:wrap}
+  .sec-num{
+    font-size:12px;font-weight:800;letter-spacing:.16em;color:#fff;
+    background:var(--ink);border-radius:6px;padding:3px 9px;
+  }
+  .sec-head h2{font-size:clamp(19px,2.6vw,24px);letter-spacing:.01em}
+  .sec-sub{color:var(--ink3);font-size:14px;margin-bottom:26px}
+
+  /* ---------- ARCHIVE CARDS ---------- */
+  .duo{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:22px}
+  .arch{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    padding:26px 24px;position:relative;overflow:hidden;
+  }
+  .arch::before{content:"";position:absolute;inset:0 0 auto 0;height:5px}
+  .arch.warm::before{background:linear-gradient(90deg,#B5763A,#9E4B2E,#6E2A34)}
+  .arch.cool::before{background:linear-gradient(90deg,#1B3A5C,#24344D,#1F5C55)}
+  .arch-tag{
+    display:inline-block;font-size:11px;font-weight:800;letter-spacing:.14em;
+    padding:4px 11px;border-radius:99px;margin-bottom:14px;
+  }
+  .arch.warm .arch-tag{background:#FBEDE1;color:#9E4B2E}
+  .arch.cool .arch-tag{background:#E9EEF5;color:#24344D}
+  .arch h3{font-size:19px;margin-bottom:6px;letter-spacing:.01em}
+  .arch .oneliner{
+    font-size:14px;color:var(--ink2);padding:9px 13px;border-radius:9px;
+    background:#FAF8F5;border-left:3px solid var(--line);margin:14px 0 18px;
+  }
+  .arch.warm .oneliner{border-left-color:#B5763A}
+  .arch.cool .oneliner{border-left-color:#24344D}
+
+  .mini-title{
+    font-size:11.5px;font-weight:800;letter-spacing:.14em;color:var(--ink3);
+    text-transform:uppercase;margin:20px 0 10px;
+  }
+  .base-row{display:flex;flex-direction:column;gap:8px;font-size:13.5px}
+  .base-row div{display:flex;align-items:center;gap:9px;color:var(--ink2)}
+  .dot{width:13px;height:13px;border-radius:4px;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.1)}
+  code{
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:12px;color:var(--ink3);background:#F3EFE9;border-radius:5px;padding:1px 6px;
+  }
+
+  /* ---------- SWATCHES ---------- */
+  .swatches{display:flex;flex-wrap:wrap;gap:12px}
+  .sw{width:74px;text-align:center}
+  .sw i{
+    display:block;width:100%;height:52px;border-radius:11px;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.09);
+  }
+  .sw b{display:block;font-size:11.5px;font-weight:600;margin-top:6px;color:var(--ink2);line-height:1.35}
+  .sw s{display:block;font-size:10px;color:var(--ink3);text-decoration:none;font-family:ui-monospace,Menlo,monospace}
+
+  /* ---------- TABLE ---------- */
+  .tbl-wrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:var(--r)}
+  table{width:100%;border-collapse:collapse;min-width:720px}
+  th,td{padding:14px 18px;text-align:left;font-size:14px;vertical-align:top;border-bottom:1px solid var(--line)}
+  thead th{
+    background:#FAF8F5;font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--ink3);font-weight:800;white-space:nowrap;
+  }
+  tbody tr:last-child td{border-bottom:none}
+  td:first-child{font-weight:700;white-space:nowrap;color:var(--ink)}
+  .col-warm{color:#8A4A25}
+  .col-cool{color:#24344D}
+  .badge{
+    display:inline-block;font-size:11px;font-weight:800;padding:3px 9px;border-radius:99px;white-space:nowrap;
+  }
+  .b-yes{background:#E6EFE6;color:#2E5B36}
+  .b-no{background:#FBE9E4;color:#9E4B2E}
+  .b-half{background:#F5EFDD;color:#8A6A1E}
+
+  /* ---------- CONFLICT ---------- */
+  .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+  .conf{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    padding:22px;position:relative;
+  }
+  .conf .num{
+    font-size:30px;font-weight:900;line-height:1;color:#EFE8DC;position:absolute;top:14px;right:18px;
+  }
+  .conf h4{font-size:15.5px;margin-bottom:14px;padding-right:36px}
+  .conf .vs{display:flex;flex-direction:column;gap:9px;font-size:13.5px;margin-bottom:15px}
+  .conf .vs p{display:flex;gap:9px;align-items:flex-start;color:var(--ink2)}
+  .pill{
+    flex:none;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:99px;margin-top:3px;
+  }
+  .p-warm{background:#FBEDE1;color:#9E4B2E}
+  .p-cool{background:#E9EEF5;color:#24344D}
+  .verdict{
+    font-size:13px;padding:11px 13px;border-radius:10px;background:#F7F5F1;
+    border-left:3px solid var(--green);color:var(--ink2);
+  }
+  .verdict b{color:var(--ink)}
+
+  /* ---------- COMMON ---------- */
+  .common{
+    background:linear-gradient(180deg,#FFFFFF,#FCFAF7);
+    border:1px solid var(--line);border-radius:20px;padding:30px 26px;
+  }
+  .common-block{margin-top:26px}
+  .common-block:first-child{margin-top:0}
+  .common-block h4{
+    font-size:14px;letter-spacing:.04em;margin-bottom:14px;display:flex;align-items:center;gap:9px;
+  }
+  .common-block h4::before{
+    content:"";width:6px;height:18px;border-radius:3px;background:var(--green);flex:none;
+  }
+  .core-swatch .sw i{height:64px}
+  .core-swatch .sw b{font-size:12.5px;color:var(--ink);font-weight:700}
+
+  .skeleton{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;
+  }
+  .sk-item{
+    background:#F7F5F1;border-radius:12px;padding:14px 16px;font-size:13.5px;
+    border:1px solid #EFEAE2;
+  }
+  .sk-item span{display:block;font-size:11px;letter-spacing:.1em;color:var(--ink3);font-weight:800;margin-bottom:6px}
+
+  .chips{display:flex;flex-wrap:wrap;gap:9px}
+  .chip{
+    font-size:13px;padding:7px 15px;border-radius:99px;background:#F2EEE8;
+    border:1px solid #E7E0D6;color:var(--ink2);font-weight:600;
+  }
+  .chip.good{background:#E9F0EA;border-color:#D5E3D7;color:#2E4A34}
+  .chip.bad{background:#FBE9E4;border-color:#F2D8D0;color:#9E4B2E}
+
+  /* ---------- FUSION ---------- */
+  .fusion{
+    background:var(--ink);color:#F2EDE6;border-radius:20px;padding:32px 28px;
+  }
+  .fusion h3{font-size:19px;margin-bottom:8px;color:#fff}
+  .fusion .lead{color:#A9A197;font-size:14px;margin-bottom:24px}
+  .fusion-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+  .fcard{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:18px}
+  .fcard span{font-size:11px;letter-spacing:.14em;color:#8F887E;font-weight:800;display:block;margin-bottom:10px}
+  .fcard p{font-size:13.5px;color:#DDD6CC;line-height:1.8}
+  .fcard p b{color:#fff;font-weight:700}
+  .fusion-note{
+    margin-top:22px;padding-top:20px;border-top:1px solid rgba(255,255,255,.12);
+    font-size:13.5px;color:#B7AFA5;
+  }
+
+  footer{
+    margin-top:70px;text-align:center;font-size:12.5px;color:var(--ink3);
+  }
+
+  @media(max-width:520px){
+    .sw{width:60px}
+    .hero{padding:42px 0 26px}
+    section{margin-top:48px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="eyebrow">Color &amp; Style Analysis</div>
+    <h1>双版本个人色彩与穿搭<br><em>深度对比分析</em></h1>
+    <p>David_Z_Claude「深秋型 · 暖调」 × GPT「冷感中性型 · 冷调」</p>
+    <div class="rule"></div>
+  </header>
+
+  <!-- ============ 01 两版档案 ============ -->
+  <section>
+    <div class="sec-head"><span class="sec-num">01</span><h2>两版档案原貌</h2></div>
+    <p class="sec-sub">先各自完整呈现，再进入逐维度拆解。</p>
+
+    <div class="duo">
+
+      <!-- A -->
+      <article class="arch warm">
+        <div class="arch-tag">版本 A · 暖调体系</div>
+        <h3>深秋型 · 中深暖调 · 中高对比</h3>
+        <div class="oneliner">一句话原则：<b>深、暖、哑光</b></div>
+
+        <div class="mini-title">色彩基准</div>
+        <div class="base-row">
+          <div><i class="dot" style="background:#CDA07C"></i>肤色 · 暖调、中等深度 <code>#CDA07C</code></div>
+          <div><i class="dot" style="background:#2B2620"></i>发色 · 深棕黑 <code>#2B2620</code></div>
+          <div><i class="dot" style="background:#4A3728"></i>瞳色 · 深棕 <code>#4A3728</code></div>
+        </div>
+
+        <div class="mini-title">最衬色</div>
+        <div class="swatches">
+          <div class="sw"><i style="background:#2E4034"></i><b>墨绿</b><s>2E4034</s></div>
+          <div class="sw"><i style="background:#1F5C55"></i><b>孔雀绿</b><s>1F5C55</s></div>
+          <div class="sw"><i style="background:#24344D"></i><b>藏青</b><s>24344D</s></div>
+          <div class="sw"><i style="background:#4A3226"></i><b>巧克力棕</b><s>4A3226</s></div>
+          <div class="sw"><i style="background:#B5763A"></i><b>焦糖/驼</b><s>B5763A</s></div>
+          <div class="sw"><i style="background:#9E4B2E"></i><b>铁锈红</b><s>9E4B2E</s></div>
+          <div class="sw"><i style="background:#C79A2E"></i><b>芥末黄</b><s>C79A2E</s></div>
+          <div class="sw"><i style="background:#6E2A34"></i><b>酒红</b><s>6E2A34</s></div>
+          <div class="sw"><i style="background:#2A2A2A"></i><b>墨黑</b><s>2A2A2A</s></div>
+          <div class="sw"><i style="background:#EDE3CE"></i><b>米白/燕麦</b><s>EDE3CE</s></div>
+        </div>
+
+        <div class="mini-title">尽量避开</div>
+        <div class="chips">
+          <span class="chip bad">冰蓝</span>
+          <span class="chip bad">藕粉</span>
+          <span class="chip bad">荧光绿</span>
+          <span class="chip bad">灰丁香</span>
+          <span class="chip bad">纯白 / 浅灰</span>
+          <span class="chip bad">马卡龙色</span>
+          <span class="chip bad">亮面 / 闪色</span>
+        </div>
+
+        <div class="mini-title">风格定位</div>
+        <div class="chips">
+          <span class="chip">户外机能</span>
+          <span class="chip">工装</span>
+          <span class="chip">简约运动</span>
+          <span class="chip">哑光肌理</span>
+          <span class="chip">合身～微宽松</span>
+        </div>
+      </article>
+
+      <!-- B -->
+      <article class="arch cool">
+        <div class="arch-tag">版本 B · 冷调体系</div>
+        <h3>冷感 · 偏冷的中性型</h3>
+        <div class="oneliner">一句话原则：<b>低饱和、沉稳、清爽、有质感</b></div>
+
+        <div class="mini-title">色彩基准</div>
+        <div class="base-row">
+          <div><i class="dot" style="background:#E0C7AE"></i>肤色 · 偏中性</div>
+          <div><i class="dot" style="background:#1A1A1A"></i>发色 · 黑色偏冷</div>
+          <div><i class="dot" style="background:#3A2E26"></i>瞳色 · 深棕偏黑</div>
+        </div>
+
+        <div class="mini-title">最适合的颜色</div>
+        <div class="swatches">
+          <div class="sw"><i style="background:#1B3A5C"></i><b>深海蓝</b><s>1B3A5C</s></div>
+          <div class="sw"><i style="background:#24344D"></i><b>藏青</b><s>24344D</s></div>
+          <div class="sw"><i style="background:#3A4A32"></i><b>墨绿/军绿</b><s>3A4A32</s></div>
+          <div class="sw"><i style="background:#3B3F42"></i><b>深灰</b><s>3B3F42</s></div>
+          <div class="sw"><i style="background:#1A1A1A"></i><b>黑色</b><s>1A1A1A</s></div>
+          <div class="sw"><i style="background:#7C93A8"></i><b>雾霾蓝</b><s>7C93A8</s></div>
+          <div class="sw"><i style="background:#C9C9C4"></i><b>浅灰</b><s>C9C9C4</s></div>
+          <div class="sw"><i style="background:#FFFFFF"></i><b>白色</b><s>FFFFFF</s></div>
+          <div class="sw"><i style="background:#B9A583"></i><b>卡其</b><s>B9A583</s></div>
+        </div>
+
+        <div class="mini-title">尽量少用</div>
+        <div class="chips">
+          <span class="chip bad">亮粉色</span>
+          <span class="chip bad">亮黄色</span>
+          <span class="chip bad">高饱和橙</span>
+          <span class="chip bad">荧光感颜色</span>
+        </div>
+
+        <div class="mini-title">风格定位</div>
+        <div class="chips">
+          <span class="chip">户外运动</span>
+          <span class="chip">城市简约</span>
+          <span class="chip">轻户外工装</span>
+          <span class="chip">健身运动</span>
+          <span class="chip">清爽通勤</span>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ============ 02 维度深挖 ============ -->
+  <section>
+    <div class="sec-head"><span class="sec-num">02</span><h2>十个维度逐项拆解</h2></div>
+    <p class="sec-sub">把两份指南拆成可比较的变量，看清楚哪里真冲突、哪里只是说法不同。</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>维度</th>
+            <th>版本 A · Claude</th>
+            <th>版本 B · GPT</th>
+            <th>共识度</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>色调倾向</td>
+            <td class="col-warm">暖调（中深暖）</td>
+            <td class="col-cool">冷调（偏冷中性）</td>
+            <td><span class="badge b-no">根本分歧</span></td>
+          </tr>
+          <tr>
+            <td>明度</td>
+            <td class="col-warm">中深，深色为主</td>
+            <td class="col-cool">中深，深色为骨架</td>
+            <td><span class="badge b-yes">一致</span></td>
+          </tr>
+          <tr>
+            <td>饱和度</td>
+            <td class="col-warm">低饱和，带灰浊感</td>
+            <td class="col-cool">低饱和</td>
+            <td><span class="badge b-yes">一致</span></td>
+          </tr>
+          <tr>
+            <td>对比度</td>
+            <td class="col-warm">中高对比（深浅拉得开）</td>
+            <td class="col-cool">中对比，偏匀净</td>
+            <td><span class="badge b-half">近似</span></td>
+          </tr>
+          <tr>
+            <td>核心深色</td>
+            <td class="col-warm">墨绿 / 藏青 / 巧克力棕</td>
+            <td class="col-cool">藏青 / 深海蓝 / 军绿 / 深灰</td>
+            <td><span class="badge b-yes">高度重合</span></td>
+          </tr>
+          <tr>
+            <td>浅色处理</td>
+            <td class="col-warm">只用米白/燕麦，避开纯白浅灰</td>
+            <td class="col-cool">白、浅灰、米白都可</td>
+            <td><span class="badge b-no">分歧</span></td>
+          </tr>
+          <tr>
+            <td>点缀暖色</td>
+            <td class="col-warm">焦糖 / 铁锈红 / 酒红 / 芥末黄</td>
+            <td class="col-cool">无（明确避橙黄）</td>
+            <td><span class="badge b-no">分歧</span></td>
+          </tr>
+          <tr>
+            <td>点缀冷色</td>
+            <td class="col-warm">深青 / 孔雀绿</td>
+            <td class="col-cool">雾霾蓝 / 浅灰</td>
+            <td><span class="badge b-no">分歧</span></td>
+          </tr>
+          <tr>
+            <td>材质与廓形</td>
+            <td class="col-warm">哑光带肌理，合身到微宽松</td>
+            <td class="col-cool">未强调材质，廓形直筒/工装</td>
+            <td><span class="badge b-yes">一致</span></td>
+          </tr>
+          <tr>
+            <td>风格路线</td>
+            <td class="col-warm">户外机能 / 工装 / 简约运动</td>
+            <td class="col-cool">户外运动 / 城市简约 / 轻户外工装 / 健身</td>
+            <td><span class="badge b-yes">一致</span></td>
+          </tr>
+          <tr>
+            <td>帽子结论</td>
+            <td class="col-warm">棒球帽首选，渔夫帽、军帽；哑光</td>
+            <td class="col-cool">棒球帽首选，户外帽、渔夫帽、弯檐帽、针织帽</td>
+            <td><span class="badge b-yes">一致</span></td>
+          </tr>
+          <tr>
+            <td>禁忌项</td>
+            <td class="col-warm">荧光、亮面、闪色、马卡龙</td>
+            <td class="col-cool">荧光、高饱和、过鲜艳</td>
+            <td><span class="badge b-yes">一致</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 03 分歧 ============ -->
+  <section>
+    <div class="sec-head"><span class="sec-num">03</span><h2>四个真分歧 · 以及怎么判</h2></div>
+    <p class="sec-sub">分歧只有四处，而且都能用「位置」和「深度」化解。</p>
+
+    <div class="grid3">
+
+      <div class="conf">
+        <div class="num">01</div>
+        <h4>最根本：暖调 还是 冷调？</h4>
+        <div class="vs">
+          <p><span class="pill p-warm">A</span>肤色 #CDA07C，是明确的暖调棕褐，配深棕黑发、深棕瞳 → 深秋型</p>
+          <p><span class="pill p-cool">B</span>整体气质清爽自然，发型瞳色偏冷黑 → 冷感中性型</p>
+        </div>
+        <div class="verdict">
+          <b>判定：A 更可信。</b>A 给了可测色值，B 的「冷」来自气质印象而非色值。但两者推荐的核心色（藏青、墨绿、黑）本身就是<b>深冷色</b>——深到一定程度后，冷暖差异被吃掉，所以两版结论能并存。
+        </div>
+      </div>
+
+      <div class="conf">
+        <div class="num">02</div>
+        <h4>白色能不能穿？</h4>
+        <div class="vs">
+          <p><span class="pill p-warm">A</span>避开纯白与浅灰，浅色只用米白/燕麦</p>
+          <p><span class="pill p-cool">B</span>白色、浅灰列为 ⭐⭐⭐⭐ 推荐</p>
+        </div>
+        <div class="verdict">
+          <b>判定：按位置分。</b>贴脸（上衣、帽子）用<b>米白/燕麦</b>；远离脸（鞋、内搭下摆）用<b>纯白</b>。B 的白鞋推荐和 A 的米白小白鞋，本质是同一个方案。
+        </div>
+      </div>
+
+      <div class="conf">
+        <div class="num">03</div>
+        <h4>暖色点缀要不要留？</h4>
+        <div class="vs">
+          <p><span class="pill p-warm">A</span>焦糖、铁锈红、酒红、芥末黄是提气色的关键</p>
+          <p><span class="pill p-cool">B</span>高饱和橙黄要少用</p>
+        </div>
+        <div class="verdict">
+          <b>判定：留，但降饱和加深。</b>A 的焦糖 #B5763A、铁锈红 #9E4B2E、酒红 #6E2A34 都是<b>低饱和深暖色</b>，本就不在 B 反对的「高饱和橙黄」范围内。两者其实不冲突，只是 B 没把这一档色单独列出来。
+        </div>
+      </div>
+
+      <div class="conf">
+        <div class="num">04</div>
+        <h4>雾霾蓝 / 浅灰算不算好色？</h4>
+        <div class="vs">
+          <p><span class="pill p-warm">A</span>冰蓝「发冷」、灰丁香「压气色」，应避开</p>
+          <p><span class="pill p-cool">B</span>雾霾蓝、浅灰 ⭐⭐⭐⭐ 推荐</p>
+        </div>
+        <div class="verdict">
+          <b>判定：浅冷色下放。</b>雾霾蓝 #7C93A8、浅灰 #C9C9C4 属于<b>浅冷低饱和</b>，贴脸会显脏、显灰。做法：<b>只作下装或外套</b>，或直接换成更深的藏青 / 深海蓝。
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ 04 公共点 ============ -->
+  <section>
+    <div class="sec-head"><span class="sec-num">04</span><h2>公共点提取 · 两版都认的硬结论</h2></div>
+    <p class="sec-sub">剔除措辞差异后，真正重叠的部分——这部分可以直接执行，不用再纠结。</p>
+
+    <div class="common">
+
+      <div class="common-block">
+        <h4>铁核公共色（两版都明确点名）</h4>
+        <div class="swatches core-swatch">
+          <div class="sw"><i style="background:#24344D"></i><b>藏青</b><s>24344D</s></div>
+          <div class="sw"><i style="background:#2E4034"></i><b>墨绿 / 军绿</b><s>2E4034</s></div>
+          <div class="sw"><i style="background:#2A2A2A"></i><b>黑 / 墨黑</b><s>2A2A2A</s></div>
+          <div class="sw"><i style="background:#EDE3CE"></i><b>米白 / 燕麦</b><s>EDE3CE</s></div>
+          <div class="sw"><i style="background:#4A3226"></i><b>巧克力棕</b><s>4A3226</s></div>
+        </div>
+      </div>
+
+      <div class="common-block">
+        <h4>准公共色（一方主推、另一方不反对）</h4>
+        <div class="swatches core-swatch">
+          <div class="sw"><i style="background:#1B3A5C"></i><b>深海蓝</b><s>1B3A5C</s></div>
+          <div class="sw"><i style="background:#3B3F42"></i><b>深灰</b><s>3B3F42</s></div>
+          <div class="sw"><i style="background:#B5763A"></i><b>焦糖 / 驼</b><s>B5763A</s></div>
+          <div class="sw"><i style="background:#9E4B2E"></i><b>铁锈红</b><s>9E4B2E</s></div>
+          <div class="sw"><i style="background:#6B4A32"></i><b>深棕</b><s>6B4A32</s></div>
+        </div>
+      </div>
+
+      <div class="common-block">
+        <h4>公共穿搭骨架（两版完全同构）</h4>
+        <div class="skeleton">
+          <div class="sk-item"><span>上衣</span>纯色 T 恤 / 深色上衣</div>
+          <div class="sk-item"><span>下装</span>藏青·军绿·深灰 直筒裤 / 工装裤</div>
+          <div class="sk-item"><span>外套</span>轻户外 / 工装 / shirt jacket</div>
+          <div class="sk-item"><span>鞋</span>运动鞋 / 白鞋 / 深棕德训</div>
+          <div class="sk-item"><span>帽</span>棒球帽（首选）· 渔夫帽</div>
+        </div>
+      </div>
+
+      <div class="common-block">
+        <h4>公共配色公式（两版交叉验证）</h4>
+        <div class="chips">
+          <span class="chip good">藏青 + 墨绿</span>
+          <span class="chip good">藏青 + 米白</span>
+          <span class="chip good">黑 + 藏青 + 米白</span>
+          <span class="chip good">墨绿 + 深灰</span>
+          <span class="chip good">墨绿 + 卡其/驼</span>
+          <span class="chip good">深棕 + 藏青</span>
+        </div>
+      </div>
+
+      <div class="common-block">
+        <h4>公共风格路线</h4>
+        <div class="chips">
+          <span class="chip">简约 × 运动 × 轻户外</span>
+          <span class="chip">户外机能</span>
+          <span class="chip">工装</span>
+          <span class="chip">城市简约</span>
+          <span class="chip">健身运动</span>
+          <span class="chip">合身～微宽松 / 直筒</span>
+          <span class="chip">哑光材质</span>
+        </div>
+      </div>
+
+      <div class="common-block">
+        <h4>公共禁区</h4>
+        <div class="chips">
+          <span class="chip bad">荧光色</span>
+          <span class="chip bad">高饱和亮色</span>
+          <span class="chip bad">亮面 / 缎光 / 闪色</span>
+          <span class="chip bad">马卡龙色</span>
+          <span class="chip bad">花哨印花</span>
+          <span class="chip bad">过修身剪裁</span>
+        </div>
+      </div>
+
+      <div class="common-block">
+        <h4>公共帽子结论</h4>
+        <div class="chips">
+          <span class="chip good">① 黑色 / 墨黑棒球帽</span>
+          <span class="chip good">② 藏青棒球帽</span>
+          <span class="chip good">③ 军绿户外帽 / 渔夫帽</span>
+          <span class="chip bad">白、浅灰、浅粉、亮面</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ 05 融合 ============ -->
+  <section>
+    <div class="sec-head"><span class="sec-num">05</span><h2>融合方案 · 把两版合成一套</h2></div>
+    <p class="sec-sub">以 A 的暖调实测为底，吸收 B 的冷色骨架与单品结构。</p>
+
+    <div class="fusion">
+      <h3>深暖打底 · 冷深搭骨架 · 米白收尾</h3>
+      <p class="lead">保留 A 的暖调优势，同时把 B 的冷深色放进「下装与大面积」位置，规避冲突。</p>
+
+      <div class="fusion-grid">
+        <div class="fcard">
+          <span>贴脸层（上衣 / 帽）</span>
+          <p><b>焦糖 #B5763A · 铁锈红 #9E4B2E · 酒红 #6E2A34 · 墨绿 #2E4034 · 燕麦 #EDE3CE</b><br>用 A 的暖调逻辑，浅色一律走米白。</p>
+        </div>
+        <div class="fcard">
+          <span>骨架层（裤 / 外套）</span>
+          <p><b>藏青 #24344D · 深海蓝 #1B3A5C · 巧克力棕 #4A3226 · 深灰 #3B3F42</b><br>这一层两版完全一致，放心用。</p>
+        </div>
+        <div class="fcard">
+          <span>鞋 / 收尾</span>
+          <p><b>米白 #EDE3CE · 深棕 #6B4A32</b><br>纯白只放鞋上，绝不贴脸。</p>
+        </div>
+        <div class="fcard">
+          <span>可以放弃的部分</span>
+          <p><b>雾霾蓝、浅灰、亮黄、荧光、纯白上衣</b><br>B 的浅冷色与 A 的亮暖色，同时降级处理。</p>
+        </div>
+      </div>
+
+      <div class="fusion-note">
+        最终配色比例沿用 A 的口诀：<b style="color:#fff">深色占大面积压住整体，暖色小面积贴脸提亮，浅色只用米白收尾。</b>
+        单品结构沿用 B 的清单：<b style="color:#fff">纯色 T + 工装裤/直筒裤 + 运动鞋 + 棒球帽</b>，即可覆盖通勤、旅行、健身、约会四个场景。
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    基于「深秋型 · 暖调」与「冷感中性型」两份个人色彩指南的交叉分析
+  </footer>
+
+</div>
+</body>
+</html>
