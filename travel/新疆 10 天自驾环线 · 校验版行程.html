@@ -119,6 +119,47 @@
   .hero-stat .value { font-size: 16px; font-weight: 700; color: #fff; }
   .hero-stat .value.accent { color: var(--gold); }
 
+  /* ============ 路线图卡片 ============ */
+  .map-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 22px 22px 16px;
+    margin-bottom: 28px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .map-card-head {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 14px; flex-wrap: wrap;
+  }
+  .map-card-head h2 {
+    font-size: 18px; font-weight: 800; color: var(--navy);
+    letter-spacing: -.3px;
+  }
+  .map-card-head .map-hint {
+    font-size: 12px; color: var(--muted);
+    margin-left: auto; background: var(--line-2);
+    padding: 3px 12px; border-radius: 20px; font-weight: 500;
+  }
+  .map-card svg {
+    width: 100%; height: auto; display: block;
+    border-radius: 10px;
+  }
+  /* 流向动画 */
+  .map-flow {
+    stroke-dasharray: 6 14;
+    animation: mapFlowAnim 0.9s linear infinite;
+  }
+  .map-flow-back { animation-duration: 1.1s; }
+  @keyframes mapFlowAnim {
+    from { stroke-dashoffset: 0; }
+    to   { stroke-dashoffset: -20; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .map-flow { animation: none; }
+  }
+
   /* ============ 总览统计 ============ */
   .overview-bar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 28px; }
   .ov-item {
@@ -349,12 +390,16 @@
     .day-footer-nav { flex-direction: column; }
     .dfn-btn.next .dfn-arrow { order: 0; }
     .dfn-btn.next { flex-direction: row-reverse; text-align: left; }
+    .map-card { padding: 16px 14px 12px; }
+    .map-card-head h2 { font-size: 16px; }
+    .map-card-head .map-hint { display: none; }
   }
   @media (max-width: 480px) {
     .wrap { padding: 0 14px; }
     .hero h1 { font-size: 22px; }
     .info-strip { flex-wrap: wrap; }
     .info-strip .is-item { flex: 1 1 45%; border-bottom: 1px solid var(--line-2); }
+    .map-card { padding: 12px 10px 8px; }
   }
 </style>
 </head>
@@ -399,6 +444,185 @@
   </header>
 
   <div class="wrap">
+
+    <!-- ============ 路线图卡片 ============ -->
+    <div class="map-card">
+      <div class="map-card-head">
+        <h2>整体路线概览</h2>
+        <span class="map-hint">虚线流动方向 = 行驶方向</span>
+      </div>
+
+      <svg viewBox="0 0 960 800" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <linearGradient id="map-bg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#faf6ee"/>
+            <stop offset="100%" stop-color="#efe7d8"/>
+          </linearGradient>
+          <filter id="map-shadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#1a2332" flood-opacity="0.1"/>
+          </filter>
+          <filter id="map-nodeShadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#1a2332" flood-opacity="0.25"/>
+          </filter>
+        </defs>
+
+        <!-- 背景 -->
+        <rect width="960" height="800" fill="url(#map-bg)"/>
+
+        <!-- 准噶尔盆地示意 -->
+        <ellipse cx="580" cy="380" rx="320" ry="180" fill="#e6d9c0" opacity="0.35"/>
+        <!-- 塔里木盆地示意 -->
+        <ellipse cx="480" cy="740" rx="400" ry="110" fill="#ddd0b6" opacity="0.3"/>
+        <!-- 天山示意 -->
+        <path d="M0 600 Q120 555 240 575 Q360 595 480 570 Q600 545 720 570 Q840 595 960 570"
+              stroke="#c8b8a0" stroke-width="26" fill="none" opacity="0.18" stroke-linecap="round"/>
+        <!-- 阿尔泰山示意 -->
+        <path d="M620 170 Q720 135 820 145 Q890 152 960 172"
+              stroke="#c8b8a0" stroke-width="22" fill="none" opacity="0.18" stroke-linecap="round"/>
+
+        <!-- ============ 去程 ============ -->
+        <g>
+          <path d="M 780 650 Q 630 600 480 620" stroke="#c44d3c" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.9"/>
+          <path d="M 780 650 Q 630 600 480 620" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow" opacity="0.75"/>
+        </g>
+        <g>
+          <path d="M 480 620 L 430 720" stroke="#c44d3c" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.9"/>
+          <path d="M 480 620 L 430 720" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow" opacity="0.75"/>
+        </g>
+        <g>
+          <path d="M 430 720 Q 280 660 130 520" stroke="#c44d3c" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.9"/>
+          <path d="M 430 720 Q 280 660 130 520" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow" opacity="0.75"/>
+        </g>
+        <g>
+          <path d="M 130 520 Q 320 460 500 350" stroke="#c44d3c" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.9"/>
+          <path d="M 130 520 Q 320 460 500 350" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow" opacity="0.75"/>
+        </g>
+        <g>
+          <path d="M 500 350 Q 600 290 700 210" stroke="#c44d3c" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.9"/>
+          <path d="M 500 350 Q 600 290 700 210" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow" opacity="0.75"/>
+        </g>
+        <g>
+          <path d="M 700 210 Q 750 165 790 120" stroke="#c44d3c" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.9"/>
+          <path d="M 700 210 Q 750 165 790 120" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow" opacity="0.75"/>
+        </g>
+        <g>
+          <path d="M 790 120 Q 830 95 860 75" stroke="#c44d3c" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.9"/>
+          <path d="M 790 120 Q 830 95 860 75" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow" opacity="0.75"/>
+        </g>
+
+        <!-- ============ 返程 ============ -->
+        <g>
+          <path d="M 860 75 Q 580 50 500 350" stroke="#3a7a7a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-dasharray="10 6" opacity="0.85"/>
+          <path d="M 860 75 Q 580 50 500 350" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow map-flow-back" opacity="0.85"/>
+        </g>
+        <g>
+          <path d="M 500 350 L 480 620" stroke="#3a7a7a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-dasharray="10 6" opacity="0.85"/>
+          <path d="M 500 350 L 480 620" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow map-flow-back" opacity="0.85"/>
+        </g>
+        <g>
+          <path d="M 480 620 Q 630 680 780 650" stroke="#3a7a7a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-dasharray="10 6" opacity="0.85"/>
+          <path d="M 480 620 Q 630 680 780 650" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow map-flow-back" opacity="0.85"/>
+        </g>
+
+        <!-- ============ 距离标注 ============ -->
+        <g transform="translate(630, 598)">
+          <rect x="-38" y="-13" width="76" height="26" rx="13" fill="#fff" stroke="#e8e2da" stroke-width="1" filter="url(#map-shadow)"/>
+          <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#c44d3c">250km</text>
+        </g>
+        <g transform="translate(410, 672)">
+          <rect x="-34" y="-12" width="68" height="24" rx="12" fill="#fff" stroke="#e8e2da" stroke-width="1" filter="url(#map-shadow)"/>
+          <text x="0" y="5" text-anchor="middle" font-size="12" font-weight="700" fill="#c44d3c">145km</text>
+        </g>
+        <g transform="translate(248, 598)">
+          <rect x="-36" y="-13" width="72" height="26" rx="13" fill="#fff" stroke="#e8e2da" stroke-width="1" filter="url(#map-shadow)"/>
+          <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#c44d3c">360km</text>
+        </g>
+        <g transform="translate(295, 418)">
+          <rect x="-36" y="-13" width="72" height="26" rx="13" fill="#fff" stroke="#e8e2da" stroke-width="1" filter="url(#map-shadow)"/>
+          <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#c44d3c">420km</text>
+        </g>
+        <g transform="translate(578, 262)">
+          <rect x="-36" y="-13" width="72" height="26" rx="13" fill="#fff" stroke="#e8e2da" stroke-width="1" filter="url(#map-shadow)"/>
+          <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#c44d3c">220km</text>
+        </g>
+        <g transform="translate(742, 172)">
+          <rect x="-36" y="-13" width="72" height="26" rx="13" fill="#fff" stroke="#e8e2da" stroke-width="1" filter="url(#map-shadow)"/>
+          <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#c44d3c">140km</text>
+        </g>
+        <g transform="translate(818, 96)">
+          <rect x="-32" y="-12" width="64" height="24" rx="12" fill="#fff" stroke="#e8e2da" stroke-width="1" filter="url(#map-shadow)"/>
+          <text x="0" y="5" text-anchor="middle" font-size="12" font-weight="700" fill="#c44d3c">65km</text>
+        </g>
+        <g transform="translate(618, 118)">
+          <rect x="-36" y="-13" width="72" height="26" rx="13" fill="#fff" stroke="#c8dede" stroke-width="1" filter="url(#map-shadow)"/>
+          <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#3a7a7a">420km</text>
+        </g>
+        <g transform="translate(512, 486)">
+          <rect x="-36" y="-13" width="72" height="26" rx="13" fill="#fff" stroke="#c8dede" stroke-width="1" filter="url(#map-shadow)"/>
+          <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#3a7a7a">320km</text>
+        </g>
+        <g transform="translate(630, 682)">
+          <rect x="-36" y="-13" width="72" height="26" rx="13" fill="#fff" stroke="#c8dede" stroke-width="1" filter="url(#map-shadow)"/>
+          <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#3a7a7a">240km</text>
+        </g>
+
+        <!-- ============ 节点 ============ -->
+        <circle cx="780" cy="650" r="11" fill="#1a2332" stroke="#fff" stroke-width="3" filter="url(#map-nodeShadow)"/>
+        <text x="800" y="648" font-size="16" font-weight="700" fill="#1a2332">乌鲁木齐</text>
+        <text x="800" y="666" font-size="11" fill="#8a817a">起点 / 终点 · 地窝堡机场</text>
+
+        <circle cx="480" cy="620" r="11" fill="#c44d3c" stroke="#fff" stroke-width="3" filter="url(#map-nodeShadow)"/>
+        <text x="462" y="616" text-anchor="end" font-size="16" font-weight="700" fill="#1a2332">独山子 / 奎屯</text>
+        <text x="462" y="634" text-anchor="end" font-size="11" fill="#8a817a">D1 / D8 住宿</text>
+
+        <circle cx="430" cy="720" r="8" fill="#1a2332" stroke="#fff" stroke-width="2.5" filter="url(#map-nodeShadow)"/>
+        <text x="448" y="718" font-size="14" font-weight="700" fill="#1a2332">乔尔玛</text>
+        <text x="448" y="734" font-size="11" fill="#8a817a">独库北段 · 午餐休整</text>
+
+        <circle cx="130" cy="520" r="11" fill="#c44d3c" stroke="#fff" stroke-width="3" filter="url(#map-nodeShadow)"/>
+        <text x="152" y="518" font-size="16" font-weight="700" fill="#1a2332">赛里木湖</text>
+        <text x="152" y="536" font-size="11" fill="#8a817a">D2 住宿 · 自驾环湖</text>
+
+        <circle cx="500" cy="350" r="11" fill="#c44d3c" stroke="#fff" stroke-width="3" filter="url(#map-nodeShadow)"/>
+        <text x="522" y="348" font-size="16" font-weight="700" fill="#1a2332">克拉玛依 / 乌尔禾</text>
+        <text x="522" y="366" font-size="11" fill="#8a817a">D3 / D7 住宿 · 魔鬼城日落</text>
+
+        <circle cx="700" cy="210" r="8" fill="#1a2332" stroke="#fff" stroke-width="2.5" filter="url(#map-nodeShadow)"/>
+        <text x="720" y="208" font-size="14" font-weight="700" fill="#1a2332">布尔津</text>
+        <text x="720" y="224" font-size="11" fill="#8a817a">途经 · 五彩滩</text>
+
+        <circle cx="790" cy="120" r="11" fill="#c44d3c" stroke="#fff" stroke-width="3" filter="url(#map-nodeShadow)"/>
+        <text x="772" y="116" text-anchor="end" font-size="16" font-weight="700" fill="#1a2332">贾登峪</text>
+        <text x="772" y="134" text-anchor="end" font-size="11" fill="#8a817a">D4 / D5 住宿</text>
+
+        <circle cx="860" cy="75" r="11" fill="#c44d3c" stroke="#fff" stroke-width="3" filter="url(#map-nodeShadow)"/>
+        <text x="882" y="71" font-size="16" font-weight="700" fill="#1a2332">禾木</text>
+        <text x="882" y="89" font-size="11" fill="#8a817a">D6 住宿 · 晨雾</text>
+
+        <!-- ============ 图例 ============ -->
+        <g transform="translate(40, 700)">
+          <rect x="0" y="0" width="260" height="66" rx="12" fill="#fff" stroke="#e8e2da" stroke-width="1" opacity="0.95" filter="url(#map-shadow)"/>
+          <line x1="16" y1="22" x2="50" y2="22" stroke="#c44d3c" stroke-width="4" stroke-linecap="round"/>
+          <line x1="16" y1="22" x2="50" y2="22" stroke="#fff" stroke-width="2" stroke-linecap="round" class="map-flow" opacity="0.75"/>
+          <text x="60" y="26" font-size="12" font-weight="600" fill="#3d3733">去程（D1–D6）</text>
+          <line x1="16" y1="46" x2="50" y2="46" stroke="#3a7a7a" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="10 6"/>
+          <line x1="16" y1="46" x2="50" y2="46" stroke="#fff" stroke-width="2" stroke-linecap="round" class="map-flow map-flow-back" opacity="0.85"/>
+          <text x="60" y="50" font-size="12" font-weight="600" fill="#3d3733">返程（D7–D9）</text>
+        </g>
+
+        <!-- ============ 指北针 ============ -->
+        <g transform="translate(890, 710)">
+          <circle cx="0" cy="0" r="24" fill="#fff" stroke="#e8e2da" stroke-width="1" filter="url(#map-shadow)"/>
+          <polygon points="0,-16 5,4 0,0 -5,4" fill="#c44d3c"/>
+          <polygon points="0,16 5,-4 0,0 -5,-4" fill="#8a817a" opacity="0.4"/>
+          <text x="0" y="-20" text-anchor="middle" font-size="10" font-weight="800" fill="#1a2332">N</text>
+        </g>
+
+        <!-- 底部说明 -->
+        <text x="480" y="790" text-anchor="middle" font-size="11" fill="#a89a8a">示意图，非严格比例 · 实际里程以导航为准 · 独库北段9月底随时降雪封路，出发前查“新疆路网”</text>
+      </svg>
+    </div>
+
     <div class="overview-bar">
       <div class="ov-item"><div class="num">0</div><div class="lbl">严重偏差</div></div>
       <div class="ov-item"><div class="num">5</div><div class="lbl">必抢预约</div></div>
@@ -495,8 +719,6 @@ const COVERS = {
     <path d="M100 380 Q200 375 300 382 Q400 388 500 380 Q600 372 700 380" stroke="#8ad0e8" stroke-width="1.5" fill="none" opacity="0.4"/>
     <path d="M80 420 Q180 415 280 422 Q380 428 480 420 Q580 412 680 420" stroke="#8ad0e8" stroke-width="1.5" fill="none" opacity="0.3"/>
     <path d="M120 470 Q220 465 320 472 Q420 478 520 470 Q620 462 720 470" stroke="#8ad0e8" stroke-width="1" fill="none" opacity="0.25"/>
-    <path d="M180 340 L220 320 L260 340 L220 345 L180 345Z" fill="#ffffff" opacity="0.15"/>
-    <path d="M320 340 L360 322 L400 340 L360 345 L320 345Z" fill="#ffffff" opacity="0.15"/>
     <path d="M0 500 Q100 490 200 500 Q300 510 400 500 Q500 490 600 500 Q700 510 800 500 L800 540 L0 540Z" fill="#4a7a4a" opacity="0.7"/>
     <path d="M0 520 Q200 510 400 520 Q600 530 800 520 L800 540 L0 540Z" fill="#3a6a3a" opacity="0.8"/>
     <path d="M350 440 Q355 435 360 440 Q365 435 370 440 Q365 445 360 445 Q355 445 350 440Z" fill="#ffffff" opacity="0.7"/>
