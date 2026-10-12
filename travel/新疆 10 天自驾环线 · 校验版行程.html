@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2026国庆 · 新疆10天环线行程（观鱼台开放版）</title>
+<title>2026国庆 · 新疆10天环线行程（最终版）</title>
 <style>
   :root {
     --bg: #f7f5f2; --card: #ffffff; --ink: #1a1a1a; --ink-2: #3d3733;
@@ -142,11 +142,7 @@
     margin-left: auto; background: var(--line-2);
     padding: 3px 12px; border-radius: 20px; font-weight: 500;
   }
-  .map-card svg {
-    width: 100%; height: auto; display: block;
-    border-radius: 10px;
-  }
-  /* 流向动画 */
+  .map-card svg { width: 100%; height: auto; display: block; border-radius: 10px; }
   .map-flow {
     stroke-dasharray: 6 14;
     animation: mapFlowAnim 0.9s linear infinite;
@@ -250,7 +246,6 @@
     to { opacity: 1; transform: translateX(0); }
   }
 
-  /* 封面 */
   .sub-hero {
     border-radius: var(--radius); overflow: hidden; margin-bottom: 22px;
     box-shadow: var(--shadow-md); position: relative;
@@ -348,7 +343,6 @@
   .day-card.flag-warn { border-left: 4px solid var(--gold); }
   .day-card.flag-ok { border-left: 4px solid var(--forest); }
 
-  /* ============ 底部翻页 ============ */
   .day-footer-nav {
     display: flex; gap: 12px; margin-top: 32px; padding-top: 24px;
     border-top: 1px solid var(--line);
@@ -432,12 +426,12 @@
   <header class="hero">
     <div class="wrap">
       <div class="hero-eyebrow">2026 国庆 · 北疆环线</div>
-      <h1>新疆 10 天自驾环线</h1>
-      <p class="sub">乌市 → 独库北段 → 赛里木湖 → 克拉玛依 → 贾登峪 → 喀纳斯深度 → 禾木 → 折返乌市。观鱼台已确认开放，限流 8000 人/日，D5 安排登顶。</p>
+      <h1>新疆 10 天自驾环线（最终版）</h1>
+      <p class="sub">乌市 → 独库北段+那拉提 → 赛里木湖 → 乌尔禾 → 贾登峪 → 喀纳斯 → 禾木+阿禾公路 → 北屯 → 乌伦古湖 → 乌市 → 天山大峡谷 → 博物馆返程。</p>
       <div class="hero-stats">
         <div class="hero-stat"><div class="label">行程天数</div><div class="value">10 天</div></div>
         <div class="hero-stat"><div class="label">起止日期</div><div class="value">9.29 – 10.8</div></div>
-        <div class="hero-stat"><div class="label">落地时间</div><div class="value accent">9.29 14:00</div></div>
+        <div class="hero-stat"><div class="label">总里程</div><div class="value accent">约 2835km</div></div>
         <div class="hero-stat"><div class="label">喀纳斯+禾木</div><div class="value">3 晚深度</div></div>
       </div>
     </div>
@@ -466,32 +460,26 @@
           </filter>
         </defs>
 
-        <!-- 背景 -->
         <rect width="960" height="800" fill="url(#map-bg)"/>
-
-        <!-- 准噶尔盆地示意 -->
         <ellipse cx="580" cy="380" rx="320" ry="180" fill="#e6d9c0" opacity="0.35"/>
-        <!-- 塔里木盆地示意 -->
         <ellipse cx="480" cy="740" rx="400" ry="110" fill="#ddd0b6" opacity="0.3"/>
-        <!-- 天山示意 -->
         <path d="M0 600 Q120 555 240 575 Q360 595 480 570 Q600 545 720 570 Q840 595 960 570"
               stroke="#c8b8a0" stroke-width="26" fill="none" opacity="0.18" stroke-linecap="round"/>
-        <!-- 阿尔泰山示意 -->
         <path d="M620 170 Q720 135 820 145 Q890 152 960 172"
               stroke="#c8b8a0" stroke-width="22" fill="none" opacity="0.18" stroke-linecap="round"/>
 
-        <!-- ============ 去程 ============ -->
+        <!-- 去程 -->
         <g>
           <path d="M 780 650 Q 630 600 480 620" stroke="#c44d3c" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.9"/>
           <path d="M 780 650 Q 630 600 480 620" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow" opacity="0.75"/>
         </g>
         <g>
-          <path d="M 480 620 L 430 720" stroke="#c44d3c" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.9"/>
-          <path d="M 480 620 L 430 720" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow" opacity="0.75"/>
+          <path d="M 480 620 L 460 700" stroke="#c44d3c" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.9"/>
+          <path d="M 480 620 L 460 700" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow" opacity="0.75"/>
         </g>
         <g>
-          <path d="M 430 720 Q 280 660 130 520" stroke="#c44d3c" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.9"/>
-          <path d="M 430 720 Q 280 660 130 520" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow" opacity="0.75"/>
+          <path d="M 460 700 Q 430 640 130 520" stroke="#c44d3c" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.9"/>
+          <path d="M 460 700 Q 430 640 130 520" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow" opacity="0.75"/>
         </g>
         <g>
           <path d="M 130 520 Q 320 460 500 350" stroke="#c44d3c" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.9"/>
@@ -510,32 +498,26 @@
           <path d="M 790 120 Q 830 95 860 75" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow" opacity="0.75"/>
         </g>
 
-        <!-- ============ 返程 ============ -->
+        <!-- 禾木 → 阿禾公路 → 北屯（新增） -->
         <g>
-          <path d="M 860 75 Q 580 50 500 350" stroke="#3a7a7a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-dasharray="10 6" opacity="0.85"/>
-          <path d="M 860 75 Q 580 50 500 350" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow map-flow-back" opacity="0.85"/>
-        </g>
-        <g>
-          <path d="M 500 350 L 480 620" stroke="#3a7a7a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-dasharray="10 6" opacity="0.85"/>
-          <path d="M 500 350 L 480 620" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow map-flow-back" opacity="0.85"/>
-        </g>
-        <g>
-          <path d="M 480 620 Q 630 680 780 650" stroke="#3a7a7a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-dasharray="10 6" opacity="0.85"/>
-          <path d="M 480 620 Q 630 680 780 650" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow map-flow-back" opacity="0.85"/>
+          <path d="M 860 75 Q 780 40 650 60 Q 540 80 490 180" stroke="#c44d3c" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.9"/>
+          <path d="M 860 75 Q 780 40 650 60 Q 540 80 490 180" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow" opacity="0.75"/>
         </g>
 
-        <!-- ============ 距离标注 ============ -->
+        <!-- 北屯 → 乌伦古湖 → 乌市（返程虚线） -->
+        <g>
+          <path d="M 490 180 Q 440 230 460 300 Q 500 420 780 650" stroke="#3a7a7a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-dasharray="10 6" opacity="0.85"/>
+          <path d="M 490 180 Q 440 230 460 300 Q 500 420 780 650" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow map-flow-back" opacity="0.85"/>
+        </g>
+
+        <!-- 距离标注 -->
         <g transform="translate(630, 598)">
           <rect x="-38" y="-13" width="76" height="26" rx="13" fill="#fff" stroke="#e8e2da" stroke-width="1" filter="url(#map-shadow)"/>
           <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#c44d3c">250km</text>
         </g>
-        <g transform="translate(410, 672)">
+        <g transform="translate(448, 660)">
           <rect x="-34" y="-12" width="68" height="24" rx="12" fill="#fff" stroke="#e8e2da" stroke-width="1" filter="url(#map-shadow)"/>
-          <text x="0" y="5" text-anchor="middle" font-size="12" font-weight="700" fill="#c44d3c">145km</text>
-        </g>
-        <g transform="translate(248, 598)">
-          <rect x="-36" y="-13" width="72" height="26" rx="13" fill="#fff" stroke="#e8e2da" stroke-width="1" filter="url(#map-shadow)"/>
-          <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#c44d3c">360km</text>
+          <text x="0" y="5" text-anchor="middle" font-size="12" font-weight="700" fill="#c44d3c">650km</text>
         </g>
         <g transform="translate(295, 418)">
           <rect x="-36" y="-13" width="72" height="26" rx="13" fill="#fff" stroke="#e8e2da" stroke-width="1" filter="url(#map-shadow)"/>
@@ -543,41 +525,33 @@
         </g>
         <g transform="translate(578, 262)">
           <rect x="-36" y="-13" width="72" height="26" rx="13" fill="#fff" stroke="#e8e2da" stroke-width="1" filter="url(#map-shadow)"/>
-          <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#c44d3c">220km</text>
+          <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#c44d3c">360km</text>
         </g>
         <g transform="translate(742, 172)">
           <rect x="-36" y="-13" width="72" height="26" rx="13" fill="#fff" stroke="#e8e2da" stroke-width="1" filter="url(#map-shadow)"/>
-          <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#c44d3c">140km</text>
+          <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#c44d3c">65km</text>
         </g>
-        <g transform="translate(818, 96)">
-          <rect x="-32" y="-12" width="64" height="24" rx="12" fill="#fff" stroke="#e8e2da" stroke-width="1" filter="url(#map-shadow)"/>
-          <text x="0" y="5" text-anchor="middle" font-size="12" font-weight="700" fill="#c44d3c">65km</text>
+        <g transform="translate(700, 60)">
+          <rect x="-36" y="-13" width="72" height="26" rx="13" fill="#fff" stroke="#e8e2da" stroke-width="1" filter="url(#map-shadow)"/>
+          <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#c44d3c">370km</text>
         </g>
-        <g transform="translate(618, 118)">
+        <g transform="translate(560, 360)">
           <rect x="-36" y="-13" width="72" height="26" rx="13" fill="#fff" stroke="#c8dede" stroke-width="1" filter="url(#map-shadow)"/>
-          <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#3a7a7a">420km</text>
-        </g>
-        <g transform="translate(512, 486)">
-          <rect x="-36" y="-13" width="72" height="26" rx="13" fill="#fff" stroke="#c8dede" stroke-width="1" filter="url(#map-shadow)"/>
-          <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#3a7a7a">320km</text>
-        </g>
-        <g transform="translate(630, 682)">
-          <rect x="-36" y="-13" width="72" height="26" rx="13" fill="#fff" stroke="#c8dede" stroke-width="1" filter="url(#map-shadow)"/>
-          <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#3a7a7a">240km</text>
+          <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#3a7a7a">550km</text>
         </g>
 
-        <!-- ============ 节点 ============ -->
+        <!-- 节点 -->
         <circle cx="780" cy="650" r="11" fill="#1a2332" stroke="#fff" stroke-width="3" filter="url(#map-nodeShadow)"/>
         <text x="800" y="648" font-size="16" font-weight="700" fill="#1a2332">乌鲁木齐</text>
-        <text x="800" y="666" font-size="11" fill="#8a817a">起点 / 终点 · 地窝堡机场</text>
+        <text x="800" y="666" font-size="11" fill="#8a817a">起点 / 终点 · D8–D10 住宿</text>
 
         <circle cx="480" cy="620" r="11" fill="#c44d3c" stroke="#fff" stroke-width="3" filter="url(#map-nodeShadow)"/>
         <text x="462" y="616" text-anchor="end" font-size="16" font-weight="700" fill="#1a2332">独山子 / 奎屯</text>
-        <text x="462" y="634" text-anchor="end" font-size="11" fill="#8a817a">D1 / D8 住宿</text>
+        <text x="462" y="634" text-anchor="end" font-size="11" fill="#8a817a">D1 住宿</text>
 
-        <circle cx="430" cy="720" r="8" fill="#1a2332" stroke="#fff" stroke-width="2.5" filter="url(#map-nodeShadow)"/>
-        <text x="448" y="718" font-size="14" font-weight="700" fill="#1a2332">乔尔玛</text>
-        <text x="448" y="734" font-size="11" fill="#8a817a">独库北段 · 午餐休整</text>
+        <circle cx="460" cy="700" r="8" fill="#1a2332" stroke="#fff" stroke-width="2.5" filter="url(#map-nodeShadow)"/>
+        <text x="478" y="698" font-size="14" font-weight="700" fill="#1a2332">那拉提</text>
+        <text x="478" y="714" font-size="11" fill="#8a817a">D2 途经 · 独库终点</text>
 
         <circle cx="130" cy="520" r="11" fill="#c44d3c" stroke="#fff" stroke-width="3" filter="url(#map-nodeShadow)"/>
         <text x="152" y="518" font-size="16" font-weight="700" fill="#1a2332">赛里木湖</text>
@@ -585,32 +559,40 @@
 
         <circle cx="500" cy="350" r="11" fill="#c44d3c" stroke="#fff" stroke-width="3" filter="url(#map-nodeShadow)"/>
         <text x="522" y="348" font-size="16" font-weight="700" fill="#1a2332">克拉玛依 / 乌尔禾</text>
-        <text x="522" y="366" font-size="11" fill="#8a817a">D3 / D7 住宿 · 魔鬼城日落</text>
+        <text x="522" y="366" font-size="11" fill="#8a817a">D3 住宿 · 魔鬼城日落</text>
 
         <circle cx="700" cy="210" r="8" fill="#1a2332" stroke="#fff" stroke-width="2.5" filter="url(#map-nodeShadow)"/>
         <text x="720" y="208" font-size="14" font-weight="700" fill="#1a2332">布尔津</text>
-        <text x="720" y="224" font-size="11" fill="#8a817a">途经 · 五彩滩</text>
+        <text x="720" y="224" font-size="11" fill="#8a817a">D4 途经 · 五彩滩</text>
 
         <circle cx="790" cy="120" r="11" fill="#c44d3c" stroke="#fff" stroke-width="3" filter="url(#map-nodeShadow)"/>
         <text x="772" y="116" text-anchor="end" font-size="16" font-weight="700" fill="#1a2332">贾登峪</text>
-        <text x="772" y="134" text-anchor="end" font-size="11" fill="#8a817a">D4 / D5 住宿</text>
+        <text x="772" y="134" text-anchor="end" font-size="11" fill="#8a817a">D4–D6 住宿</text>
 
         <circle cx="860" cy="75" r="11" fill="#c44d3c" stroke="#fff" stroke-width="3" filter="url(#map-nodeShadow)"/>
         <text x="882" y="71" font-size="16" font-weight="700" fill="#1a2332">禾木</text>
-        <text x="882" y="89" font-size="11" fill="#8a817a">D6 住宿 · 晨雾</text>
+        <text x="882" y="89" font-size="11" fill="#8a817a">D7 上午 · 晨雾</text>
 
-        <!-- ============ 图例 ============ -->
+        <circle cx="490" cy="180" r="11" fill="#c44d3c" stroke="#fff" stroke-width="3" filter="url(#map-nodeShadow)"/>
+        <text x="512" y="176" font-size="16" font-weight="700" fill="#1a2332">北屯</text>
+        <text x="512" y="194" font-size="11" fill="#8a817a">D7 住宿 · 阿禾公路终点</text>
+
+        <circle cx="450" cy="240" r="7" fill="#1a2332" stroke="#fff" stroke-width="2" filter="url(#map-nodeShadow)"/>
+        <text x="468" y="238" font-size="13" font-weight="700" fill="#1a2332">乌伦古湖</text>
+        <text x="468" y="254" font-size="11" fill="#8a817a">D8 途经</text>
+
+        <!-- 图例 -->
         <g transform="translate(40, 700)">
           <rect x="0" y="0" width="260" height="66" rx="12" fill="#fff" stroke="#e8e2da" stroke-width="1" opacity="0.95" filter="url(#map-shadow)"/>
           <line x1="16" y1="22" x2="50" y2="22" stroke="#c44d3c" stroke-width="4" stroke-linecap="round"/>
           <line x1="16" y1="22" x2="50" y2="22" stroke="#fff" stroke-width="2" stroke-linecap="round" class="map-flow" opacity="0.75"/>
-          <text x="60" y="26" font-size="12" font-weight="600" fill="#3d3733">去程（D1–D6）</text>
+          <text x="60" y="26" font-size="12" font-weight="600" fill="#3d3733">去程（D1–D7）</text>
           <line x1="16" y1="46" x2="50" y2="46" stroke="#3a7a7a" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="10 6"/>
           <line x1="16" y1="46" x2="50" y2="46" stroke="#fff" stroke-width="2" stroke-linecap="round" class="map-flow map-flow-back" opacity="0.85"/>
-          <text x="60" y="50" font-size="12" font-weight="600" fill="#3d3733">返程（D7–D9）</text>
+          <text x="60" y="50" font-size="12" font-weight="600" fill="#3d3733">返程（D8）</text>
         </g>
 
-        <!-- ============ 指北针 ============ -->
+        <!-- 指北针 -->
         <g transform="translate(890, 710)">
           <circle cx="0" cy="0" r="24" fill="#fff" stroke="#e8e2da" stroke-width="1" filter="url(#map-shadow)"/>
           <polygon points="0,-16 5,4 0,0 -5,4" fill="#c44d3c"/>
@@ -618,17 +600,16 @@
           <text x="0" y="-20" text-anchor="middle" font-size="10" font-weight="800" fill="#1a2332">N</text>
         </g>
 
-        <!-- 底部说明 -->
-        <text x="480" y="790" text-anchor="middle" font-size="11" fill="#a89a8a">示意图，非严格比例 · 实际里程以导航为准 · 独库北段9月底随时降雪封路，出发前查“新疆路网”</text>
+        <text x="480" y="790" text-anchor="middle" font-size="11" fill="#a89a8a">示意图，非严格比例 · 实际里程以导航为准 · 总里程约 2835km</text>
       </svg>
     </div>
 
     <div class="overview-bar">
-      <div class="ov-item"><div class="num">0</div><div class="lbl">严重偏差</div></div>
-      <div class="ov-item"><div class="num">5</div><div class="lbl">必抢预约</div></div>
+      <div class="ov-item"><div class="num">2835km</div><div class="lbl">总里程</div></div>
+      <div class="ov-item"><div class="num">650km</div><div class="lbl">最长单日 D2</div></div>
       <div class="ov-item"><div class="num">8000</div><div class="lbl">观鱼台限流/日</div></div>
-      <div class="ov-item"><div class="num">420km</div><div class="lbl">最长单日</div></div>
-      <div class="ov-item"><div class="num">3</div><div class="lbl">新增住宿</div></div>
+      <div class="ov-item"><div class="num">3</div><div class="lbl">贾登峪住宿</div></div>
+      <div class="ov-item"><div class="num">2</div><div class="lbl">乌市住宿</div></div>
     </div>
 
     <div class="section-head">
@@ -640,12 +621,12 @@
 
     <div class="callout green">
       <div class="ci">✓</div>
-      <div class="cb"><strong>观鱼台已确认开放。</strong>每日限流 8000 人，开放时间 09:00–18:00，分时预约制。D5 上午安排乘专线车登顶，俯瞰喀纳斯湖全景。D6 保留三湾补拍和湖边栈道。</div>
+      <div class="cb"><strong>最终版行程要点：</strong>D2 独库北段开到那拉提草原，晚上赶到赛里木湖；D6 住贾登峪，D7 早上赶到禾木看晨雾，走阿禾公路到北屯；D8 北屯经乌伦古湖回乌市，D9–D10 住乌市，分别去天山大峡谷和博物馆。</div>
     </div>
 
     <div class="callout amber">
       <div class="ci">!</div>
-      <div class="cb"><strong>行程调整要点：</strong>D3 只到克拉玛依/乌尔禾（420km），D4 到贾登峪（360km），里程已合理分担；喀纳斯改住贾登峪，深度玩 2 天；新增禾木村内住宿一晚。</div>
+      <div class="cb"><strong>关键提醒：</strong>独库公路已于 10月8日20时冬季封闭，你的 D2（9.30）在封闭前，时间没问题。D2 是全程最累的一天，建议两人轮换驾驶，那拉提游玩控制在 1–2 小时。</div>
     </div>
 
     <div class="footer-note">
@@ -802,7 +783,6 @@ const COVERS = {
     <rect x="0" y="340" width="800" height="200" fill="url(#d5-lake)"/>
     <path d="M100 380 Q200 375 300 382 Q400 388 500 380 Q600 372 700 380" stroke="#a8e8e0" stroke-width="1.5" fill="none" opacity="0.4"/>
     <path d="M80 420 Q180 415 280 422 Q380 428 480 420 Q580 412 680 420" stroke="#a8e8e0" stroke-width="1.2" fill="none" opacity="0.35"/>
-    <path d="M120 460 Q220 455 320 462 Q420 468 520 460 Q620 452 720 460" stroke="#a8e8e0" stroke-width="1" fill="none" opacity="0.3"/>
     <g transform="translate(400,140)">
       <rect x="-80" y="60" width="160" height="14" fill="#6a4a3a"/>
       <rect x="-60" y="40" width="120" height="14" fill="#6a4a3a"/>
@@ -811,8 +791,6 @@ const COVERS = {
       <rect x="-8" y="-20" width="16" height="30" fill="#5a3a2a"/>
       <polygon points="-16,-20 0,-40 16,-20" fill="#3a2a1a"/>
       <rect x="-3" y="-35" width="6" height="8" fill="#8a8a8a"/>
-      <rect x="-30" y="60" width="10" height="40" fill="#5a3a2a"/>
-      <rect x="20" y="60" width="10" height="40" fill="#5a3a2a"/>
     </g>
     <ellipse cx="400" cy="200" rx="120" ry="20" fill="#fff" opacity="0.15"/>
   </svg>`,
@@ -842,22 +820,16 @@ const COVERS = {
     <rect x="250" y="380" width="70" height="45" fill="#7a5a3a"/>
     <polygon points="243,380 285,345 327,380" fill="#4a3020"/>
     <rect x="275" y="400" width="14" height="25" fill="#2a1a10"/>
-    <rect x="298" y="395" width="12" height="12" fill="#a8c0d0" opacity="0.6"/>
     <rect x="350" y="375" width="80" height="50" fill="#8a6a4a"/>
     <polygon points="342,375 390,335 438,375" fill="#5a3a2a"/>
     <rect x="382" y="398" width="16" height="27" fill="#2a1a10"/>
-    <rect x="408" y="392" width="14" height="14" fill="#a8c0d0" opacity="0.6"/>
     <rect x="460" y="385" width="65" height="40" fill="#7a5a3a"/>
     <polygon points="453,385 492,352 531,385" fill="#4a3020"/>
     <rect x="482" y="403" width="12" height="22" fill="#2a1a10"/>
-    <path d="M390 335 Q385 320 395 305 Q400 295 395 280" stroke="#fff" stroke-width="2" fill="none" opacity="0.5"/>
-    <path d="M495 352 Q490 340 498 328 Q503 318 498 305" stroke="#fff" stroke-width="1.5" fill="none" opacity="0.4"/>
     <path d="M0 425 Q200 415 400 425 Q600 435 800 425 L800 540 L0 540Z" fill="#a8a060" opacity="0.8"/>
     <path d="M0 470 Q200 460 400 470 Q600 480 800 470 L800 540 L0 540Z" fill="#8a8050"/>
     <ellipse cx="150" cy="475" rx="14" ry="8" fill="#4a3020"/>
     <ellipse cx="130" cy="470" rx="6" ry="5" fill="#4a3020"/>
-    <line x1="150" y1="483" x2="145" y2="495" stroke="#4a3020" stroke-width="2"/>
-    <line x1="150" y1="483" x2="155" y2="495" stroke="#4a3020" stroke-width="2"/>
   </svg>`,
 
   7: `<svg viewBox="0 0 800 540" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
@@ -898,12 +870,6 @@ const COVERS = {
     <ellipse cx="150" cy="440" rx="20" ry="10" fill="#fff" opacity="0.15"/>
     <ellipse cx="400" cy="450" rx="30" ry="12" fill="#fff" opacity="0.15"/>
     <ellipse cx="650" cy="445" rx="25" ry="11" fill="#fff" opacity="0.15"/>
-    <g opacity="0.6">
-      <line x1="120" y1="430" x2="120" y2="460" stroke="#3a2a1a" stroke-width="3"/>
-      <ellipse cx="120" cy="425" rx="15" ry="20" fill="#d8b860"/>
-      <line x1="680" y1="435" x2="680" y2="465" stroke="#3a2a1a" stroke-width="3"/>
-      <ellipse cx="680" cy="430" rx="15" ry="20" fill="#d8b860"/>
-    </g>
   </svg>`,
 
   8: `<svg viewBox="0 0 800 540" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
@@ -930,15 +896,6 @@ const COVERS = {
       <circle cx="30" cy="-50" r="3" fill="#3a3a3a"/>
     </g>
     <g transform="translate(400,355) scale(1.1)">
-      <rect x="-30" y="30" width="60" height="8" fill="#4a4a4a"/>
-      <polygon points="-30,30 -10,0 0,0 -20,30" fill="#3a3a3a"/>
-      <rect x="-8" y="-30" width="16" height="30" fill="#5a5a5a"/>
-      <rect x="-20" y="-40" width="40" height="14" fill="#6a6a6a"/>
-      <rect x="15" y="-32" width="8" height="8" fill="#4a4a4a"/>
-      <line x1="0" y1="-40" x2="30" y2="-50" stroke="#4a4a4a" stroke-width="2"/>
-      <circle cx="30" cy="-50" r="3" fill="#3a3a3a"/>
-    </g>
-    <g transform="translate(640,340) scale(0.85)" opacity="0.8">
       <rect x="-30" y="30" width="60" height="8" fill="#4a4a4a"/>
       <polygon points="-30,30 -10,0 0,0 -20,30" fill="#3a3a3a"/>
       <rect x="-8" y="-30" width="16" height="30" fill="#5a5a5a"/>
@@ -1052,7 +1009,7 @@ const COVERS = {
 };
 
 /* ============================================================
-   行程数据
+   最终版行程数据
 ============================================================ */
 const TRIPS = {
   1: {
@@ -1089,38 +1046,43 @@ const TRIPS = {
     bookings: []
   },
   2: {
-    date: '9.30', title: '独山子 → 独库北段 → 赛里木湖',
-    routeSub: '独库北段 · 哈希勒根达坂 · 果子沟大桥 · 赛湖日落',
-    coverLabel: '独库北段 · 赛里木湖',
+    date: '9.30', title: '独山子 → 独库北段 → 那拉提 → 赛里木湖',
+    routeSub: '独库北段 · 那拉提草原 · 果子沟大桥 · 赛湖日落',
+    coverLabel: '独库北段 · 那拉提 · 赛里木湖',
     flag: 'flag-fix',
     info: [
-      { lbl: '里程', val: '约 505km' },
-      { lbl: '时长', val: '8–9h' },
+      { lbl: '里程', val: '约 650km', danger: true },
+      { lbl: '时长', val: '10–11h', danger: true },
       { lbl: '住宿', val: '赛湖 / 清水河' },
       { lbl: '进独库', val: '8:00' }
     ],
-    calloutsTop: [{ type: 'red', icon: '!', html: '<strong>今天的关键是早出发。</strong>7:00 前从独山子/奎屯出发，8:00 独库入口开放后第一批进山。晚 1 小时出发，独库车流就会明显增加，乔尔玛到赛湖的时间会被压缩。' }],
+    calloutsTop: [
+      { type: 'red', icon: '!', html: '<strong>D2 是全程最累的一天。</strong>独库北段开到那拉提草原（独库北段约 230km），游玩后从那拉提赶往赛里木湖（约 260km），总驾驶约 650km / 10–11 小时。务必两人轮换驾驶，那拉提游玩控制在 1–2 小时，否则到赛湖会很晚。' },
+      { type: 'amber', icon: '!', html: '<strong>独库通行时段 8:00–19:00。</strong>7:00 前从独山子/奎屯出发，8:00 入口开放后第一批进山，才能保证当天赶到赛湖。' }
+    ],
     timeline: [
       { t: '7:00', d: '独山子/奎屯出发，前往独库北段入口。' },
       { t: '8:00–12:00', d: '独库北段：哈希勒根达坂、雪山峡谷。沿途停车拍照，注意落石和弯道。' },
-      { t: '12:00–13:00', d: '抵达乔尔玛，午餐休整。乔尔玛是独库北段重要驿站。' },
-      { t: '13:00–17:00', d: '乔尔玛 → 果子沟大桥 → 赛里木湖。果子沟大桥车观即可。' },
-      { t: '17:00–20:00', d: '赛里木湖环湖。东门进、南门出，顺时针。克勒涌珠或月亮湾蹲日落。9 月底赛湖日落约 20:00。' }
+      { t: '12:00–13:00', d: '抵达乔尔玛，午餐休整。继续南下前往那拉提。' },
+      { t: '13:00–15:00', d: '抵达那拉提草原，游玩 1–2 小时。这里是独库公路的南端终点区域。' },
+      { t: '15:00–19:00', d: '那拉提 → 果子沟大桥 → 赛里木湖，约 260km / 4h。果子沟大桥车观。' },
+      { t: '19:00–20:30', d: '赛里木湖环湖看日落。9 月底赛湖日落约 20:00。' }
     ],
     spots: [
       { title: '核心景点', items: [
         '<strong>独库北段：</strong>中国最美公路之一，一日四季。哈希勒根达坂是核心打卡点。',
-        '<strong>果子沟大桥：</strong>新疆地标，峡谷大桥，车观即可，不用停车久留。',
-        '<strong>赛里木湖：</strong>克勒涌珠（湖水最蓝）、月亮湾（日落）、松树头（俯瞰全湖 + 果子沟大桥）。'
+        '<strong>那拉提草原：</strong>空中草原，独库公路南端终点区域。建议游玩 1–2 小时，不要久留。',
+        '<strong>果子沟大桥：</strong>新疆地标，峡谷大桥，车观即可。',
+        '<strong>赛里木湖：</strong>克勒涌珠、月亮湾、松树头。傍晚看日落。'
       ]}
     ],
     bookings: [
       { icon: 'must', label: '必', title: '赛里木湖自驾车名额', tag: { cls: 'tag-fix', text: '限量' }, desc: '“一部手机游赛湖”小程序。每日限量 2000–3000 辆，每天 10:00 放票，提前 3–7 天抢。现场不售自驾票。' },
-      { icon: 'free', label: '免', title: '独库北段通行', tag: null, desc: '2026 年 9 月 1 日起已取消预约制，免费通行。但通行时段仍为 8:00–19:00，19:00 后入口关闭。' }
+      { icon: 'free', label: '免', title: '独库北段通行', tag: null, desc: '2026 年 9 月 1 日起已取消预约制，免费通行。但通行时段仍为 8:00–19:00。' }
     ],
     calloutsBottom: [
-      { type: 'amber', icon: '!', html: '<strong>加油提醒：</strong>独山子进山前加满油。独库沿途加油站不到 10 个，部分季节性关闭。赛里木湖环湖 90km 无加油站，进景区前确认油量充足。' },
-      { type: 'amber', icon: '!', html: '<strong>限速提醒：</strong>赛里木湖环湖限速 30–40km/h，仅观景台可停车，路边乱停罚款 200 元。' }
+      { type: 'amber', icon: '!', html: '<strong>加油提醒：</strong>独山子进山前加满油。独库沿途加油站稀少。那拉提镇有加油站，可补给。' },
+      { type: 'red', icon: '!', html: '<strong>疲劳驾驶提醒：</strong>D2 全程 650km，是全程最长的一天。务必两人轮换，每 2 小时休息一次。' }
     ]
   },
   3: {
@@ -1134,22 +1096,22 @@ const TRIPS = {
       { lbl: '住宿', val: '克拉玛依/乌尔禾' },
       { lbl: '魔鬼城', val: '约 62 元' }
     ],
-    calloutsTop: [{ type: 'green', icon: '✓', html: '<strong>里程已重新分配。</strong>原D3赛里木湖→布尔津约780km，现在拆为两天：D3只到克拉玛依/乌尔禾（420km），D4从乌尔禾到贾登峪（360km）。两天都不疲劳。' }],
+    calloutsTop: [{ type: 'green', icon: '✓', html: '<strong>里程已重新分配。</strong>D3 只到克拉玛依/乌尔禾（420km），D4 从乌尔禾到贾登峪（360km）。两天都不疲劳。' }],
     timeline: [
-      { t: '上午', d: '赛里木湖出发，走G30高速前往克拉玛依/乌尔禾。沿途戈壁风光，中途在服务区休整。' },
+      { t: '上午', d: '赛里木湖出发，走 G30 高速前往克拉玛依/乌尔禾。沿途戈壁风光，中途服务区休整。' },
       { t: '下午', d: '抵达乌尔禾，办理入住。休整后准备进魔鬼城。' },
-      { t: '18:00–21:00', d: '进乌尔禾魔鬼城追日落。观光小火车+徒步结合，雅丹地貌在夕阳下呈现红褐色。' }
+      { t: '18:00–21:00', d: '进乌尔禾魔鬼城追日落。观光小火车 + 徒步结合，雅丹地貌在夕阳下呈现红褐色。' }
     ],
     spots: [
       { title: '核心景点', items: [
-        '<strong>乌尔禾世界魔鬼城：</strong>典型的雅丹地貌，18:00后入园拍日落最佳。观光小火车+徒步结合。',
-        '<strong>沿途戈壁：</strong>G30高速沿线，中途服务区休整即可，不安排景点停留。'
+        '<strong>乌尔禾世界魔鬼城：</strong>典型的雅丹地貌，18:00 后入园拍日落最佳。观光小火车 + 徒步结合。',
+        '<strong>沿途戈壁：</strong>G30 高速沿线，中途服务区休整即可。'
       ]}
     ],
     bookings: [
-      { icon: 'rec', label: '建', title: '乌尔禾魔鬼城套票', tag: { cls: 'tag-ok', text: '价格更正' }, desc: '旺季套票约62元（门票42+观光小火车20）。线上提前购票即可，不强制抢名额。' }
+      { icon: 'rec', label: '建', title: '乌尔禾魔鬼城套票', tag: { cls: 'tag-ok', text: '价格更正' }, desc: '旺季套票约 62 元（门票 42 + 观光小火车 20）。线上提前购票即可。' }
     ],
-    calloutsBottom: [{ type: 'green', icon: '✓', html: '<strong>今日行程轻松。</strong>420km / 5–6h，比原计划轻松很多。下午到乌尔禾后有时间休整，傍晚进魔鬼城刚好赶上日落。' }]
+    calloutsBottom: [{ type: 'green', icon: '✓', html: '<strong>今日行程轻松。</strong>420km / 5–6h。下午到乌尔禾后有时间休整，傍晚进魔鬼城刚好赶上日落。' }]
   },
   4: {
     date: '10.2', title: '乌尔禾 → 布尔津 → 贾登峪',
@@ -1164,21 +1126,21 @@ const TRIPS = {
     ],
     timeline: [
       { t: '上午', d: '乌尔禾出发，前往布尔津。沿途戈壁逐渐变为草原河谷。' },
-      { t: '中午', d: '抵达布尔津，午餐。布尔津到五彩滩仅25km，顺路前往五彩滩。' },
-      { t: '下午', d: '游览五彩滩（雅丹地貌+额尔齐斯河）。之后继续前往贾登峪，约120km / 2.5–3h。' },
+      { t: '中午', d: '抵达布尔津，午餐。布尔津到五彩滩仅 25km，顺路前往五彩滩。' },
+      { t: '下午', d: '游览五彩滩（雅丹地貌 + 额尔齐斯河）。之后继续前往贾登峪，约 120km / 2.5–3h。' },
       { t: '傍晚', d: '抵达贾登峪，办理入住。贾登峪是喀纳斯景区换乘中心，私家车停停车场。' }
     ],
     spots: [
       { title: '核心景点', items: [
-        '<strong>五彩滩：</strong>雅丹地貌+额尔齐斯河，日落时分色彩最丰富。门票45元/人，建议提前一天在“阿勒泰智慧旅游平台”购票。',
+        '<strong>五彩滩：</strong>雅丹地貌 + 额尔齐斯河，日落时分色彩最丰富。门票 45 元/人。',
         '<strong>贾登峪：</strong>喀纳斯景区换乘中心。私家车止步于此，统一坐区间车进景区。'
       ]}
     ],
     bookings: [
-      { icon: 'must', label: '必', title: '贾登峪住宿', tag: { cls: 'tag-fix', text: '国庆紧张' }, desc: '国庆贾登峪住宿同样紧张，建议提前15天以上下单。虽然不如村内方便，但比抢不到房强。' },
-      { icon: 'rec', label: '建', title: '五彩滩门票', tag: null, desc: '45元/人，“阿勒泰智慧旅游平台”提前购票。日落黄金时段19:30–20:00。' }
+      { icon: 'must', label: '必', title: '贾登峪住宿', tag: { cls: 'tag-fix', text: '国庆紧张' }, desc: '国庆贾登峪住宿紧张，建议提前 15 天以上下单。D4–D6 连住 3 晚。' },
+      { icon: 'rec', label: '建', title: '五彩滩门票', tag: null, desc: '45 元/人，“阿勒泰智慧旅游平台”提前购票。日落黄金时段 19:30–20:00。' }
     ],
-    calloutsBottom: [{ type: 'amber', icon: '!', html: '<strong>贾登峪住宿说明：</strong>住贾登峪意味着每天进出景区需要坐区间车（约30分钟）。喀纳斯区间车运营时间08:00–20:00，返程末班车20:00，旺季应急车可延长至22:30，时间上完全来得及。' }]
+    calloutsBottom: [{ type: 'amber', icon: '!', html: '<strong>贾登峪住宿说明：</strong>住贾登峪意味着每天进出景区需要坐区间车（约 30 分钟）。喀纳斯区间车运营时间 08:00–20:00，返程末班车 20:00。' }]
   },
   5: {
     date: '10.3', title: '喀纳斯深度游 Day1 · 观鱼台',
@@ -1192,164 +1154,203 @@ const TRIPS = {
       { lbl: '开放', val: '09:00–18:00' }
     ],
     calloutsTop: [
-      { type: 'green', icon: '✓', html: '<strong>观鱼台已确认开放。</strong>2026 年国庆期间正常运营，每日限流 8000 人，开放时间 09:00–18:00，分时预约制（每 30 分钟一个时段，每时段 300 人）。恶劣天气可能临时关闭，出发前查“喀纳斯景区”公众号确认。' },
+      { type: 'green', icon: '✓', html: '<strong>观鱼台已确认开放。</strong>2026 年国庆期间正常运营，每日限流 8000 人，开放时间 09:00–18:00，分时预约制（每 30 分钟一个时段，每时段 300 人）。恶劣天气可能临时关闭。' },
       { type: 'amber', icon: '!', html: '<strong>区间车专线：</strong>从换乘中心 2 号口乘车，往返 20 元/人。上山末班车 18:00，下山末班车 20:00。下车后需攀登 <strong>1068 级台阶</strong>登顶，约 40–90 分钟，建议最晚 16:00 前上山。' }
     ],
     timeline: [
-      { t: '8:00', d: '贾登峪坐首班区间车进景区，约30分钟到换乘中心。' },
+      { t: '8:00', d: '贾登峪坐首班区间车进景区，约 30 分钟到换乘中心。' },
       { t: '9:00–12:00', d: '换乘中心 2 号口乘观鱼台专线车，登 1068 级台阶，俯瞰喀纳斯湖全景。' },
       { t: '12:00–13:00', d: '下山，在换乘中心或喀纳斯村午餐。' },
-      { t: '13:00–17:00', d: '三湾徒步：神仙湾→月亮湾→卧龙湾。沿栈道慢走，拍照。' },
-      { t: '17:00–18:30', d: '喀纳斯湖湖边栈道，欣赏湖水渐变蓝绿色。坐区间车返回贾登峪。注意末班车20:00。' }
+      { t: '13:00–17:00', d: '三湾徒步：神仙湾 → 月亮湾 → 卧龙湾。沿栈道慢走，拍照。' },
+      { t: '17:00–18:30', d: '喀纳斯湖湖边栈道。坐区间车返回贾登峪。注意末班车 20:00。' }
     ],
     spots: [
       { title: '核心景点', items: [
-        '<strong>观鱼台：</strong>喀纳斯最佳俯瞰点，1068 级台阶登顶后可俯瞰整片喀纳斯湖全景。2026 年国庆期间正常开放，限流 8000 人/日，务必提前预约时段。',
+        '<strong>观鱼台：</strong>喀纳斯最佳俯瞰点，1068 级台阶登顶后可俯瞰整片喀纳斯湖全景。限流 8000 人/日，务必提前预约时段。',
         '<strong>神仙湾：</strong>清晨晨雾是喀纳斯标志性景观，但住贾登峪赶不上首班车前到达。下午光线也不错。',
-        '<strong>月亮湾：</strong>S形河道，喀纳斯标志性画面。',
+        '<strong>月亮湾：</strong>S 形河道，喀纳斯标志性画面。',
         '<strong>卧龙湾：</strong>森林倒影，沿栈道可串联游览。',
-        '<strong>喀纳斯湖湖边栈道：</strong>湖水渐变蓝绿色，与观鱼台形成上下两种视角。'
+        '<strong>喀纳斯湖湖边栈道：</strong>湖水渐变蓝绿色。'
       ]}
     ],
     bookings: [
-      { icon: 'must', label: '必', title: '观鱼台分时预约', tag: { cls: 'tag-fix', text: '限流8000/日' }, desc: '“喀纳斯景区”或“原行网”公众号预约，每30分钟一个时段，每时段300人。旺季建议提前3天预约，当天基本抢不到。' },
-      { icon: 'rec', label: '建', title: '观鱼台专线车票', tag: null, desc: '换乘中心2号口乘车，往返20元/人。上山末班车18:00，下山末班车20:00。' }
+      { icon: 'must', label: '必', title: '观鱼台分时预约', tag: { cls: 'tag-fix', text: '限流 8000/日' }, desc: '“喀纳斯景区”或“原行网”公众号预约，每 30 分钟一个时段，每时段 300 人。旺季建议提前 3 天预约。' },
+      { icon: 'rec', label: '建', title: '观鱼台专线车票', tag: null, desc: '换乘中心 2 号口乘车，往返 20 元/人。上山末班车 18:00，下山末班车 20:00。' }
     ],
     calloutsBottom: [
-      { type: 'amber', icon: '!', html: '<strong>晨雾的现实取舍：</strong>住贾登峪无法拍到神仙湾清晨晨雾（区间车8:00才发车，晨雾最佳窗口约5:30–8:00）。如果对晨雾有执念，需要重新考虑村内住宿。否则就接受这个遗憾，把重点放在观鱼台和三湾上。' },
-      { type: 'green', icon: '✓', html: '<strong>天气提醒：</strong>观鱼台遇恶劣天气（大风、降雪）会临时关闭。出发前一天查“喀纳斯景区”公众号确认开放状态。' }
+      { type: 'amber', icon: '!', html: '<strong>晨雾的现实取舍：</strong>住贾登峪无法拍到神仙湾清晨晨雾（区间车 8:00 才发车，晨雾最佳窗口约 5:30–8:00）。把重点放在观鱼台和三湾上。' },
+      { type: 'green', icon: '✓', html: '<strong>天气提醒：</strong>观鱼台遇恶劣天气（大风、降雪）会临时关闭。出发前一天查“喀纳斯景区”公众号确认。' }
     ]
   },
   6: {
-    date: '10.4', title: '喀纳斯深度游 Day2 → 禾木',
-    routeSub: '补拍三湾 · 转场禾木 · 禾木村入住',
-    coverLabel: '喀纳斯 → 禾木',
+    date: '10.4', title: '喀纳斯深度游 Day2 · 住贾登峪',
+    routeSub: '补拍三湾 · 湖边栈道 · 继续住贾登峪',
+    coverLabel: '喀纳斯 · 深度 Day2',
     flag: 'flag-ok',
     info: [
-      { lbl: '交通', val: '景区内+65km' },
-      { lbl: '住宿', val: '禾木村内' },
-      { lbl: '禾木门票', val: '102 元' },
-      { lbl: '车程', val: '1–2h' }
+      { lbl: '交通', val: '区间车往返' },
+      { lbl: '住宿', val: '贾登峪' },
+      { lbl: '门票', val: '二进票更划算' },
+      { lbl: '注意', val: '今晚仍住贾登峪' }
     ],
     timeline: [
-      { t: '8:00', d: '贾登峪坐区间车进景区，补拍三湾不同光线（如果前一天没拍够）。如D5未上观鱼台，今天上午可补上。' },
-      { t: '中午', d: '出景区，回贾登峪取车。午餐后出发前往禾木。' },
-      { t: '14:00–16:00', d: '贾登峪 → 禾木，约65km / 1–2h。车停禾木游客换乘中心，坐区间车进村。' },
-      { t: '下午–傍晚', d: '入住禾木村内木屋。逛禾木桥、白桦林、老村图瓦木屋。傍晚拍村落日落。' }
+      { t: '8:00', d: '贾登峪坐区间车进景区，补拍三湾不同光线。如 D5 未上观鱼台，今天上午可补上。' },
+      { t: '中午', d: '在喀纳斯村或换乘中心午餐。' },
+      { t: '下午', d: '继续深度游：湖边栈道慢走，或补拍前一天没拍够的点位。' },
+      { t: '傍晚', d: '坐区间车返回贾登峪，入住。今晚仍住贾登峪，不前往禾木。' }
     ],
     spots: [
       { title: '核心景点', items: [
-        '<strong>禾木桥：</strong>百年木桥，禾木标志性打卡点。',
-        '<strong>白桦林：</strong>秋季金黄，适合慢逛拍照。',
-        '<strong>老村图瓦木屋：</strong>图瓦人传统建筑，傍晚炊烟升起时最有氛围。'
+        '<strong>三湾补拍：</strong>不同光线下的神仙湾、月亮湾、卧龙湾。',
+        '<strong>喀纳斯湖湖边栈道：</strong>深度徒步，欣赏湖水渐变蓝绿色。',
+        '<strong>喀纳斯老村：</strong>图瓦人村落，慢逛木屋。'
       ]}
     ],
     bookings: [
-      { icon: 'must', label: '必', title: '禾木村内住宿', tag: { cls: 'tag-fix', text: '比门票更难' }, desc: '国庆禾木村内木屋极度稀缺，建议提前15天以上下单锁房。' },
-      { icon: 'rec', label: '建', title: '禾木门票+区间车', tag: null, desc: '102元/人，建议提前在“原行网”预约。自驾车停禾木游客换乘中心。' }
+      { icon: 'must', label: '必', title: '喀纳斯门票 + 区间车', tag: { cls: 'tag-warn', text: '二进票' }, desc: 'D5–D6 两天进出景区，建议买二进票。一进 230 元，二进约 270 元。' }
     ],
-    calloutsBottom: [{ type: 'green', icon: '✓', html: '<strong>从贾登峪到禾木有景区大巴，</strong>上午10点、下午4点各一趟，在贾登峪停车场坐车。自驾更灵活，约65km / 1–2h。' }]
+    calloutsBottom: [{ type: 'amber', icon: '!', html: '<strong>今晚仍住贾登峪。</strong>明天（D7）一早从贾登峪赶到禾木看晨雾，车程约 36–65km，需早起出发。' }]
   },
   7: {
-    date: '10.5', title: '禾木晨雾 → 克拉玛依',
-    routeSub: '哈登观景台日出 · 禾木慢逛 · 返回乌尔禾',
-    coverLabel: '禾木晨雾 · 克拉玛依',
+    date: '10.5', title: '贾登峪 → 禾木 → 阿禾公路 → 北屯',
+    routeSub: '禾木晨雾 · 阿禾公路 · 北屯入住',
+    coverLabel: '禾木 · 阿禾公路 · 北屯',
     flag: 'flag-warn',
     info: [
-      { lbl: '里程', val: '约 420km' },
-      { lbl: '时长', val: '5–6h' },
-      { lbl: '住宿', val: '克拉玛依/乌尔禾' },
-      { lbl: '晨雾', val: '日出前出发' }
+      { lbl: '里程', val: '约 370km' },
+      { lbl: '时长', val: '6–7h' },
+      { lbl: '住宿', val: '北屯市' },
+      { lbl: '阿禾公路', val: '209km' }
+    ],
+    calloutsTop: [
+      { type: 'amber', icon: '!', html: '<strong>今天要早起。</strong>早上从贾登峪赶到禾木（约 36–65km），争取在日出前后抵达，看禾木晨雾。之后走<strong>阿禾公路</strong>（209km）到阿勒泰市，再南下北屯住下。' }
     ],
     timeline: [
-      { t: '日出前', d: '哈登观景台看日出+晨雾+村落炊烟。这是禾木顶级摄影机位，务必早起。' },
-      { t: '上午', d: '看完日出返回住处吃早餐，慢逛村落。约10:00–11:00出发。' },
-      { t: '11:00–17:00', d: '禾木 → 克拉玛依/乌尔禾，约420km / 5–6h。' },
-      { t: '傍晚', d: '抵达克拉玛依/乌尔禾。如果D3没来得及去魔鬼城，今天傍晚可以补上。' }
+      { t: '日出前', d: '贾登峪出发赶往禾木，争取日出前后抵达。哈登观景台看日出 + 晨雾 + 村落炊烟。' },
+      { t: '上午', d: '禾木村慢逛：禾木桥、白桦林、老村图瓦木屋。' },
+      { t: '中午', d: '禾木午餐后出发，走阿禾公路前往阿勒泰市。' },
+      { t: '下午', d: '阿禾公路 209km，沿途秋季风光。抵达阿勒泰市后南下北屯。' },
+      { t: '傍晚', d: '抵达北屯市，办理入住。' }
     ],
     spots: [
       { title: '核心景点', items: [
-        '<strong>哈登观景台：</strong>日出+晨雾+村落炊烟，禾木全年顶级摄影点。',
-        '<strong>禾木晨雾：</strong>秋季清晨河谷起雾，配合炊烟和白桦林，是禾木最经典的画面。'
+        '<strong>禾木晨雾：</strong>哈登观景台看日出 + 晨雾 + 村落炊烟，禾木顶级摄影机位。',
+        '<strong>禾木桥：</strong>百年木桥，禾木标志性打卡点。',
+        '<strong>白桦林：</strong>秋季金黄，适合慢逛拍照。',
+        '<strong>阿禾公路：</strong>禾木到阿勒泰的景观公路，209km，沿途秋季风光优美。'
+      ]}
+    ],
+    bookings: [
+      { icon: 'rec', label: '建', title: '禾木门票 + 区间车', tag: null, desc: '102 元/人，建议提前在“原行网”预约。自驾车停禾木游客换乘中心。' }
+    ],
+    calloutsBottom: [
+      { type: 'amber', icon: '!', html: '<strong>阿禾公路提醒：</strong>阿禾公路全长 209km，沿途加油站点少，出发前在禾木或布尔津加满油。10 月初山区可能降雪，注意路况。' },
+      { type: 'green', icon: '✓', html: '<strong>北屯住宿：</strong>北屯市是阿勒泰地区交通枢纽，酒店选择多，价格实惠。' }]
+  },
+  8: {
+    date: '10.6', title: '北屯 → 乌伦古湖 → 乌鲁木齐',
+    routeSub: '乌伦古湖 · S21 沙漠公路 · 返回乌市',
+    coverLabel: '乌伦古湖 · 返回乌市',
+    flag: 'flag-warn',
+    info: [
+      { lbl: '里程', val: '约 550km' },
+      { lbl: '时长', val: '7–8h' },
+      { lbl: '住宿', val: '乌鲁木齐' },
+      { lbl: '乌伦古湖', val: '免费' }
+    ],
+    calloutsTop: [
+      { type: 'amber', icon: '!', html: '<strong>今天是长途驾驶日。</strong>北屯出发先游乌伦古湖（约 30 分钟–1 小时车程），之后经 S21 沙漠公路返回乌鲁木齐，全程约 550km / 7–8 小时。建议两人轮换驾驶。' }
+    ],
+    timeline: [
+      { t: '上午', d: '北屯出发，前往乌伦古湖。车程约 30 分钟–1 小时。乌伦古湖景区免费，看海子风光。' },
+      { t: '中午', d: '返回北屯或沿途午餐。之后出发前往乌鲁木齐。' },
+      { t: '下午', d: '经 S21 沙漠公路南下，沿途戈壁沙漠风光。中途服务区休整。' },
+      { t: '傍晚–晚上', d: '抵达乌鲁木齐，办理入住。D8–D10 连住乌市 2 晚。' }
+    ],
+    spots: [
+      { title: '核心景点', items: [
+        '<strong>乌伦古湖：</strong>新疆第二大湖泊，又称布伦托海。景区免费，可看海子风光、湿地。',
+        '<strong>S21 沙漠公路：</strong>穿越古尔班通古特沙漠，沿途沙漠戈壁风光。'
       ]}
     ],
     bookings: [],
-    calloutsBottom: [{ type: 'amber', icon: '!', html: '<strong>早起提醒：</strong>哈登观景台需要爬台阶，建议日出前1小时出发。10月初禾木清晨气温接近0℃，穿厚羽绒服。' }]
-  },
-  8: {
-    date: '10.6', title: '乌尔禾 → 奎屯',
-    routeSub: '百里油田 · 独山子大峡谷（可选）',
-    coverLabel: '百里油田 · 奎屯',
-    flag: 'flag-ok',
-    info: [
-      { lbl: '里程', val: '约 320km' },
-      { lbl: '时长', val: '4h' },
-      { lbl: '住宿', val: '奎屯' }
-    ],
-    spots: [
-      { title: '核心景点', items: [
-        '<strong>百里油田：</strong>沿途可见抽油机，克拉玛依油田标志性景观。',
-        '<strong>独山子大峡谷：</strong>可选。门票 30 元，线上购票常有优惠。时间紧张可跳过。'
-      ]}
-    ],
-    calloutsBottom: [{ type: 'green', icon: '✓', html: '<strong>今日行程轻松。</strong>320km / 4h，是全程较短的一天。可在奎屯休整，为次日回乌市做准备。' }]
+    calloutsBottom: [
+      { type: 'red', icon: '!', html: '<strong>长途驾驶提醒：</strong>550km / 7–8 小时，务必两人轮换。S21 沙漠公路服务区间距大，油箱过半就加满。' }
+    ]
   },
   9: {
-    date: '10.7', title: '奎屯 → 乌市（天池可选）',
-    routeSub: '天山天池（可选） · 乌鲁木齐休整',
-    coverLabel: '天山天池 · 返程乌市',
+    date: '10.7', title: '乌市 → 天山大峡谷 → 乌市',
+    routeSub: '天山大峡谷一日游 · 住乌市',
+    coverLabel: '天山大峡谷 · 住乌市',
     flag: 'flag-fix',
     info: [
-      { lbl: '里程', val: '约 240km' },
-      { lbl: '时长', val: '3.5h' },
+      { lbl: '里程', val: '约 100km 往返' },
+      { lbl: '时长', val: '单程 1h' },
       { lbl: '住宿', val: '乌鲁木齐' },
-      { lbl: '天池套票', val: '155 元' }
+      { lbl: '门票', val: '约 110 元' }
+    ],
+    calloutsTop: [
+      { type: 'green', icon: '✓', html: '<strong>天山大峡谷距离乌市约 48km，自驾单程约 1 小时。</strong>旺季门票 60 元 + 区间车 50 元（合计 110 元/人）；自驾入园的话，门票 60 元/人 + 自驾车费 50 元/辆。开放时间 09:00–19:00，18:00 停止入园。' }
     ],
     timeline: [
-      { t: '方案 A', d: '去天山天池。必须提前 1 天通过“寻梦天山做客天池”小程序实名预约，现场无人工窗口。' },
-      { t: '方案 B', d: '直接回乌鲁木齐休整，采购伴手礼。国庆天池人流量极大，不想挤可以跳过。' }
+      { t: '上午', d: '乌市出发，走河滩快速路转连霍高速，前往天山大峡谷。单程约 1 小时。' },
+      { t: '上午–下午', d: '游览天山大峡谷。景区内部约 40 公里环形单行道，自驾可随停随拍。' },
+      { t: '傍晚', d: '返回乌鲁木齐市区，入住。' }
     ],
     spots: [
       { title: '核心景点', items: [
-        '<strong>天山天池：</strong>2026 年 7 月起全面分时预约，必须提前 1 天通过“寻梦天山做客天池”小程序预约，现场无人工售票窗口。旺季套票 155 元（门票 95 + 区间车 60）。'
+        '<strong>天山大峡谷：</strong>位于乌鲁木齐县板房沟镇，距市区约 48km。景区内部 40 公里环形单行道，自驾体验好。',
+        '<strong>自驾优势：</strong>可以随停随拍，不用排队等区间车。'
       ]}
     ],
-    calloutsBottom: [{ type: 'red', icon: '!', html: '<strong>天池预约政策已更新。</strong>2026 年 7 月起全面分时预约，现场无人工售票窗口。国庆建议提前 3 天占位。不去可直接回市区躺平休整。' }]
+    bookings: [
+      { icon: 'rec', label: '建', title: '天山大峡谷门票', tag: null, desc: '旺季门票 60 元 + 区间车 50 元；自驾入园门票 60 元/人 + 自驾车费 50 元/辆。' }
+    ],
+    calloutsBottom: [{ type: 'green', icon: '✓', html: '<strong>住乌市的好处：</strong>玩完天山大峡谷后回市区住，D10 上午可以从容地去博物馆，然后还车赶飞机。' }]
   },
   10: {
-    date: '10.8', title: '乌市市区 → 地窝堡机场',
-    routeSub: '还车 · 16:00 航班飞回上海',
-    coverLabel: '返程 · 乌鲁木齐机场',
+    date: '10.8', title: '乌市 → 新疆博物馆 → 地窝堡机场',
+    routeSub: '博物馆 · 还车 · 16:00 航班飞回上海',
+    coverLabel: '博物馆 · 返程',
     flag: 'flag-ok',
     info: [
-      { lbl: '里程', val: '25km' },
-      { lbl: '时长', val: '0.5–1h' },
+      { lbl: '里程', val: '约 35km' },
+      { lbl: '时长', val: '1h' },
       { lbl: '航班', val: '16:00' },
       { lbl: '还车缓冲', val: '2 小时' }
     ],
-    calloutsTop: [{ type: 'amber', icon: '!', html: '<strong>还车预留 2 小时！</strong>国庆期间乌市机场拥堵，还车 + 安检 + 登机需要充足时间。16:00 航班建议 13:00 前到达机场。' }],
+    calloutsTop: [
+      { type: 'amber', icon: '!', html: '<strong>还车预留 2 小时！</strong>国庆期间乌市机场拥堵，还车 + 安检 + 登机需要充足时间。16:00 航班建议 13:00 前到达机场。' },
+      { type: 'green', icon: '✓', html: '<strong>新疆博物馆：</strong>上午去博物馆，看“五星出东方利中国”锦护膊等镇馆之宝。博物馆距机场约 14–20km，逛完直接去机场还车。' }
+    ],
+    timeline: [
+      { t: '上午', d: '乌市出发，前往新疆博物馆。看镇馆之宝，了解新疆历史。' },
+      { t: '中午', d: '博物馆附近午餐。之后出发前往地窝堡机场。' },
+      { t: '13:00 前', d: '到达机场，还车预留 2 小时。安检、登机。' },
+      { t: '16:00', d: '航班起飞，返回上海。' }
+    ],
     spots: [
-      { title: '返程清单', items: [
-        '确认还车时间，预留 2 小时机场缓冲。',
-        '检查车辆油量、外观，拍照留存。',
-        '清点随身物品，特别是证件、充电器、备用药品。',
-        '伴手礼可在市区提前采购，机场选择少且贵。'
+      { title: '核心景点', items: [
+        '<strong>新疆博物馆：</strong>看“五星出东方利中国”锦护膊、干尸陈列等镇馆之宝。了解新疆历史文化的第一站。'
       ]}
+    ],
+    bookings: [
+      { icon: 'rec', label: '建', title: '新疆博物馆预约', tag: null, desc: '免费，建议提前在“新疆博物馆”公众号预约。' }
     ]
   }
 };
 
 const DAY_TAGS = {
-  1: [{ cls: 'tag-fix', text: '已调整' }, { cls: 'tag-warn', text: '不进独库' }],
-  2: [{ cls: 'tag-fix', text: '已调整' }, { cls: 'tag-warn', text: '早出发' }],
+  1: [{ cls: 'tag-fix', text: '不进独库' }, { cls: 'tag-warn', text: '早休息' }],
+  2: [{ cls: 'tag-fix', text: '全程最累' }, { cls: 'tag-warn', text: '650km' }],
   3: [{ cls: 'tag-warn', text: '里程合理' }, { cls: 'tag-ok', text: '魔鬼城日落' }],
   4: [{ cls: 'tag-ok', text: '贾登峪入住' }, { cls: 'tag-info', text: '途经五彩滩' }],
   5: [{ cls: 'tag-ok', text: '观鱼台开放' }, { cls: 'tag-warn', text: '限流8000/日' }],
-  6: [{ cls: 'tag-ok', text: '转场禾木' }, { cls: 'tag-warn', text: '村内住宿紧张' }],
-  7: [{ cls: 'tag-warn', text: '早起看晨雾' }, { cls: 'tag-ok', text: '哈登观景台' }],
-  8: [{ cls: 'tag-ok', text: '轻松日' }],
-  9: [{ cls: 'tag-fix', text: '天池需预约' }],
-  10: [{ cls: 'tag-ok', text: '返程' }]
+  6: [{ cls: 'tag-ok', text: '喀纳斯 Day2' }, { cls: 'tag-info', text: '仍住贾登峪' }],
+  7: [{ cls: 'tag-warn', text: '早起看晨雾' }, { cls: 'tag-ok', text: '阿禾公路' }],
+  8: [{ cls: 'tag-warn', text: '长途550km' }, { cls: 'tag-ok', text: '乌伦古湖' }],
+  9: [{ cls: 'tag-ok', text: '天山大峡谷' }, { cls: 'tag-info', text: '单程1h' }],
+  10: [{ cls: 'tag-ok', text: '博物馆' }, { cls: 'tag-warn', text: '还车2h' }]
 };
 
 /* ============================================================
@@ -1541,7 +1542,6 @@ window.addEventListener('popstate', function(e) {
   else showOverview(true);
 });
 
-/* 触摸滑动 */
 let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
 document.addEventListener('touchstart', function(e) {
   if (!document.getElementById('subnav').classList.contains('visible')) return;
@@ -1564,7 +1564,6 @@ document.addEventListener('touchend', function(e) {
   touchStartY = 0;
 }, { passive: true });
 
-/* 键盘 */
 document.addEventListener('keydown', function(e) {
   if (!document.getElementById('subnav').classList.contains('visible')) return;
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
@@ -1573,7 +1572,6 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') { e.preventDefault(); showOverview(); }
 });
 
-/* 初始化 */
 (function init() {
   const hash = location.hash.replace('#', '');
   if (hash && hash.startsWith('day')) {
