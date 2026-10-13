@@ -461,53 +461,65 @@
         </defs>
 
         <rect width="960" height="800" fill="url(#map-bg)"/>
-        <ellipse cx="580" cy="380" rx="320" ry="180" fill="#e6d9c0" opacity="0.35"/>
+        <ellipse cx="580" cy="420" rx="320" ry="180" fill="#e6d9c0" opacity="0.35"/>
         <ellipse cx="480" cy="740" rx="400" ry="110" fill="#ddd0b6" opacity="0.3"/>
-        <path d="M0 600 Q120 555 240 575 Q360 595 480 570 Q600 545 720 570 Q840 595 960 570"
+        <path d="M0 640 Q120 595 240 615 Q360 635 480 610 Q600 585 720 610 Q840 635 960 610"
               stroke="#c8b8a0" stroke-width="26" fill="none" opacity="0.18" stroke-linecap="round"/>
-        <path d="M620 170 Q720 135 820 145 Q890 152 960 172"
+        <path d="M620 200 Q720 165 820 175 Q890 182 960 202"
               stroke="#c8b8a0" stroke-width="22" fill="none" opacity="0.18" stroke-linecap="round"/>
 
-        <!-- 去程 -->
+        <!-- 去程：乌市 → 独山子/奎屯 -->
         <g>
           <path d="M 780 650 Q 630 600 480 620" stroke="#c44d3c" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.9"/>
           <path d="M 780 650 Q 630 600 480 620" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow" opacity="0.75"/>
         </g>
+        <!-- 独山子/奎屯 → 那拉提（独库北段） -->
         <g>
           <path d="M 480 620 L 460 700" stroke="#c44d3c" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.9"/>
           <path d="M 480 620 L 460 700" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow" opacity="0.75"/>
         </g>
+        <!-- 那拉提 → 赛里木湖 -->
         <g>
           <path d="M 460 700 Q 430 640 130 520" stroke="#c44d3c" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.9"/>
           <path d="M 460 700 Q 430 640 130 520" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow" opacity="0.75"/>
         </g>
+        <!-- 赛里木湖 → 克拉玛依/乌尔禾 -->
         <g>
           <path d="M 130 520 Q 320 460 500 350" stroke="#c44d3c" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.9"/>
           <path d="M 130 520 Q 320 460 500 350" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow" opacity="0.75"/>
         </g>
+        <!-- 乌尔禾 → 布尔津 -->
         <g>
           <path d="M 500 350 Q 600 290 700 210" stroke="#c44d3c" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.9"/>
           <path d="M 500 350 Q 600 290 700 210" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow" opacity="0.75"/>
         </g>
+        <!-- 布尔津 → 贾登峪 -->
         <g>
           <path d="M 700 210 Q 750 165 790 120" stroke="#c44d3c" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.9"/>
           <path d="M 700 210 Q 750 165 790 120" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow" opacity="0.75"/>
         </g>
+        <!-- 贾登峪 → 禾木 -->
         <g>
           <path d="M 790 120 Q 830 95 860 75" stroke="#c44d3c" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.9"/>
           <path d="M 790 120 Q 830 95 860 75" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow" opacity="0.75"/>
         </g>
 
-        <!-- 禾木 → 阿禾公路 → 北屯（新增） -->
+        <!-- 禾木 → 阿禾公路 → 阿勒泰市：从禾木出发，整体向下 -->
         <g>
-          <path d="M 860 75 Q 780 40 650 60 Q 540 80 490 180" stroke="#c44d3c" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.9"/>
-          <path d="M 860 75 Q 780 40 650 60 Q 540 80 490 180" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow" opacity="0.75"/>
+          <path d="M 860 75 Q 820 200 740 280 Q 660 340 590 380" stroke="#c44d3c" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.9"/>
+          <path d="M 860 75 Q 820 200 740 280 Q 660 340 590 380" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow" opacity="0.75"/>
+        </g>
+
+        <!-- 阿勒泰市 → 北屯：继续向下 -->
+        <g>
+          <path d="M 590 380 L 540 450" stroke="#c44d3c" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.9"/>
+          <path d="M 590 380 L 540 450" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow" opacity="0.75"/>
         </g>
 
         <!-- 北屯 → 乌伦古湖 → 乌市（返程虚线） -->
         <g>
-          <path d="M 490 180 Q 440 230 460 300 Q 500 420 780 650" stroke="#3a7a7a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-dasharray="10 6" opacity="0.85"/>
-          <path d="M 490 180 Q 440 230 460 300 Q 500 420 780 650" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow map-flow-back" opacity="0.85"/>
+          <path d="M 540 450 Q 480 510 460 580 Q 500 640 780 650" stroke="#3a7a7a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-dasharray="10 6" opacity="0.85"/>
+          <path d="M 540 450 Q 480 510 460 580 Q 500 640 780 650" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" class="map-flow map-flow-back" opacity="0.85"/>
         </g>
 
         <!-- 距离标注 -->
@@ -531,11 +543,15 @@
           <rect x="-36" y="-13" width="72" height="26" rx="13" fill="#fff" stroke="#e8e2da" stroke-width="1" filter="url(#map-shadow)"/>
           <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#c44d3c">65km</text>
         </g>
-        <g transform="translate(700, 60)">
+        <g transform="translate(742, 250)">
           <rect x="-36" y="-13" width="72" height="26" rx="13" fill="#fff" stroke="#e8e2da" stroke-width="1" filter="url(#map-shadow)"/>
-          <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#c44d3c">370km</text>
+          <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#c44d3c">209km</text>
         </g>
-        <g transform="translate(560, 360)">
+        <g transform="translate(548, 420)">
+          <rect x="-32" y="-12" width="64" height="24" rx="12" fill="#fff" stroke="#e8e2da" stroke-width="1" filter="url(#map-shadow)"/>
+          <text x="0" y="5" text-anchor="middle" font-size="12" font-weight="700" fill="#c44d3c">56km</text>
+        </g>
+        <g transform="translate(560, 560)">
           <rect x="-36" y="-13" width="72" height="26" rx="13" fill="#fff" stroke="#c8dede" stroke-width="1" filter="url(#map-shadow)"/>
           <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#3a7a7a">550km</text>
         </g>
@@ -573,13 +589,17 @@
         <text x="882" y="71" font-size="16" font-weight="700" fill="#1a2332">禾木</text>
         <text x="882" y="89" font-size="11" fill="#8a817a">D7 上午 · 晨雾</text>
 
-        <circle cx="490" cy="180" r="11" fill="#c44d3c" stroke="#fff" stroke-width="3" filter="url(#map-nodeShadow)"/>
-        <text x="512" y="176" font-size="16" font-weight="700" fill="#1a2332">北屯</text>
-        <text x="512" y="194" font-size="11" fill="#8a817a">D7 住宿 · 阿禾公路终点</text>
+        <circle cx="590" cy="380" r="10" fill="#c44d3c" stroke="#fff" stroke-width="3" filter="url(#map-nodeShadow)"/>
+        <text x="608" y="376" font-size="14" font-weight="700" fill="#1a2332">阿勒泰市</text>
+        <text x="608" y="392" font-size="11" fill="#8a817a">阿禾公路终点</text>
 
-        <circle cx="450" cy="240" r="7" fill="#1a2332" stroke="#fff" stroke-width="2" filter="url(#map-nodeShadow)"/>
-        <text x="468" y="238" font-size="13" font-weight="700" fill="#1a2332">乌伦古湖</text>
-        <text x="468" y="254" font-size="11" fill="#8a817a">D8 途经</text>
+        <circle cx="540" cy="450" r="11" fill="#c44d3c" stroke="#fff" stroke-width="3" filter="url(#map-nodeShadow)"/>
+        <text x="562" y="446" font-size="16" font-weight="700" fill="#1a2332">北屯</text>
+        <text x="562" y="464" font-size="11" fill="#8a817a">D7 住宿</text>
+
+        <circle cx="490" cy="520" r="7" fill="#1a2332" stroke="#fff" stroke-width="2" filter="url(#map-nodeShadow)"/>
+        <text x="508" y="518" font-size="13" font-weight="700" fill="#1a2332">乌伦古湖</text>
+        <text x="508" y="534" font-size="11" fill="#8a817a">D8 途经</text>
 
         <!-- 图例 -->
         <g transform="translate(40, 700)">
@@ -621,7 +641,7 @@
 
     <div class="callout green">
       <div class="ci">✓</div>
-      <div class="cb"><strong>最终版行程要点：</strong>D2 独库北段开到那拉提草原，晚上赶到赛里木湖；D6 住贾登峪，D7 早上赶到禾木看晨雾，走阿禾公路到北屯；D8 北屯经乌伦古湖回乌市，D9–D10 住乌市，分别去天山大峡谷和博物馆。</div>
+      <div class="cb"><strong>最终版行程要点：</strong>D2 独库北段开到那拉提草原，晚上赶到赛里木湖；D6 住贾登峪，D7 早上赶到禾木看晨雾，走阿禾公路经阿勒泰市到北屯；D8 北屯经乌伦古湖回乌市，D9–D10 住乌市，分别去天山大峡谷和博物馆。</div>
     </div>
 
     <div class="callout amber">
@@ -1212,18 +1232,18 @@ const TRIPS = {
     calloutsBottom: [{ type: 'amber', icon: '!', html: '<strong>今晚仍住贾登峪。</strong>明天（D7）一早从贾登峪赶到禾木看晨雾，车程约 36–65km，需早起出发。' }]
   },
   7: {
-    date: '10.5', title: '贾登峪 → 禾木 → 阿禾公路 → 北屯',
-    routeSub: '禾木晨雾 · 阿禾公路 · 北屯入住',
+    date: '10.5', title: '贾登峪 → 禾木 → 阿禾公路 → 阿勒泰 → 北屯',
+    routeSub: '禾木晨雾 · 阿禾公路 · 经阿勒泰市到北屯',
     coverLabel: '禾木 · 阿禾公路 · 北屯',
     flag: 'flag-warn',
     info: [
-      { lbl: '里程', val: '约 370km' },
-      { lbl: '时长', val: '6–7h' },
+      { lbl: '里程', val: '约 265km' },
+      { lbl: '时长', val: '5–6h' },
       { lbl: '住宿', val: '北屯市' },
       { lbl: '阿禾公路', val: '209km' }
     ],
     calloutsTop: [
-      { type: 'amber', icon: '!', html: '<strong>今天要早起。</strong>早上从贾登峪赶到禾木（约 36–65km），争取在日出前后抵达，看禾木晨雾。之后走<strong>阿禾公路</strong>（209km）到阿勒泰市，再南下北屯住下。' }
+      { type: 'amber', icon: '!', html: '<strong>今天要早起。</strong>早上从贾登峪赶到禾木（约 36–65km），争取在日出前后抵达，看禾木晨雾。之后走<strong>阿禾公路</strong>（209km）到<strong>阿勒泰市</strong>，再南下约 56km 到北屯住下。' }
     ],
     timeline: [
       { t: '日出前', d: '贾登峪出发赶往禾木，争取日出前后抵达。哈登观景台看日出 + 晨雾 + 村落炊烟。' },
